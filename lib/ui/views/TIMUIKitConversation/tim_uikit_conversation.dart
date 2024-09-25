@@ -335,7 +335,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                           color: (isCurrent && isDesktopScreen)
                               ? theme.conversationItemChooseBgColor
                               : isPined
-                                  ? theme.conversationItemPinedBgColor
+                                  ? Color(0xFF00BBBD).withOpacity(0.1)
                                   : theme.conversationItemBgColor,
                           child: GestureDetector(
                             child: TIMUIKitConversationItem(
