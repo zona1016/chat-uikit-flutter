@@ -431,6 +431,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
               textFieldController.hideAllPanel();
             },
             child: Scaffold(
+              backgroundColor: Colors.transparent,
                 resizeToAvoidBottomInset: false,
                 appBar: (widget.customAppBar == null)
                     ? TIMUIKitAppBar(
