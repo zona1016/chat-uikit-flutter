@@ -133,6 +133,7 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Avatar(
+                    borderRadius: BorderRadius.all(Radius.circular(isDesktopScreen ? 20 : 22)),
                       onlineStatus: onlineStatus,
                       faceUrl: faceUrl,
                       showName: nickName,
@@ -172,7 +173,7 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
                       maxLines: 1,
                       style: TextStyle(
                         height: 1,
-                        color: theme.conversationItemTitleTextColor,
+                        color: const Color(0xFF00BBBD),
                         fontSize: isDesktopScreen ? 14 : 18,
                         fontWeight: FontWeight.w400,
                       ),
