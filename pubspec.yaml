@@ -84,8 +84,8 @@ dev_dependencies:
 
 dependency_overrides:
 
-  # tencent_chat_i18n_tool:
-  #   path: D:\Project\tencent-chat-i18n-tool
+# tencent_chat_i18n_tool:
+#   path: D:\Project\tencent-chat-i18n-tool
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

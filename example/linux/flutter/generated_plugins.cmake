@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   file_selector_linux
   image_clipboard
+  open_file_linux
   pasteboard
   url_launcher_linux
 )

@@ -1,5 +1,8 @@
 // ignore_for_file: avoid_print
 
+import 'package:example/TIMUIKitChatExample.dart';
+import 'package:example/TIMUIKitConversationExample.dart';
+import 'package:example/TIMUIKitProfileExample.dart';
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'TIMUIKitAddFriendExample.dart';

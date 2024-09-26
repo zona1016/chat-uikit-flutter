@@ -33,12 +33,13 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
-  tencent_cloud_chat_uikit:
-    path: ../../tim_ui_kit
-  tencent_im_sdk_plugin_web: ^0.3.9
-  archive: ^3.3.0
-  tencent_im_sdk_plugin_desktop: ^0.1.13
+  #  cupertino_icons: ^1.0.2
+  tencent_cloud_chat_uikit: ^2.7.1
+  #  tencent_im_sdk_plugin_web: ^0.3.9
+  tencent_cloud_chat_sdk: 8.1.6122
+#  extended_text: ^14.1.0
+#  archive: ^3.3.0
+#  tencent_im_sdk_plugin_desktop: ^0.2.15
 
 # dependency_overrides:
 #   tencent_cloud_chat_sdk:
@@ -47,6 +48,11 @@ dependencies:
 #     path: /Users/wangrunlin/Documents/GitHub/im-flutter-plugin/tencent_im_sdk_plugin_desktop
 #   tencent_im_sdk_plugin_web:
 #     path: /Users/wangrunlin/Documents/GitHub/im-flutter-plugin/tencent_im_sdk_plugin_web
+
+dependency_overrides:
+  extended_text: ^14.1.0
+  extended_text_field: ^16.0.0
+
 
 dev_dependencies:
   flutter_test:
