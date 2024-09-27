@@ -91,7 +91,7 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
                 border: OutlineInputBorder(
                     borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
                       color: Color(0xFF00BBBD),
-                      width: 0.2,
+                      width: 0.3,
                     )
                 ),
                 hintStyle: TextStyle(
