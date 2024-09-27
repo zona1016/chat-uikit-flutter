@@ -62,7 +62,7 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
         children: [
           Expanded(
               child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: isDesktopScreen ? 30 : 36),
+            constraints: BoxConstraints(maxHeight: isDesktopScreen ? 30 : 54),
             child: TextField(
               autofocus: widget.isAutoFocus ?? true,
               onChanged: (value) async {
@@ -88,11 +88,47 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
               ) : null,
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.all(0),
+                // 普通情况下的边框
                 border: OutlineInputBorder(
-                    borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
-                      color: Color(0xFF00BBBD),
-                      width: 0.3,
-                    )
+                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
+                    color: Color(0xFF00BBBD),
+                    width: 0.3,
+                  ),
+                ),
+                // 当输入框聚焦时的边框
+                focusedBorder: OutlineInputBorder(
+                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
+                    color: Color(0xFF00BBBD),
+                    width: 1,
+                  ),
+                ),
+                // 输入框未聚焦但启用时的边框
+                enabledBorder: OutlineInputBorder(
+                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
+                    color: Color(0xFF00BBBD),
+                    width: 1,
+                  ),
+                ),
+                // 输入框禁用时的边框
+                disabledBorder: OutlineInputBorder(
+                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
+                    color: Color(0xFF00BBBD),
+                    width: 1,
+                  ),
+                ),
+                // 输入框有错误时的边框
+                errorBorder: OutlineInputBorder(
+                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
+                    color: Color(0xFF00BBBD),
+                    width: 1,
+                  ),
+                ),
+                // 输入框聚焦且有错误时的边框
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
+                    color: Color(0xFF00BBBD),
+                    width: 0.3,
+                  ),
                 ),
                 hintStyle: TextStyle(
                   fontSize: isDesktopScreen ? 12 : 14,

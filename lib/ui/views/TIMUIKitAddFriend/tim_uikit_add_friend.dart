@@ -19,7 +19,7 @@ class TIMUIKitAddFriend extends StatefulWidget {
   final bool? isShowDefaultGroup;
 
   /// You may navigate to user profile page, if friendship relationship exists.
-  final Function(String userID) onTapAlreadyFriendsItem;
+  final Function(V2TimUserFullInfo info) onTapAlreadyFriendsItem;
 
   /// The life cycle hooks for adding friends and contact business logic
   final AddFriendLifeCycle? lifeCycle;
@@ -65,6 +65,10 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
             "";
     return InkWell(
       onTap: () async {
+
+        widget.onTapAlreadyFriendsItem(friendInfo);
+        return;
+
         final checkFriend = await _friendshipServices.checkFriend(
             userIDList: [userID],
             checkType: FriendTypeEnum.V2TIM_FRIEND_TYPE_SINGLE);
@@ -75,13 +79,13 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                 type: TIMCallbackType.INFO,
                 infoRecommendText: TIM_t("该用户已是好友"),
                 infoCode: 6660102));
-            widget.onTapAlreadyFriendsItem(userID);
+            widget.onTapAlreadyFriendsItem(friendInfo);
             return;
           }
         }
 
         if (userID == _selfInfoViewModel.loginInfo?.userID) {
-          widget.onTapAlreadyFriendsItem(userID);
+          widget.onTapAlreadyFriendsItem(friendInfo);
           return;
         }
 
@@ -121,7 +125,11 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
               width: isDesktopScreen ? 38 : 48,
               height: isDesktopScreen ? 38 : 48,
               margin: const EdgeInsets.only(right: 16),
-              child: Avatar(faceUrl: faceUrl, showName: showName),
+              child: Avatar(
+                faceUrl: faceUrl,
+                showName: showName,
+                borderRadius: BorderRadius.circular(isDesktopScreen ? 19 : 24),
+              ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,11 +241,46 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                           Icons.search_outlined,
                           color: theme.weakTextColor,
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            width: 0,
-                            style: BorderStyle.none,
+                        // 普通情况下的边框
+                        border: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFF00BBBD),
+                            width: 0.3,
+                          ),
+                        ),
+                        // 当输入框聚焦时的边框
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFF00BBBD),
+                            width: 1,
+                          ),
+                        ),
+                        // 输入框未聚焦但启用时的边框
+                        enabledBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFF00BBBD),
+                            width: 1,
+                          ),
+                        ),
+                        // 输入框禁用时的边框
+                        disabledBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFF00BBBD),
+                            width: 1,
+                          ),
+                        ),
+                        // 输入框有错误时的边框
+                        errorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFF00BBBD),
+                            width: 1,
+                          ),
+                        ),
+                        // 输入框聚焦且有错误时的边框
+                        focusedErrorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFF00BBBD),
+                            width: 0.3,
                           ),
                         ),
                         contentPadding: EdgeInsets.zero,

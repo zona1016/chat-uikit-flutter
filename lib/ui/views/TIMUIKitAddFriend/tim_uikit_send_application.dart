@@ -162,9 +162,6 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
                 ],
               ),
             ),
-            const Divider(
-              height: 1,
-            ),
             if (widget.isShowDefaultGroup == true)
               Container(
                 color: theme.white,
@@ -241,19 +238,17 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
           color: theme.weakBackgroundColor,
           child: sendApplicationBody(),
         ),
-        defaultWidget: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              TIM_t("添加好友"),
-              style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-            ),
-            shadowColor: theme.white,
-            backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
-            iconTheme: IconThemeData(
-              color: theme.appbarTextColor,
-            ),
+        defaultWidget: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage('images/background.png', package: 'tencent_cloud_chat_uikit'),
+                alignment: Alignment.center)
           ),
-          body: sendApplicationBody(),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: sendApplicationBody(),
+          ),
         ));
   }
 }
