@@ -15,13 +15,15 @@ class SendApplication extends StatefulWidget {
   final TUISelfInfoViewModel model;
   final bool? isShowDefaultGroup;
   final AddFriendLifeCycle? lifeCycle;
+  final Function(String detail)? addResult;
 
   const SendApplication(
       {Key? key,
       this.lifeCycle,
       required this.friendInfo,
       required this.model,
-      this.isShowDefaultGroup = false})
+      this.isShowDefaultGroup = false,
+      this.addResult})
       : super(key: key);
 
   @override
@@ -212,16 +214,19 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
                           type: TIMCallbackType.INFO,
                           infoRecommendText: TIM_t("好友添加成功"),
                           infoCode: 6661202));
+                      if (widget.addResult != null) widget.addResult!(TIM_t("好友添加成功"));
                     } else if (res.code == 0 && res.data?.resultCode == 30539) {
                       onTIMCallback(TIMCallback(
                           type: TIMCallbackType.INFO,
                           infoRecommendText: TIM_t("好友申请已发出"),
                           infoCode: 6661203));
+                      if (widget.addResult != null) widget.addResult!(TIM_t("好友申请已发出"));
                     } else if (res.code == 0 && res.data?.resultCode == 30515) {
                       onTIMCallback(TIMCallback(
                           type: TIMCallbackType.INFO,
                           infoRecommendText: TIM_t("当前用户在黑名单"),
                           infoCode: 6661204));
+                      if (widget.addResult != null) widget.addResult!(TIM_t("当前用户在黑名单"));
                     }
                   },
                   child: Text(TIM_t("发送"))),
@@ -238,17 +243,9 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
           color: theme.weakBackgroundColor,
           child: sendApplicationBody(),
         ),
-        defaultWidget: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-                fit: BoxFit.cover,
-                image: AssetImage('images/background.png', package: 'tencent_cloud_chat_uikit'),
-                alignment: Alignment.center)
-          ),
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: sendApplicationBody(),
-          ),
+        defaultWidget: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: sendApplicationBody(),
         ));
   }
 }
