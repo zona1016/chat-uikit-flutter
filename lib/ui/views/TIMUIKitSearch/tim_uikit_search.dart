@@ -109,7 +109,7 @@ class TIMUIKitSearchState extends TIMUIKitState<TIMUIKitSearch> {
                   prefixIcon: Icon(
                     Icons.search,
                     size: 16,
-                    color: hexToColor("979797"),
+                    color: hexToColor("00BBBDD"),
                   ),
                 ),
                 Expanded(

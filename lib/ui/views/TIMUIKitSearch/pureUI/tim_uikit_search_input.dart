@@ -55,7 +55,7 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
       decoration: BoxDecoration(
           color: isDesktopScreen
               ? theme.wideBackgroundColor
-              : theme.primaryColor,
+              : Colors.transparent,
           boxShadow: [
             BoxShadow(
               color: theme.weakBackgroundColor ?? hexToColor("E6E9EB"),
@@ -138,7 +138,7 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
                 },
                 child: Text(TIM_t("取消"),
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                     )),
               ))
         ],
