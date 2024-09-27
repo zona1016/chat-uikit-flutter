@@ -56,12 +56,12 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
           color: isDesktopScreen
               ? theme.wideBackgroundColor
               : Colors.transparent,
-          boxShadow: [
-            BoxShadow(
-              color: theme.weakBackgroundColor ?? hexToColor("E6E9EB"),
-              offset: const Offset(0.0, 2.0),
-            )
-          ]
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: theme.weakBackgroundColor ?? hexToColor("E6E9EB"),
+          //     offset: const Offset(0.0, 2.0),
+          //   )
+          // ]
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
