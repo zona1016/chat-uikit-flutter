@@ -53,6 +53,11 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
       padding: EdgeInsets.fromLTRB(16, isDesktopScreen ? 16 : 8, 16, 16),
       margin: isDesktopScreen ? const EdgeInsets.only(bottom: 2) : null,
       decoration: BoxDecoration(
+          border: isDesktopScreen ? null : Border.all(
+            color: hexToColor("00BBBDD"),
+            width: 0.5,
+          ),
+          borderRadius: BorderRadius.circular(5),
           color: isDesktopScreen
               ? theme.wideBackgroundColor
               : Colors.transparent,

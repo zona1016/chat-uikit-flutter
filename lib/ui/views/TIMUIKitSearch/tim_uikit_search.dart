@@ -95,6 +95,7 @@ class TIMUIKitSearchState extends TIMUIKitState<TIMUIKitSearch> {
             }
           },
           child: Scaffold(
+            backgroundColor: Colors.transparent,
             body: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
