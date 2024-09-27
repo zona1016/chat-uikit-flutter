@@ -99,20 +99,20 @@ class TIMUIKitSearchState extends TIMUIKitState<TIMUIKitSearch> {
             body: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                TIMUIKitSearchInput(
-                  focusNode: focusNode,
-                  key: inputTextField,
-                  isAutoFocus: widget.isAutoFocus,
-                  onChange: (String value) {
-                    model.searchByKey(value);
-                  },
-                  controller: textEditingController,
-                  prefixIcon: Icon(
-                    Icons.search,
-                    size: 16,
-                    color: hexToColor("00BBBDD"),
-                  ),
-                ),
+                // TIMUIKitSearchInput(
+                //   focusNode: focusNode,
+                //   key: inputTextField,
+                //   isAutoFocus: widget.isAutoFocus,
+                //   onChange: (String value) {
+                //     model.searchByKey(value);
+                //   },
+                //   controller: textEditingController,
+                //   prefixIcon: Icon(
+                //     Icons.search,
+                //     size: 16,
+                //     color: hexToColor("00BBBDD"),
+                //   ),
+                // ),
                 Expanded(
                     child: GestureDetector(
                   child: SingleChildScrollView(

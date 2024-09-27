@@ -56,12 +56,6 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
           color: isDesktopScreen
               ? theme.wideBackgroundColor
               : Colors.transparent,
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: theme.weakBackgroundColor ?? hexToColor("E6E9EB"),
-          //     offset: const Offset(0.0, 2.0),
-          //   )
-          // ]
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -94,7 +88,10 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
               ) : null,
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.all(0),
-                border: const OutlineInputBorder(borderSide: BorderSide.none),
+                border: const OutlineInputBorder(borderSide: BorderSide(
+                  color: Color(0xFF00BBBD),
+                  width: 0.5,
+                )),
                 hintStyle: TextStyle(
                   fontSize: isDesktopScreen ? 12 : 14,
                   color: hexToColor("CCCCCC"),
