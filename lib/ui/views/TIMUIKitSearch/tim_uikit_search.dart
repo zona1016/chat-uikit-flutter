@@ -94,97 +94,94 @@ class TIMUIKitSearchState extends TIMUIKitState<TIMUIKitSearch> {
               currentFocus.unfocus();
             }
           },
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                // TIMUIKitSearchInput(
-                //   focusNode: focusNode,
-                //   key: inputTextField,
-                //   isAutoFocus: widget.isAutoFocus,
-                //   onChange: (String value) {
-                //     model.searchByKey(value);
-                //   },
-                //   controller: textEditingController,
-                //   prefixIcon: Icon(
-                //     Icons.search,
-                //     size: 16,
-                //     color: hexToColor("00BBBDD"),
-                //   ),
-                // ),
-                Expanded(
-                    child: GestureDetector(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        if ((friendResultList.isEmpty ||
-                            !(searchTypes.contains(SearchType.contact))) &&
-                                (groupList.isEmpty ||
-                                    !(searchTypes
-                                        .contains(SearchType.group))) &&
-                                (totalMsgCount == 0 ||
-                                    !(searchTypes
-                                        .contains(SearchType.history))))
-                          TIMUIKitSearchIndicator(
-                            typeList: searchTypes,
-                            onChange: (list) {
-                              setState(() {
-                                searchTypes = list;
-                              });
-                            },
-                          ),
-                        if (searchTypes.contains(SearchType.contact))
-                          TIMUIKitSearchFriend(
-                              onTapConversation: (conversation, message) {
-                                focusNode.unfocus();
-                                Future.delayed(
-                                    const Duration(milliseconds: 100), () {
-                                  widget.onTapConversation(
-                                      conversation, message);
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              TIMUIKitSearchInput(
+                focusNode: focusNode,
+                key: inputTextField,
+                isAutoFocus: widget.isAutoFocus,
+                onChange: (String value) {
+                  model.searchByKey(value);
+                },
+                controller: textEditingController,
+                prefixIcon: Icon(
+                  Icons.search,
+                  size: 16,
+                  color: hexToColor("00BBBDD"),
+                ),
+              ),
+              Expanded(
+                  child: GestureDetector(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          if ((friendResultList.isEmpty ||
+                              !(searchTypes.contains(SearchType.contact))) &&
+                              (groupList.isEmpty ||
+                                  !(searchTypes
+                                      .contains(SearchType.group))) &&
+                              (totalMsgCount == 0 ||
+                                  !(searchTypes
+                                      .contains(SearchType.history))))
+                            TIMUIKitSearchIndicator(
+                              typeList: searchTypes,
+                              onChange: (list) {
+                                setState(() {
+                                  searchTypes = list;
                                 });
                               },
-                              friendResultList: friendResultList),
-                        if (searchTypes.contains(SearchType.group))
-                          TIMUIKitSearchGroup(
-                            groupList: groupList,
-                            onTapConversation: (conversation, message) {
-                              focusNode.unfocus();
-                              Future.delayed(const Duration(milliseconds: 100),
-                                  () {
-                                widget.onTapConversation(conversation, message);
-                              });
-                            },
-                          ),
-                        if (searchTypes.contains(SearchType.history))
-                          TIMUIKitSearchMsg(
-                            onTapConversation: widget.onTapConversation,
-                            keyword: textEditingController.text,
-                            totalMsgCount: totalMsgCount,
-                            msgList: msgList,
-                            onEnterConversation:
-                                (V2TimConversation conversation,
-                                    String keyword) {
-                              if (widget.onEnterSearchInConversation != null) {
-                                widget.onEnterSearchInConversation!(
-                                    conversation, keyword);
-                              } else if (widget.onEnterConversation != null) {
-                                widget.onEnterConversation!(
-                                    conversation, keyword);
-                              }
-                            },
-                          ),
-                      ],
+                            ),
+                          if (searchTypes.contains(SearchType.contact))
+                            TIMUIKitSearchFriend(
+                                onTapConversation: (conversation, message) {
+                                  focusNode.unfocus();
+                                  Future.delayed(
+                                      const Duration(milliseconds: 100), () {
+                                    widget.onTapConversation(
+                                        conversation, message);
+                                  });
+                                },
+                                friendResultList: friendResultList),
+                          if (searchTypes.contains(SearchType.group))
+                            TIMUIKitSearchGroup(
+                              groupList: groupList,
+                              onTapConversation: (conversation, message) {
+                                focusNode.unfocus();
+                                Future.delayed(const Duration(milliseconds: 100),
+                                        () {
+                                      widget.onTapConversation(conversation, message);
+                                    });
+                              },
+                            ),
+                          if (searchTypes.contains(SearchType.history))
+                            TIMUIKitSearchMsg(
+                              onTapConversation: widget.onTapConversation,
+                              keyword: textEditingController.text,
+                              totalMsgCount: totalMsgCount,
+                              msgList: msgList,
+                              onEnterConversation:
+                                  (V2TimConversation conversation,
+                                  String keyword) {
+                                if (widget.onEnterSearchInConversation != null) {
+                                  widget.onEnterSearchInConversation!(
+                                      conversation, keyword);
+                                } else if (widget.onEnterConversation != null) {
+                                  widget.onEnterConversation!(
+                                      conversation, keyword);
+                                }
+                              },
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  onTap: () {
-                    if (widget.onBack != null) {
-                      widget.onBack!();
-                    }
-                  },
-                ))
-              ],
-            ),
+                    onTap: () {
+                      if (widget.onBack != null) {
+                        widget.onBack!();
+                      }
+                    },
+                  ))
+            ],
           ),
         );
       },
