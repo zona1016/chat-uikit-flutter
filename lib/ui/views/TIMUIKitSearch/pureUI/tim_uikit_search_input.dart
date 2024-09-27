@@ -55,7 +55,7 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
       decoration: BoxDecoration(
           color: isDesktopScreen
               ? theme.wideBackgroundColor
-              : Colors.red,
+              : Colors.transparent,
           boxShadow: [
             BoxShadow(
               color: theme.weakBackgroundColor ?? hexToColor("E6E9EB"),
