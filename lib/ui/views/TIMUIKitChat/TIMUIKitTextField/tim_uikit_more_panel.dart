@@ -674,6 +674,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
         });
       }
     } else {
+      print(widget.conversationID);
       _tUICore.callService(TUICALLKIT_SERVICE_NAME, METHOD_NAME_CALL, {
         PARAM_NAME_TYPE: type,
         PARAM_NAME_USERIDS: [widget.conversationID],

@@ -148,11 +148,16 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
     ProfileWidgetEnum.operationDivider,
     ProfileWidgetEnum.remarkBar,
     ProfileWidgetEnum.operationDivider,
-    ProfileWidgetEnum.addToBlockListBar,
     ProfileWidgetEnum.pinConversationBar,
     ProfileWidgetEnum.messageMute,
     ProfileWidgetEnum.operationDivider,
-    ProfileWidgetEnum.addAndDeleteArea
+    ProfileWidgetEnum.addToBlockListBar,
+    ProfileWidgetEnum.operationDivider,
+    ProfileWidgetEnum.addAndDeleteArea,
+    ProfileWidgetEnum.operationDivider,
+    ProfileWidgetEnum.customBuilderOne,
+    ProfileWidgetEnum.operationDivider,
+    ProfileWidgetEnum.customBuilderTwo,
   ];
 
   @override
@@ -196,7 +201,7 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
           final isSelf = (model.userProfile?.friendInfo?.userID ==
               _selfInfoViewModel.loginInfo?.userID);
           final isMute = model.isDisturb ?? false;
-
+          
           Widget profilePage({required Widget child}) {
             return Container(
               color: isDesktopScreen ? theme.wideBackgroundColor : null,
@@ -431,17 +436,41 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           handleTapRemarkBar,
                           widget.smallCardMode))!;
                 case ProfileWidgetEnum.customBuilderOne:
+                  if (!isFriend || isDesktopScreen) {
+                    return Container();
+                  }
                   return (customBuilder?.customBuilderOne != null
                       ? customBuilder?.customBuilderOne!(
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
-                      : Text(TIM_t("如使用自定义区域，请在profileWidgetBuilder传入对应组件")))!;
+                      : TIMUIKitProfileWidget.addAudioAndVideoArea(
+                      userInfo,
+                      conversation,
+                      0,
+                      isMute,
+                      model.isAddToBlackList ?? false,
+                      theme,
+                      handleAddFriend,
+                      handleDeleteFriend,
+                      widget.smallCardMode))!;
                 case ProfileWidgetEnum.customBuilderTwo:
+                  if (!isFriend || isDesktopScreen) {
+                    return Container();
+                  }
                   return (customBuilder?.customBuilderTwo != null
                       ? customBuilder?.customBuilderTwo!(
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
-                      : Text(TIM_t("如使用自定义区域，请在profileWidgetBuilder传入对应组件")))!;
+                      : TIMUIKitProfileWidget.addAudioAndVideoArea(
+                      userInfo,
+                      conversation,
+                      1,
+                      isMute,
+                      model.isAddToBlackList ?? false,
+                      theme,
+                      handleAddFriend,
+                      handleDeleteFriend,
+                      widget.smallCardMode))!;
                 case ProfileWidgetEnum.customBuilderThree:
                   return (customBuilder?.customBuilderThree != null
                       ? customBuilder?.customBuilderThree!(

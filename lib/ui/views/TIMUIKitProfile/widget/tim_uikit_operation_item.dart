@@ -131,7 +131,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
                           operationName,
                           style: TextStyle(
                               color:
-                                  isDesktopScreen ? hexToColor("7f7f7f") : null),
+                                  isDesktopScreen ? hexToColor("7f7f7f") : const Color(0xFF00BBBD)),
                         ),
                         if (operationDescription != null)
                           Text(
@@ -149,7 +149,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
                     child: CupertinoSwitch(
                       value: operationValue ?? false,
                       onChanged: onSwitchChange,
-                      activeColor: theme.primaryColor,
+                      activeColor: const Color(0xFFFD7B19),
                     ),
                   ),
                 if (type != "switch" && !isDesktopScreen)
@@ -183,7 +183,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
                     children: [Expanded(child: operationRightWidget ?? const Text(""))],
                   )),
                 (type != "switch" && !isDesktopScreen && showAllowEditStatus)
-                    ? const Icon(Icons.keyboard_arrow_right)
+                    ? const Icon(Icons.keyboard_arrow_right, color: Color(0xFF00BBBD),)
                     : Container(
                         width: 0,
                       ),

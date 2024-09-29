@@ -15,7 +15,7 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
   static Widget operationDivider(
       {Color? color, double? height, EdgeInsetsGeometry? margin}) {
     return Container(
-      color: color,
+      color: Colors.transparent,
       margin: margin,
       height: height ?? 10,
     );
@@ -296,16 +296,22 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
         onTap: () {
           handleDeleteFriend();
         },
-        child: Container(
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              border:
-                  Border(bottom: BorderSide(color: theme.weakDividerColor))),
-          child: Text(
-            TIM_t("清除好友"),
-            style: TextStyle(color: theme.cautionColor, fontSize: 17),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 37),
+          child: Container(
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: const BorderRadius.all(Radius.circular(5)),
+                border:
+                    Border.all(color: const Color(0xFF00BBBD)),),
+            child: Center(
+              child: Text(
+                TIM_t("清除好友"),
+                style: const TextStyle(color: Color(0xFF00BBBD), fontSize: 17),
+              ),
+            ),
           ),
         ),
       );
@@ -338,6 +344,84 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
       children: [
         if (friendType != 0) _buildDeleteFriend(conversation, theme),
         if (friendType == 0 && !isBlocked) _buildAddOperation()
+      ],
+    );
+  }
+
+  static Widget addAudioAndVideoArea(
+      V2TimFriendInfo friendInfo,
+      V2TimConversation conversation,
+      int type,
+      bool isDisturb,
+      bool isBlocked,
+      TUITheme theme,
+      VoidCallback handleAddFriend,
+      VoidCallback handleDeleteFriend,
+      bool smallCardMode) {
+    _buildVideo(V2TimConversation conversation, theme) {
+      return InkWell(
+        onTap: () {
+          TUICore().callService(TUICALLKIT_SERVICE_NAME, METHOD_NAME_CALL, {
+            PARAM_NAME_TYPE: TYPE_AUDIO,
+            PARAM_NAME_USERIDS: [conversation.userID!],
+            PARAM_NAME_GROUPID: ""
+          });
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 37),
+          child: Container(
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: const BorderRadius.all(Radius.circular(5)),
+              border:
+              Border.all(color: const Color(0xFF00BBBD)),),
+            child: Center(
+              child: Text(
+                TIM_t("语音通话"),
+                style: const TextStyle(color: Color(0xFF00BBBD), fontSize: 17),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    _buildAudio(V2TimConversation conversation, theme) {
+      return InkWell(
+        onTap: () async {
+          TUICore().callService(TUICALLKIT_SERVICE_NAME, METHOD_NAME_CALL, {
+            PARAM_NAME_TYPE: TYPE_VIDEO,
+            PARAM_NAME_USERIDS: [conversation.userID!],
+            PARAM_NAME_GROUPID: ""
+          });
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 37),
+          child: Container(
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: const BorderRadius.all(Radius.circular(5)),
+              border:
+              Border.all(color: const Color(0xFF00BBBD)),),
+            child: Center(
+              child: Text(
+                TIM_t("视频通话"),
+                style: const TextStyle(color: Color(0xFF00BBBD), fontSize: 17),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        if (type != 0) _buildAudio(conversation, theme),
+        if (type == 0) _buildVideo(conversation, theme)
       ],
     );
   }

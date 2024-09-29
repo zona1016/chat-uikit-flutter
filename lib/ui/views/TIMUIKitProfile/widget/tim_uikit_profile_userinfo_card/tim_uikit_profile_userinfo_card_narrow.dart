@@ -37,7 +37,7 @@ class TIMUIKitProfileUserInfoCardNarrow extends TIMUIKitStatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      color: Colors.white,
+      color: Colors.transparent,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -48,6 +48,7 @@ class TIMUIKitProfileUserInfoCardNarrow extends TIMUIKitStatelessWidget {
             child: GestureDetector(
               onTap: onClickAvatar,
               child: Avatar(
+                borderRadius: BorderRadius.circular(24),
                 faceUrl: faceUrl,
                 isShowBigWhenClick: onClickAvatar == null,
                 showName: showName ?? "",
@@ -66,7 +67,7 @@ class TIMUIKitProfileUserInfoCardNarrow extends TIMUIKitStatelessWidget {
                 SizedBox(
                   child: SelectableText(
                     showName ?? "",
-                    style: const TextStyle(fontSize: 18, color: Colors.black),
+                    style: const TextStyle(fontSize: 18, color: Color(0xFF00BBBD)),
                   ),
                 ),
                 Container(
