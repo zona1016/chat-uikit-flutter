@@ -85,7 +85,7 @@ class GroupProfileNotificationState
                   child: Text(
                     TIM_t("群公告"),
                     style: TextStyle(
-                        color: theme.darkTextColor,
+                        color: isDesktopScreen ? theme.darkTextColor : const Color(0xFF00BBBD),
                         fontSize: isDesktopScreen ? 14 : 16),
                   ),
                 ),

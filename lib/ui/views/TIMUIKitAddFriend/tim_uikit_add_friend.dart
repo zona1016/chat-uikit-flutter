@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_profile_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
@@ -137,7 +138,7 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                 Text(
                   showName,
                   style: TextStyle(
-                      color: theme.darkTextColor,
+                      color: const Color(0xFF00BBBD),
                       fontSize: isDesktopScreen ? 16 : 18),
                 ),
                 const SizedBox(
@@ -290,10 +291,36 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                         fillColor: theme.inputFillColor,
                         filled: true,
                         hintText: TIM_t("搜索用户 ID")),
-                  )),
+                  ))
                 ],
               ),
             ),
+            if (!showResult)
+              Container(
+                width: double.infinity,
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Spacer(),
+                    Text(
+                      '我的账号：${_selfInfoViewModel.loginInfo?.userID}',
+                      style: const TextStyle(
+                        color: Color(0xFF999999),
+                        fontSize: 12
+                      ),
+                    ),
+                    const SizedBox(width: 8,),
+                    const Icon(
+                      Icons.qr_code,
+                      color: Color(0xFF00BBBD),
+                      size: 18,
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
             if (showResult)
               Expanded(
                 child: Container(

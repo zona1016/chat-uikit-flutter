@@ -71,7 +71,7 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
                 Text(
                   showName,
                   textAlign: TextAlign.center,
-                  style: TextStyle(overflow: TextOverflow.ellipsis, color: theme.weakTextColor, fontSize: 10),
+                  style: const TextStyle(overflow: TextOverflow.ellipsis, color: Color(0xFF00BBBD), fontSize: 10),
                 )
             ],
           ),
@@ -139,7 +139,7 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(TIM_t("群成员"), style: TextStyle(color: theme.darkTextColor, fontSize: isDesktopScreen ? 14 : 16)),
+                  Text(TIM_t("群成员"), style: TextStyle(color: isDesktopScreen ? theme.darkTextColor : const Color(0xFF00BBBD), fontSize: isDesktopScreen ? 14 : 16)),
                   Row(
                     children: [
                       Text(
@@ -148,7 +148,7 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
                       ),
                       Icon(
                         Icons.keyboard_arrow_right,
-                        color: theme.weakTextColor,
+                        color: isDesktopScreen ? theme.weakTextColor : const Color(0xFF00BBBD),
                       ),
                     ],
                   )

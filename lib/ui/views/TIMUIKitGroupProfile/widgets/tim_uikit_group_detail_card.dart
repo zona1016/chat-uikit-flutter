@@ -181,7 +181,7 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
               }
             }),
       child: Container(
-        color: Colors.white,
+        color: Colors.transparent,
         padding: EdgeInsets.only(
             top: isDesktopScreen ? 20 : 12,
             bottom: isDesktopScreen ? 20 : 12,
@@ -198,6 +198,7 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
               child: Avatar(
                 faceUrl: faceUrl,
                 showName: showName,
+                borderRadius: BorderRadius.circular(isDesktopScreen ? 20 : 24),
                 type: 2,
               ),
             ),
@@ -211,6 +212,7 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                       showName,
                       style: TextStyle(
                           fontSize: isDesktopScreen ? 15 : 18,
+                          color: const Color(0xFF00BBBD),
                           fontWeight: FontWeight.w600),
                     ),
                     SizedBox(

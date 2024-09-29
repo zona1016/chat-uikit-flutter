@@ -176,7 +176,7 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                 color: widget.backGroundColor ??
                     (isDesktopScreen
                         ? theme.wideBackgroundColor
-                        : theme.weakBackgroundColor),
+                        : Colors.transparent),
                 child: child,
               ),
             );

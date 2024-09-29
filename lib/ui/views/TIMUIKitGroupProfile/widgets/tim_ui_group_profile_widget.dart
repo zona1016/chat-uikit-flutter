@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_ui_group_search_msg.dart';
@@ -49,7 +50,7 @@ class TIMUIKitGroupProfileWidget {
   static Widget operationDivider(TUITheme theme) {
     final isDesktopScreen = TUIKitScreenUtils.getFormFactor() == DeviceType.Desktop;
     return Container(
-      color: theme.weakDividerColor,
+      color: isDesktopScreen ? theme.weakDividerColor : Colors.transparent,
       height: isDesktopScreen ? 1 : 10,
     );
   }

@@ -69,7 +69,7 @@ class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard>{
                     TIM_t("我的群昵称"),
                     style: TextStyle(
                         fontSize: isDesktopScreen ? 14 : 16,
-                        color: theme.darkTextColor),
+                        color: isDesktopScreen ? theme.darkTextColor : const Color(0xFF00BBBD)),
                   ),
                 ),
                 if (!isDesktopScreen)
@@ -85,7 +85,7 @@ class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard>{
                                     color: theme.darkTextColor),
                               )),
                           Icon(Icons.keyboard_arrow_right,
-                              color: theme.weakTextColor)
+                              color: const Color(0xFF00BBBD))
                         ],
                       )),
               ],

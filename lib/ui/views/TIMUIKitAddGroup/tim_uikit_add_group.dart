@@ -280,11 +280,46 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
                       Icons.search_outlined,
                       color: theme.weakTextColor,
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        width: 0,
-                        style: BorderStyle.none,
+                    // 普通情况下的边框
+                    border: const OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF00BBBD),
+                        width: 0.3,
+                      ),
+                    ),
+                    // 当输入框聚焦时的边框
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF00BBBD),
+                        width: 1,
+                      ),
+                    ),
+                    // 输入框未聚焦但启用时的边框
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF00BBBD),
+                        width: 1,
+                      ),
+                    ),
+                    // 输入框禁用时的边框
+                    disabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF00BBBD),
+                        width: 1,
+                      ),
+                    ),
+                    // 输入框有错误时的边框
+                    errorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF00BBBD),
+                        width: 1,
+                      ),
+                    ),
+                    // 输入框聚焦且有错误时的边框
+                    focusedErrorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF00BBBD),
+                        width: 0.3,
                       ),
                     ),
                     contentPadding: EdgeInsets.zero,

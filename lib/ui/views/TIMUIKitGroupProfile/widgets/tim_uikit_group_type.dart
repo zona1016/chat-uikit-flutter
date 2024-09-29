@@ -52,7 +52,7 @@ class GroupProfileType extends TIMUIKitStatelessWidget {
           Text(
             TIM_t("群类型"),
             style: TextStyle(
-                fontSize: isDesktopScreen ? 14 : 16, color: theme.darkTextColor),
+                fontSize: isDesktopScreen ? 14 : 16, color: isDesktopScreen ? theme.darkTextColor : const Color(0xFF00BBBD)),
           ),
           Text(
             groupType,

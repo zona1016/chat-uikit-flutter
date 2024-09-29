@@ -452,7 +452,7 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                           child: SvgPicture.asset(
                             showSendSoundText ? 'images/keyboard.svg' : 'images/voice.svg',
                             package: 'tencent_cloud_chat_uikit',
-                            color: const Color.fromRGBO(68, 68, 68, 1),
+                            color: const Color(0xFF00BBBD),
                             height: 28,
                             width: 28,
                           ),
@@ -499,7 +499,7 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                                             // fontSize: 10,
                                             color: Color(0xffAEA4A3),
                                           ),
-                                          fillColor: Colors.white,
+                                          fillColor: const Color(0xFFF5F5F5),
                                           filled: true,
                                           isDense: true,
                                           hintText: widget.hintText ?? ''),
@@ -535,7 +535,7 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                               : SvgPicture.asset(
                                   showEmojiPanel ? 'images/keyboard.svg' : 'images/face.svg',
                                   package: 'tencent_cloud_chat_uikit',
-                                  color: const Color.fromRGBO(68, 68, 68, 1),
+                                  color: const Color(0xFF00BBBD),
                                   height: 28,
                                   width: 28,
                                 ),
@@ -556,7 +556,7 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                               : SvgPicture.asset(
                                   'images/add.svg',
                                   package: 'tencent_cloud_chat_uikit',
-                                  color: const Color.fromRGBO(68, 68, 68, 1),
+                                  color: const Color(0xFF00BBBD),
                                   height: 28,
                                   width: 28,
                                 ),
