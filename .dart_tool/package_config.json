@@ -579,7 +579,7 @@
     },
     {
       "name": "just_audio_web",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/just_audio_web-0.4.12",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/just_audio_web-0.4.13",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -675,13 +675,13 @@
     },
     {
       "name": "open_file",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/open_file-3.5.6",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/open_file-3.5.7",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
     {
       "name": "open_file_android",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/open_file_android-1.0.2",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/open_file_android-1.0.3",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
@@ -837,7 +837,7 @@
     },
     {
       "name": "photo_manager",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/photo_manager-3.4.0",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/photo_manager-3.5.0",
       "packageUri": "lib/",
       "languageVersion": "2.13"
     },
@@ -981,21 +981,21 @@
     },
     {
       "name": "sqflite",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/sqflite-2.3.3+1",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/sqflite-2.3.3+2",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.5"
     },
     {
       "name": "sqflite_common",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/sqflite_common-2.5.4+3",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/sqflite_common-2.5.4+4",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "stack_trace",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/stack_trace-1.11.1",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/stack_trace-1.12.0",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.4"
     },
     {
       "name": "stream_channel",
@@ -1017,7 +1017,7 @@
     },
     {
       "name": "synchronized",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/synchronized-3.3.0+2",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/synchronized-3.3.0+3",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
@@ -1029,7 +1029,7 @@
     },
     {
       "name": "tencent_cloud_chat_sdk",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/tencent_cloud_chat_sdk-8.1.6122",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/tencent_cloud_chat_sdk-8.2.6325",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -1197,7 +1197,7 @@
     },
     {
       "name": "video_player_android",
-      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/video_player_android-2.7.3",
+      "rootUri": "file:///Users/wanxue/.pub-cache/hosted/pub.flutter-io.cn/video_player_android-2.7.5",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
@@ -1310,7 +1310,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2024-09-29T09:18:57.166215Z",
+  "generated": "2024-09-30T03:25:41.634123Z",
   "generator": "pub",
   "generatorVersion": "3.5.3",
   "flutterRoot": "file:///Users/wanxue/Desktop/flutter",

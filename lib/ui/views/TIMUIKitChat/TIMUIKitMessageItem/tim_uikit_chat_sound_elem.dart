@@ -174,7 +174,7 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final theme = value.theme;
 
-    final backgroundColor = widget.isFromSelf ? (theme.chatMessageItemFromSelfBgColor ?? theme.lightPrimaryMaterialColor.shade50) : (theme.chatMessageItemFromOthersBgColor);
+    final backgroundColor = widget.isFromSelf ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF);
 
     final borderRadius = widget.isFromSelf
         ? const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(2), bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10))
