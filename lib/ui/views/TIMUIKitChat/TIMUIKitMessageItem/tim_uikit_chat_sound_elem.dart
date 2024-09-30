@@ -12,6 +12,7 @@ import 'package:tencent_cloud_chat_uikit/data_services/message/message_services.
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/sound_record.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 
@@ -175,6 +176,8 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
     final theme = value.theme;
 
     final backgroundColor = widget.isFromSelf ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF);
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
     final borderRadius = widget.isFromSelf
         ? const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(2), bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10))
@@ -195,7 +198,9 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
       child: Container(
         padding: widget.textPadding ?? const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: isShowJumpState ? const Color.fromRGBO(245, 166, 35, 1) : (widget.backgroundColor ?? backgroundColor),
+          color: isShowJumpState
+              ? const Color.fromRGBO(245, 166, 35, 1)
+              : (widget.backgroundColor ?? backgroundColor),
           borderRadius: widget.borderRadius ?? borderRadius,
         ),
         constraints: const BoxConstraints(maxWidth: 240),
@@ -206,9 +211,11 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
               children: widget.isFromSelf
                   ? [
                       Container(width: _getSoundLen()),
-                      Text(
+                Text(
                         "''${stateElement.duration} ",
-                        style: widget.fontStyle,
+                        style: isDesktopScreen
+                            ? widget.fontStyle
+                            : const TextStyle(color: Color(0xFFFFFFFF)),
                       ),
                       isPlaying
                           ? Image.asset(
@@ -222,6 +229,7 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
                               package: 'tencent_cloud_chat_uikit',
                               width: 16,
                               height: 16,
+                              color: isDesktopScreen ? null : const Color(0xFFFFFFFF)
                             ),
                     ]
                   : [
@@ -240,7 +248,9 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
                             ),
                       Text(
                         " ${stateElement.duration}''",
-                        style: widget.fontStyle,
+                        style: isDesktopScreen
+                            ? widget.fontStyle
+                            : const TextStyle(color: Color(0xFF00BBBD)),
                       ),
                       Container(width: _getSoundLen()),
                     ],

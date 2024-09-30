@@ -225,6 +225,8 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
               ? textWithLink!(
                   style: widget.fontStyle ??
                       TextStyle(
+                        color: isDesktopScreen ? Colors.black : !widget.isFromSelf
+                            ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF),
                           fontSize: isDesktopScreen ? 14 : 16,
                           textBaseline: TextBaseline.ideographic,
                           height: widget.chatModel.chatConfig.textHeight))

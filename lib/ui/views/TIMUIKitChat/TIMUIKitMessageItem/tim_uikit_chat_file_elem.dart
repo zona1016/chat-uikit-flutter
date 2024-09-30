@@ -16,6 +16,7 @@ import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/permission.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/TIMUIKitMessageReaction/tim_uikit_message_reaction_wrapper.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/tim_uikit_chat_file_icon.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/textSize.dart';
@@ -344,6 +345,9 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
       containerHeight = containerRenderBox.size.height;
     }
 
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+
     return Row(
       key: containerKey,
       mainAxisSize: MainAxisSize.min,
@@ -411,24 +415,26 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
                 child: Container(
                   width: 237,
                   decoration: BoxDecoration(
-                      border: Border.all(
-                        color: theme.weakDividerColor ??
-                            CommonColor.weakDividerColor,
-                      ),
+                      color: isDesktopScreen
+                          ? theme.weakDividerColor ??
+                              CommonColor.weakDividerColor
+                          : widget.isSelf
+                              ? const Color(0xFF00BBBD)
+                              : const Color(0xFFFFFFFF),
                       borderRadius: borderRadius),
                   child: Stack(children: [
-                    ClipRRect(
-                      borderRadius: borderRadius,
-                      child: LinearProgressIndicator(
-                        minHeight: ((containerHeight) ?? 72) - 6,
-                        value: (received == 100 ? 0 : received) / 100,
-                        backgroundColor: received == 100
-                            ? theme.weakBackgroundColor
-                            : Colors.white,
-                        valueColor: AlwaysStoppedAnimation(
-                            theme.lightPrimaryMaterialColor.shade50),
-                      ),
-                    ),
+                    // ClipRRect(
+                    //   borderRadius: borderRadius,
+                    //   child: LinearProgressIndicator(
+                    //     minHeight: ((containerHeight) ?? 72) - 6,
+                    //     value: (received == 100 ? 0 : received) / 100,
+                    //     backgroundColor: received == 100
+                    //         ? theme.weakBackgroundColor
+                    //         : Colors.white,
+                    //     valueColor: AlwaysStoppedAnimation(
+                    //         theme.lightPrimaryMaterialColor.shade50),
+                    //   ),
+                    // ),
                     Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: 8, horizontal: 12),
@@ -451,7 +457,11 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
                                           width: boxConstraints.maxWidth,
                                           maxLines: 1,
                                           style: TextStyle(
-                                            color: theme.darkTextColor,
+                                            color: isDesktopScreen
+                                                ? theme.darkTextColor
+                                                : !widget.isSelf
+                                                ? const Color(0xFF00BBBD)
+                                                : const Color(0xFFFFFFFF),
                                             fontSize: 16,
                                           ),
                                         );

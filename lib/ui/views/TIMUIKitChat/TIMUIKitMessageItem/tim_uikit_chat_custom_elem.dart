@@ -2,6 +2,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
@@ -32,6 +33,8 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final theme = value.theme;
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     final borderRadius = isFromSelf
         ? const BorderRadius.only(
             topLeft: Radius.circular(10),
@@ -43,9 +46,10 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
             topRight: Radius.circular(10),
             bottomLeft: Radius.circular(10),
             bottomRight: Radius.circular(10));
-    final backgroundColor = isFromSelf
+    final backgroundColor = isDesktopScreen ? isFromSelf
         ? theme.lightPrimaryMaterialColor.shade50
-        : theme.weakBackgroundColor;
+        : theme.weakBackgroundColor : isFromSelf
+        ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF);
     return Container(
         padding: textPadding ?? const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -55,7 +59,8 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
         constraints: const BoxConstraints(maxWidth: 240),
         child: Column(
           children: [
-            Text(TIM_t("自定义消息"))
+            Text(TIM_t("自定义消息"), style: TextStyle(color: isDesktopScreen ? Colors.black : !isFromSelf
+                ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF)),)
           ],
         ));
   }
