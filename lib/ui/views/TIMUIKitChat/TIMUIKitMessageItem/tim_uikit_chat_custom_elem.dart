@@ -2,6 +2,9 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/group_call_message_builder.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/single_call_message_builder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -50,6 +53,31 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
         ? theme.lightPrimaryMaterialColor.shade50
         : theme.weakBackgroundColor : isFromSelf
         ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF);
+
+    if (message.customElem?.data != null && message.customElem!.data!.contains('call_type')) {
+      final callingMessageDataProvider = CallingMessageDataProvider(message);
+      if (callingMessageDataProvider.participantType == CallParticipantType.group) {
+        // Group Call message
+        return Container(
+            padding: textPadding ?? const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: messageBackgroundColor ?? backgroundColor,
+              borderRadius: messageBorderRadius ?? borderRadius,
+            ),
+            child: GroupCallMessageItem(callingMessageDataProvider: callingMessageDataProvider));
+      } else {
+        return Container(
+            padding: textPadding ?? const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: messageBackgroundColor ?? backgroundColor,
+              borderRadius: messageBorderRadius ?? borderRadius,
+            ),
+            child: CallMessageItem(
+                callingMessageDataProvider: callingMessageDataProvider,
+                padding: const EdgeInsets.all(0)));
+      }
+    }
+
     return Container(
         padding: textPadding ?? const EdgeInsets.all(10),
         decoration: BoxDecoration(

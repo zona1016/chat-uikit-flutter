@@ -413,6 +413,8 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                 () => model.jumpMsgID = "",
               )
             : null;
+        print('--------------------');
+        print(messageItem.customElem?.data);
         return customWidget ??
             TIMUIKitCustomElem(
               message: messageItem,
