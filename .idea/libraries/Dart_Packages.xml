@@ -1255,7 +1255,6 @@
         <entry key="tencent_cloud_chat_sdk">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_cloud_chat_sdk-8.1.6122/lib" />
               <option value="$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_cloud_chat_sdk-8.2.6325/lib" />
             </list>
           </value>
@@ -1770,7 +1769,6 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_calls_engine-2.5.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_calls_uikit-2.5.2/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_chat_i18n_tool-2.3.1/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_cloud_chat_sdk-8.1.6122/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_cloud_chat_sdk-8.2.6325/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_cloud_chat_uikit-2.7.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_cloud_uikit_core-1.7.1/lib" />

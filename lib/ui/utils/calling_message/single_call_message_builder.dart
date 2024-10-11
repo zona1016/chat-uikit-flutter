@@ -32,18 +32,25 @@ class CallMessageItem extends StatelessWidget {
               height: 16,
               width: 16,
               package: 'tencent_cloud_chat_uikit',
+              color: Colors.black,
             ),
           ),
 
-        Text(callingMessageDataProvider.content),
-
+        Text(
+          callingMessageDataProvider.content,
+          style: TextStyle(
+              color: callingMessageDataProvider.direction ==
+                      CallMessageDirection.incoming
+                  ? Colors.black
+                  : Colors.white),
+        ),
         if (callingMessageDataProvider.direction == CallMessageDirection.outcoming)
           Padding(
             padding: const EdgeInsets.only(left: 4),
             child: Image.asset(
               callingMessageDataProvider.streamMediaType == CallStreamMediaType.audio
                   ? "images/voice_call.png"
-                  : "images/video_call_self.png",
+                  : "images/video_call.png",
               height: 16,
               width: 16,
               package: 'tencent_cloud_chat_uikit',

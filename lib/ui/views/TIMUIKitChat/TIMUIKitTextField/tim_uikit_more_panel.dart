@@ -127,8 +127,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.all(Radius.circular(5))),
-              child: SvgPicture.asset(
-                "images/screen.svg",
+              child: Image.asset(
+                "images/more_ps.png",
                 package: 'tencent_cloud_chat_uikit',
                 height: 64,
                 width: 64,
@@ -153,8 +153,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.all(Radius.circular(5))),
-              child: SvgPicture.asset(
-                "images/photo.svg",
+              child: Image.asset(
+                "images/more_tp.png",
                 package: 'tencent_cloud_chat_uikit',
                 height: 64,
                 width: 64,
@@ -226,8 +226,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(5))),
-            child: SvgPicture.asset(
-              "images/file.svg",
+            child: Image.asset(
+              "images/more_wj.png",
               package: 'tencent_cloud_chat_uikit',
               height: 64,
               width: 64,
@@ -252,8 +252,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.all(Radius.circular(5))),
-              child: SvgPicture.asset(
-                "images/video-call.svg",
+              child: Image.asset(
+                "images/more_spth.png",
                 package: 'tencent_cloud_chat_uikit',
                 height: 64,
                 width: 64,
@@ -278,8 +278,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.all(Radius.circular(5))),
-              child: SvgPicture.asset(
-                "images/voice-call.svg",
+              child: Image.asset(
+                "images/more_yyth.png",
                 package: 'tencent_cloud_chat_uikit',
                 height: 64,
                 width: 64,
@@ -732,7 +732,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                                 Text(
                                   item.title,
                                   style: TextStyle(
-                                      fontSize: 12, color: theme.darkTextColor),
+                                      fontSize: 12, color: PlatformUtils().isWeb ? theme.darkTextColor : const Color(0xFF00BBBD)),
                                 )
                               ],
                             ),
