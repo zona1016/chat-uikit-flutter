@@ -732,7 +732,10 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                                 Text(
                                   item.title,
                                   style: TextStyle(
-                                      fontSize: 12, color: PlatformUtils().isWeb ? theme.darkTextColor : const Color(0xFF00BBBD)),
+                                      fontSize: 12,
+                                      color: PlatformUtils().isWeb
+                                          ? theme.darkTextColor
+                                          : const Color(0xFF00BBBD)),
                                 )
                               ],
                             ),

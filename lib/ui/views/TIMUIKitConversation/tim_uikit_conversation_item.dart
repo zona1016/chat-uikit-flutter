@@ -135,9 +135,9 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
                   Avatar(
                     borderRadius: BorderRadius.all(Radius.circular(isDesktopScreen ? 20 : 22)),
                       onlineStatus: onlineStatus,
-                      faceUrl: faceUrl,
+                      faceUrl: faceUrl.contains('http') ? faceUrl : 'https://$faceUrl',
                       showName: nickName,
-                      type: convType),
+                      type: convType,),
                   if (unreadCount != 0)
                     Positioned(
                       top: isDisturb ? -2.5 : -4.5,
