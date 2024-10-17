@@ -1248,7 +1248,9 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                                     width: 40,
                                     height: 40,
                                     child: Avatar(
-                                      faceUrl: message.faceUrl ?? "",
+                                      borderRadius: BorderRadius.circular(20),
+                                      faceUrl: message.faceUrl != null ? message.faceUrl!.contains('http') ? message.faceUrl!
+                                          : 'https://${message.faceUrl!}' : "",
                                       showName: MessageUtils.getDisplayName(message),
                                     ),
                                   ),
@@ -1355,11 +1357,21 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                                 height: 40,
                                 child: InkWell(
                                   onTapDown: (details) {
-                                    if (widget.onTapForOthersPortrait != null && widget.allowAvatarTap) {
-                                      widget.onTapForOthersPortrait!(message.sender ?? "", details);
+                                    if (widget.onTapForOthersPortrait != null &&
+                                        widget.allowAvatarTap) {
+                                      widget.onTapForOthersPortrait!(
+                                          message.sender ?? "", details);
                                     }
                                   },
-                                  child: Avatar(faceUrl: message.faceUrl ?? "", showName: MessageUtils.getDisplayName(message)),
+                                  child: Avatar(
+                                    borderRadius: BorderRadius.circular(20),
+                                      faceUrl: message.faceUrl != null
+                                          ? message.faceUrl!.contains('http')
+                                              ? message.faceUrl!
+                                              : 'https://${message.faceUrl!}'
+                                          : "",
+                                      showName:
+                                          MessageUtils.getDisplayName(message)),
                                 ),
                               ),
                     ],
