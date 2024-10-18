@@ -64,8 +64,9 @@ class _TIMUIKitBlackListState extends TIMUIKitState<TIMUIKitBlackList> {
             }
           },
           child: Container(
-            padding: const EdgeInsets.only(top: 10, left: 16, right: 16),
+            padding: const EdgeInsets.only(top: 10, left: 16, right: 16, bottom: 10),
             decoration: BoxDecoration(
+              color: Colors.white,
                 border: Border(
                     bottom: BorderSide(
                         color: theme.weakDividerColor ??
@@ -73,7 +74,6 @@ class _TIMUIKitBlackListState extends TIMUIKitState<TIMUIKitBlackList> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.only(bottom: 12),
                   margin: const EdgeInsets.only(right: 12),
                   child: SizedBox(
                     height: isDesktopScreen ? 30 : 40,
@@ -84,23 +84,26 @@ class _TIMUIKitBlackListState extends TIMUIKitState<TIMUIKitBlackList> {
                 Expanded(
                     child: Container(
                   alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.only(top: 10, bottom: 20),
+                  padding: const EdgeInsets.only(top: 10, bottom: 10),
                   child: Text(
                     showName,
                     style: TextStyle(
-                        color: theme.black, fontSize: isDesktopScreen ? 14 : 18),
+                        color: const Color(0xFF00BBBD), fontSize: isDesktopScreen ? 14 : 18),
                   ),
                 )),
-                if (isDesktopScreen)
-                  OutlinedButton(
-                      onPressed: () {
-                        _friendshipViewModel
-                            .deleteFromBlockList([friendInfo.userID]);
-                      },
-                      child: Text(
-                        TIM_t("移出黑名单"),
-                        style: TextStyle(color: theme.primaryColor),
-                      ))
+                OutlinedButton(
+                    onPressed: () {
+                      _friendshipViewModel
+                          .deleteFromBlockList([friendInfo.userID]);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF00BBBD)), // 设置边框颜色
+                    ),
+                    child: Text(
+                      TIM_t("移出黑名单"),
+                      style: const TextStyle(color: Color(0xFF00BBBD)),
+                    ))
+
               ],
             ),
           ),

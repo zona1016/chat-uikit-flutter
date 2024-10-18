@@ -28,7 +28,7 @@ class CheckBoxButton extends TIMUIKitStatelessWidget {
             border: Border.all(color: hexToColor("888888")),
             shape: BoxShape.circle,
             color: Colors.white)
-        : BoxDecoration(shape: BoxShape.circle, color: theme.primaryColor);
+        : const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF00BBBD));
 
     if (disabled) {
       boxDecoration =

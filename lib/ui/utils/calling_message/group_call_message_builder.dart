@@ -35,7 +35,7 @@ class _GroupCallMessageItemState extends State<GroupCallMessageItem> {
       style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w400,
-          color: hexToColor("888888")),
+          color: hexToColor("FFFFFF")),
       textAlign: TextAlign.center,
       softWrap: true,
     )) : const SizedBox();

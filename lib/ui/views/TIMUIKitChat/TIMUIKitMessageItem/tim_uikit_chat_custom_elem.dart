@@ -2,9 +2,11 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/group_call_message_builder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/single_call_message_builder.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -66,15 +68,29 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
             ),
             child: GroupCallMessageItem(callingMessageDataProvider: callingMessageDataProvider));
       } else {
-        return Container(
-            padding: textPadding ?? const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: messageBackgroundColor ?? backgroundColor,
-              borderRadius: messageBorderRadius ?? borderRadius,
-            ),
-            child: CallMessageItem(
-                callingMessageDataProvider: callingMessageDataProvider,
-                padding: const EdgeInsets.all(0)));
+        return GestureDetector(
+          onTap: () {
+            if (PlatformUtils().isMobile) {
+              TUICore().callService(TUICALLKIT_SERVICE_NAME, METHOD_NAME_CALL, {
+                PARAM_NAME_TYPE: callingMessageDataProvider.streamMediaType ==
+                        CallStreamMediaType.audio
+                    ? TYPE_AUDIO
+                    : TYPE_VIDEO,
+                PARAM_NAME_USERIDS: [message.userID!],
+                PARAM_NAME_GROUPID: ""
+              });
+            }
+          },
+          child: Container(
+              padding: textPadding ?? const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: messageBackgroundColor ?? backgroundColor,
+                borderRadius: messageBorderRadius ?? borderRadius,
+              ),
+              child: CallMessageItem(
+                  callingMessageDataProvider: callingMessageDataProvider,
+                  padding: const EdgeInsets.all(0))),
+        );
       }
     }
 

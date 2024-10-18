@@ -150,34 +150,37 @@ class _RecentForwardListState extends TIMUIKitState<RecentForwardList> {
         final isDesktopScreen =
             TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
-        return AZListViewContainer(
-          memberList: showList,
-          isShowIndexBar: false,
-          susItemBuilder: (context, index) {
-            return isDesktopScreen ? Container() : Container(
-              height: 40,
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.only(left: 16.0),
-              color: theme.weakDividerColor,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                TIM_t("最近联系人"),
-                softWrap: true,
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: theme.weakTextColor,
+        return Container(
+          color: const Color(0xFFF5F5F5),
+          child: AZListViewContainer(
+            memberList: showList,
+            isShowIndexBar: false,
+            susItemBuilder: (context, index) {
+              return isDesktopScreen ? Container() : Container(
+                height: 40,
+                width: MediaQuery.of(context).size.width,
+                padding: const EdgeInsets.only(left: 16.0),
+                color: theme.weakDividerColor,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  TIM_t("最近联系人"),
+                  softWrap: true,
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: theme.weakTextColor,
+                  ),
                 ),
-              ),
-            );
-          },
-          itemBuilder: (context, index) {
-            final conversation = showList[index].memberInfo;
-            if (conversation != null) {
-              return _buildItem(conversation);
-            } else {
-              return Container();
-            }
-          },
+              );
+            },
+            itemBuilder: (context, index) {
+              final conversation = showList[index].memberInfo;
+              if (conversation != null) {
+                return _buildItem(conversation);
+              } else {
+                return Container();
+              }
+            },
+          ),
         );
       },
     );

@@ -111,13 +111,14 @@ class _ForwardMessageScreenState extends TIMUIKitState<ForwardMessageScreen> {
         centerTitle: true,
         title: Text(
           isMultiSelect ? TIM_t("选择多个会话") : TIM_t("选择一个会话"),
-          style: TextStyle(
-            color: theme.appbarTextColor,
+          style: const TextStyle(
+            color: Color(0xFF00BBBD),
             fontSize: 17,
+            fontWeight: FontWeight.bold
           ),
         ),
         shadowColor: theme.weakBackgroundColor,
-        backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
+        backgroundColor: const Color(0xFFF5F5F5),
         leadingWidth: 80,
         leading: TextButton(
           onPressed: () {
