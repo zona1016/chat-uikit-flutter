@@ -76,8 +76,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
       decoration: BoxDecoration(
           border: Border(
               bottom: BorderSide(
-                  color:
-                      theme.weakDividerColor ?? CommonColor.weakDividerColor))),
+                  color:const Color(0xFF00BBBD).withOpacity(0.1)))),
       child: Material(
         color: isDesktopScreen ? theme.wideBackgroundColor : null,
         child: InkWell(
@@ -102,6 +101,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
             }
           }),
           child: Container(
+            color: const Color(0xFFF5F5F5),
             padding: const EdgeInsets.only(top: 10, left: 16),
             child: Row(
               children: [
@@ -112,6 +112,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                     height: isDesktopScreen ? 30 : 40,
                     width: isDesktopScreen ? 30 : 40,
                     child: Avatar(
+                      borderRadius: BorderRadius.circular((isDesktopScreen ? 30 : 40) / 2),
                       faceUrl: faceUrl,
                       showName: showName,
                       type: 2,
@@ -125,7 +126,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                   child: Text(
                     showName,
                     style: TextStyle(
-                        color: Colors.black, fontSize: isDesktopScreen ? 14 : 18),
+                        color: const Color(0xFF00BBBD), fontSize: isDesktopScreen ? 14 : 18),
                   ),
                 ))
               ],

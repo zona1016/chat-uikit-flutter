@@ -66,9 +66,12 @@ class Avatar extends TIMUIKitStatelessWidget {
         );
       }
       return CachedNetworkImage(
-        imageUrl: faceUrl,
+        imageUrl: faceUrl.contains('http') ? faceUrl : 'https://$faceUrl',
         fit: BoxFit.cover,
         fadeInDuration: const Duration(milliseconds: 0),
+        placeholder: (BuildContext context, String url) {
+          return defaultAvatar();
+        },
         errorWidget: (BuildContext context, String c, dynamic s) {
           return defaultAvatar();
         },

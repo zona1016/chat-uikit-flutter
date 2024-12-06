@@ -128,10 +128,10 @@ class _ContactListState extends TIMUIKitState<ContactList> {
     return Container(
       padding: const EdgeInsets.only(top: 8, left: 16, right: 12),
       decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
           border: Border(
               bottom: BorderSide(
-                  color:
-                      theme.weakDividerColor ?? CommonColor.weakDividerColor))),
+                  color:const Color(0xFF00BBBD).withOpacity(0.1)))),
       child: Row(
         children: [
           if (widget.isCanSelectMemberItem)
@@ -165,6 +165,7 @@ class _ContactListState extends TIMUIKitState<ContactList> {
               height: isDesktopScreen ? 30 : 40,
               width: isDesktopScreen ? 30 : 40,
               child: Avatar(
+                borderRadius: BorderRadius.circular((isDesktopScreen ? 30 : 40) / 2),
                   onlineStatus: onlineStatus,
                   faceUrl: faceUrl,
                   showName: showName),
@@ -177,7 +178,7 @@ class _ContactListState extends TIMUIKitState<ContactList> {
             child: Text(
               showName,
               style: TextStyle(
-                  color: Colors.black, fontSize: isDesktopScreen ? 14 : 18),
+                  color: const Color(0xFF00BBBD), fontSize: isDesktopScreen ? 14 : 18),
             ),
           )),
         ],
@@ -202,7 +203,7 @@ class _ContactListState extends TIMUIKitState<ContactList> {
         child: Container(
           padding: const EdgeInsets.only(top: 8, left: 16),
           decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: hexToColor("DBDBDB")))),
+              border: Border(bottom: BorderSide(color: hexToColor("00BBBD").withOpacity(0.1)))),
           child: Row(
             children: [
               Container(
@@ -220,7 +221,8 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                     Text(
                       memberInfo.name,
                       style: TextStyle(
-                          color: hexToColor("111111"),
+                        fontWeight: FontWeight.bold,
+                          color: hexToColor("00BBBD"),
                           fontSize: isDesktopScreen ? 14 : 18),
                     ),
                     Expanded(child: Container()),
@@ -230,7 +232,7 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                       margin: const EdgeInsets.only(right: 16),
                       child: Icon(
                         Icons.keyboard_arrow_right,
-                        color: hexToColor('BBBBBB'),
+                        color: hexToColor('00BBBD'),
                       ),
                     )
                   ],
