@@ -111,12 +111,11 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
     final isDesktopScreen = TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     return Container(
       padding: const EdgeInsets.only(top: 6, bottom: 6, left: 16, right: 16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: theme.conversationItemBorderColor ??
-                CommonColor.weakDividerColor,
-            width: 1,
+            color: Colors.black,
+            width: 0.5,
           ),
         ),
       ),
@@ -173,9 +172,9 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
                       maxLines: 1,
                       style: TextStyle(
                         height: 1,
-                        color: const Color(0xFF00BBBD),
+                        color: Colors.white,
                         fontSize: isDesktopScreen ? 14 : 18,
-                        fontWeight: FontWeight.w400,
+                        fontWeight: FontWeight.w600,
                       ),
                     )),
                     _getTimeStringForChatWidget(context, theme),
