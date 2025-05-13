@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/text_input_bottom_sheet.dart';
 
@@ -38,7 +39,7 @@ class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard>{
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AidaBaseColors.whiteWithOpacity01,
           border: isDesktopScreen ? null : Border(
               bottom: BorderSide(
                   color:
@@ -69,7 +70,7 @@ class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard>{
                     TIM_t("我的群昵称"),
                     style: TextStyle(
                         fontSize: isDesktopScreen ? 14 : 16,
-                        color: isDesktopScreen ? theme.darkTextColor : const Color(0xFF00BBBD)),
+                        color: isDesktopScreen ? theme.darkTextColor : AidaBaseColors.white),
                   ),
                 ),
                 if (!isDesktopScreen)
@@ -84,8 +85,8 @@ class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard>{
                                     fontSize: isDesktopScreen ? 14 : 16,
                                     color: theme.darkTextColor),
                               )),
-                          Icon(Icons.keyboard_arrow_right,
-                              color: const Color(0xFF00BBBD))
+                          const Icon(Icons.keyboard_arrow_right,
+                              color: AidaBaseColors.white)
                         ],
                       )),
               ],

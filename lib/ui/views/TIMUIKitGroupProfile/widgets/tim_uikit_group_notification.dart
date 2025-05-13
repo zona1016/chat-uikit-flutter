@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
@@ -46,13 +47,13 @@ class GroupProfileNotificationState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AidaBaseColors.whiteWithOpacity01,
           border: isDesktopScreen
               ? null
               : Border(
                   bottom: BorderSide(
                       color: theme.weakDividerColor ??
-                          CommonColor.weakDividerColor))),
+                          AidaBaseColors.weakTextColor))),
       child: InkWell(
         onTap: !widget.isHavePermission
             ? null
@@ -85,7 +86,7 @@ class GroupProfileNotificationState
                   child: Text(
                     TIM_t("群公告"),
                     style: TextStyle(
-                        color: isDesktopScreen ? theme.darkTextColor : const Color(0xFF00BBBD),
+                        color: isDesktopScreen ? theme.darkTextColor : AidaBaseColors.white,
                         fontSize: isDesktopScreen ? 14 : 16),
                   ),
                 ),

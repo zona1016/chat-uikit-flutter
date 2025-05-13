@@ -4,6 +4,7 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
 
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 
@@ -41,7 +42,7 @@ class GroupProfileType extends TIMUIKitStatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AidaBaseColors.whiteWithOpacity01,
           border: isDesktopScreen ? null : Border(
               bottom: BorderSide(
                   color:
@@ -52,7 +53,7 @@ class GroupProfileType extends TIMUIKitStatelessWidget {
           Text(
             TIM_t("群类型"),
             style: TextStyle(
-                fontSize: isDesktopScreen ? 14 : 16, color: isDesktopScreen ? theme.darkTextColor : const Color(0xFF00BBBD)),
+                fontSize: isDesktopScreen ? 14 : 16, color: isDesktopScreen ? theme.darkTextColor : AidaBaseColors.white),
           ),
           Text(
             groupType,

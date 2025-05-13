@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_class.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
@@ -322,7 +323,7 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
         alignment: Alignment.center,
         // padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: AidaBaseColors.whiteWithOpacity01,
             border: Border(
                 bottom: BorderSide(
                     color: theme.weakDividerColor ??
@@ -331,7 +332,7 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
           Expanded(
             child: TextButton(
                 child: Text(TIM_t("加为好友"),
-                    style: TextStyle(color: theme.primaryColor, fontSize: 17)),
+                    style: const TextStyle(color: AidaBaseColors.white, fontSize: 17)),
                 onPressed: () {
                   handleAddFriend();
                 }),

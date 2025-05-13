@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 
 class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
@@ -60,7 +61,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
               vertical: smallCardMode ? 0 : 4)
           : const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       margin: isDesktopScreen ? null : const EdgeInsets.only(bottom: 1),
-      color: Colors.white,
+      color: AidaBaseColors.whiteWithOpacity01,
       child: (isDesktopScreen && isUseCheckedBoxOnWide)
           ? Row(
               children: [
@@ -131,7 +132,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
                           operationName,
                           style: TextStyle(
                               color:
-                                  isDesktopScreen ? hexToColor("7f7f7f") : const Color(0xFF00BBBD)),
+                                  isDesktopScreen ? hexToColor("7f7f7f") : AidaBaseColors.white),
                         ),
                         if (operationDescription != null)
                           Text(
@@ -146,10 +147,20 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
                   Transform.scale(
                     key: itemBoxKey,
                     scale: 0.8,
-                    child: CupertinoSwitch(
+                    child: Switch(
                       value: operationValue ?? false,
                       onChanged: onSwitchChange,
-                      activeColor: const Color(0xFFFD7B19),
+                      activeColor: AidaBaseColors.black, // 轨道颜
+                      thumbColor: MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.selected)) {
+                            return AidaBaseColors.secondPrimaryColor;
+                          }
+                          return Colors.grey;
+                        },
+                      ),// 关闭时滑块颜色
+                      activeTrackColor: AidaBaseColors.black,
+                      inactiveTrackColor: AidaBaseColors.black,
                     ),
                   ),
                 if (type != "switch" && !isDesktopScreen)
@@ -183,7 +194,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
                     children: [Expanded(child: operationRightWidget ?? const Text(""))],
                   )),
                 (type != "switch" && !isDesktopScreen && showAllowEditStatus)
-                    ? const Icon(Icons.keyboard_arrow_right, color: Color(0xFF00BBBD),)
+                    ? const Icon(Icons.keyboard_arrow_right, color: AidaBaseColors.white,)
                     : Container(
                         width: 0,
                       ),
