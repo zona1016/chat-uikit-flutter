@@ -43,10 +43,7 @@ class GroupProfileType extends TIMUIKitStatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
           color: AidaBaseColors.whiteWithOpacity01,
-          border: isDesktopScreen ? null : Border(
-              bottom: BorderSide(
-                  color:
-                      theme.weakDividerColor ?? CommonColor.weakDividerColor))),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

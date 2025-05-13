@@ -45,15 +45,10 @@ class GroupProfileNotificationState
     }
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 1),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-          color: AidaBaseColors.whiteWithOpacity01,
-          border: isDesktopScreen
-              ? null
-              : Border(
-                  bottom: BorderSide(
-                      color: theme.weakDividerColor ??
-                          AidaBaseColors.weakTextColor))),
+          color: AidaBaseColors.whiteWithOpacity01,),
       child: InkWell(
         onTap: !widget.isHavePermission
             ? null
