@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/TIMUIKitMessageReaction/message_reaction_emoji.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField/tim_uikit_emoji_panel.dart'
@@ -36,7 +37,7 @@ class TIMUIKitMessageReactionEmojiSelectPanelState
     final List<Map<String, Object>> emojiData = messageReactionEmojiData;
     final isDesktopScreen = TUIKitScreenUtils.getFormFactor() == DeviceType.Desktop;
     return Material(
-      color: Colors.white,
+      color: Colors.transparent,
       child: ExtendedWrap(
         maxLines: widget.isShowMoreSticker ? 5 : 1,
         spacing: 18,
@@ -54,7 +55,7 @@ class TIMUIKitMessageReactionEmojiSelectPanelState
                   widget.isShowMoreSticker
                       ? Icons.cancel_outlined
                       : Icons.add_circle_outline_outlined,
-                  color: hexToColor("444444"),
+                  color: AidaBaseColors.primaryColor,
                   size: 26),
             ),
           ),

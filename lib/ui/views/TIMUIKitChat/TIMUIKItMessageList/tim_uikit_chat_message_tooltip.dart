@@ -10,6 +10,7 @@ import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_self_info_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/TIMUIKitMessageReaction/tim_uikit_message_reaction_select_emoji.dart';
@@ -153,7 +154,7 @@ class TIMUIKitMessageTooltipState
       width: 44,
       child: InkWell(
         onTap: onTap,
-        splashColor: Colors.white,
+        splashColor: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.only(bottom: 6, top: 6),
           child: child,
@@ -320,7 +321,6 @@ class TIMUIKitMessageTooltipState
       widgetList = formattedTipsList
           .map(
             (item) => Material(
-              color: Colors.white,
               child: InkWell(
                 onTap: () {
                   item.onClick();
@@ -361,7 +361,7 @@ class TIMUIKitMessageTooltipState
       widgetList = formattedTipsList
           .map(
             (item) => Material(
-              color: Colors.white,
+              color: Colors.transparent,
               child: ItemInkWell(
                 onTap: () {
                   item.onClick();
@@ -376,6 +376,7 @@ class TIMUIKitMessageTooltipState
                           : null,
                       width: 20,
                       height: 20,
+                      color: AidaBaseColors.primaryColor,
                     ),
                     const SizedBox(
                       height: 4,
@@ -383,9 +384,9 @@ class TIMUIKitMessageTooltipState
                     ),
                     Text(
                       item.label,
-                      style: TextStyle(
+                      style: const TextStyle(
                         decoration: TextDecoration.none,
-                        color: theme.darkTextColor,
+                        color: AidaBaseColors.white,
                         fontSize: 10,
                       ),
                     )
@@ -576,7 +577,7 @@ class TIMUIKitMessageTooltipState
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
                   )
                 : null,
-            color: isDesktopScreen ? null : Colors.white,
+            color: isDesktopScreen ? null : Colors.transparent,
             padding: EdgeInsets.symmetric(
                 horizontal: 8, vertical: isDesktopScreen ? 8 : 4),
             child: ConstrainedBox(

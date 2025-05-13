@@ -816,7 +816,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
       left: left,
       hasArrow: hasArrow,
       borderColor: theme?.white ?? Colors.white,
-      backgroundColor: theme?.white ?? Colors.white,
+      backgroundColor: Colors.white.withOpacity(0.2),
       shadowColor: Colors.black26,
       hasShadow: isDesktopScreen ? false : true,
       borderWidth: 1.0,
