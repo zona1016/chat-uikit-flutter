@@ -517,7 +517,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
                                       ? widget.textFieldBuilder!(context)
                                       : TIMUIKitInputTextField(
                                           chatConfig: widget.config,
-                                          backgroundColor: Colors.white,
+                                          backgroundColor: Colors.white.withOpacity(0.1),
                                           groupID: widget.groupID,
                                           atMemberPanelScroll: atMemberPanelScroll,
                                           groupType: widget.conversation.groupType,

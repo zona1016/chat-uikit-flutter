@@ -452,7 +452,7 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                           child: SvgPicture.asset(
                             showSendSoundText ? 'images/keyboard.svg' : 'images/voice.svg',
                             package: 'tencent_cloud_chat_uikit',
-                            color: const Color(0xFF00BBBD),
+                            color: const Color(0xFF00BBBD).withOpacity(0.5),
                             height: 28,
                             width: 28,
                           ),
@@ -479,6 +479,8 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                                           showMore = false;
                                         });
                                       },
+
+                                      style: TextStyle(color: Colors.white),
                                       keyboardType: TextInputType.multiline,
                                       textInputAction: PlatformUtils().isAndroid ? TextInputAction.newline : TextInputAction.send,
                                       onEditingComplete: () {
@@ -497,11 +499,19 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                                           border: InputBorder.none,
                                           hintStyle: const TextStyle(
                                             // fontSize: 10,
-                                            color: Color(0xffAEA4A3),
+                                            color: Colors.white,
                                           ),
-                                          fillColor: const Color(0xFFF5F5F5),
+                                          fillColor: Colors.black,
                                           filled: true,
                                           isDense: true,
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(25), // 圆角
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(25), // 圆角
+                                            borderSide: BorderSide.none,
+                                          ),
                                           hintText: widget.hintText ?? ''),
                                       controller: widget.textEditingController,
                                       specialTextSpanBuilder: PlatformUtils().isWeb
@@ -535,7 +545,7 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                               : SvgPicture.asset(
                                   showEmojiPanel ? 'images/keyboard.svg' : 'images/face.svg',
                                   package: 'tencent_cloud_chat_uikit',
-                                  color: const Color(0xFF00BBBD),
+                                  color: const Color(0xFF00BBBD).withOpacity(0.5),
                                   height: 28,
                                   width: 28,
                                 ),
@@ -556,7 +566,7 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                               : SvgPicture.asset(
                                   'images/add.svg',
                                   package: 'tencent_cloud_chat_uikit',
-                                  color: const Color(0xFF00BBBD),
+                                  color: const Color(0xFF00BBBD).withOpacity(0.5),
                                   height: 28,
                                   width: 28,
                                 ),
@@ -582,13 +592,19 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
                     ],
                   ),
                 ),
-                AnimatedContainer(
-                  duration: Duration(milliseconds: (showKeyboard && PlatformUtils().isAndroid) ? 200 : 340),
-                  curve: Curves.fastOutSlowIn,
-                  height: max(_getBottomHeight(), 0.0),
-                  child: ListView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [_getBottomContainer(theme)],
+                MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  removeBottom: true,
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: (showKeyboard && PlatformUtils().isAndroid) ? 200 : 340),
+                    curve: Curves.fastOutSlowIn,
+                    height: max(_getBottomHeight(), 0.0),
+                    child: ListView(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [_getBottomContainer(theme)],
+                    ),
                   ),
                 ),
               ],
