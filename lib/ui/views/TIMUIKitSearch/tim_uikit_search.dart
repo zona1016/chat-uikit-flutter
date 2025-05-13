@@ -107,10 +107,10 @@ class TIMUIKitSearchState extends TIMUIKitState<TIMUIKitSearch> {
                     model.searchByKey(value);
                   },
                   controller: textEditingController,
-                  prefixIcon: Icon(
+                  prefixIcon: const Icon(
                     Icons.search,
                     size: 16,
-                    color: hexToColor("00BBBDD"),
+                    color: Colors.white,
                   ),
                 ),
                 Expanded(

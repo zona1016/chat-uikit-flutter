@@ -20,7 +20,7 @@ class TIMUIKitSearchFolder extends TIMUIKitStatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       width: MediaQuery.of(context).size.width,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: Colors.transparent,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -35,8 +35,8 @@ class TIMUIKitSearchFolder extends TIMUIKitStatelessWidget {
             padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
             child: Text(
               folderName,
-              style: TextStyle(
-                  color: theme.weakTextColor, height: 1.5, fontSize: 14),
+              style: const TextStyle(
+                  color: Colors.white, height: 1.5, fontSize: 14),
             ),
           ),
           ...children

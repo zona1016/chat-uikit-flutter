@@ -28,9 +28,9 @@ class TIMUIKitSearchItem extends TIMUIKitStatelessWidget {
   _renderLineOneRight(String? text, TUITheme theme) {
     if (text != null) {
       return Text(text,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
-            color: theme.weakTextColor,
+            color: Colors.white,
           ));
     } else {
       return Container();
@@ -58,9 +58,9 @@ class TIMUIKitSearchItem extends TIMUIKitStatelessWidget {
       defaultWidget: GestureDetector(
         onTap: onClick,
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
               border: Border(
-                  bottom: BorderSide(color: hexToColor("DBDBDB"), width: 0.5))),
+                  bottom: BorderSide(color: Colors.white, width: 0.5))),
           padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -90,8 +90,8 @@ class TIMUIKitSearchItem extends TIMUIKitStatelessWidget {
                         children: [
                           Text(
                             lineOne,
-                            style: TextStyle(
-                                color: theme.darkTextColor,
+                            style: const TextStyle(
+                                color: Colors.white,
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.w400),
                           ),

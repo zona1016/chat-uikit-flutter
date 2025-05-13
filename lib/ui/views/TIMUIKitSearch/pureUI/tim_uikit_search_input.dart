@@ -85,56 +85,46 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
               textAlign: TextAlign.start,
               style: isDesktopScreen ? const TextStyle(
                 fontSize: 12
-              ) : null,
+              ) : const TextStyle(
+                  color: Colors.white
+              ),
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.all(0),
                 // 普通情况下的边框
                 border: OutlineInputBorder(
-                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
-                    color: Color(0xFF00BBBD),
-                    width: 0.3,
-                  ),
+                  borderRadius: BorderRadius.circular(60), // 圆角
+                  borderSide: BorderSide.none,
                 ),
                 // 当输入框聚焦时的边框
                 focusedBorder: OutlineInputBorder(
-                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
-                    color: Color(0xFF00BBBD),
-                    width: 1,
-                  ),
+                  borderRadius: BorderRadius.circular(60), // 圆角
+                  borderSide: BorderSide.none,
                 ),
                 // 输入框未聚焦但启用时的边框
                 enabledBorder: OutlineInputBorder(
-                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
-                    color: Color(0xFF00BBBD),
-                    width: 1,
-                  ),
+                  borderRadius: BorderRadius.circular(60), // 圆角
+                  borderSide: BorderSide.none,
                 ),
                 // 输入框禁用时的边框
                 disabledBorder: OutlineInputBorder(
-                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
-                    color: Color(0xFF00BBBD),
-                    width: 1,
-                  ),
+                  borderRadius: BorderRadius.circular(60), // 圆角
+                  borderSide: BorderSide.none,
                 ),
                 // 输入框有错误时的边框
                 errorBorder: OutlineInputBorder(
-                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
-                    color: Color(0xFF00BBBD),
-                    width: 1,
-                  ),
+                  borderRadius: BorderRadius.circular(60), // 圆角
+                  borderSide: BorderSide.none,
                 ),
                 // 输入框聚焦且有错误时的边框
                 focusedErrorBorder: OutlineInputBorder(
-                  borderSide: isDesktopScreen ? BorderSide.none : const BorderSide(
-                    color: Color(0xFF00BBBD),
-                    width: 0.3,
-                  ),
+                  borderRadius: BorderRadius.circular(60), // 圆角
+                  borderSide: BorderSide.none,
                 ),
                 hintStyle: TextStyle(
                   fontSize: isDesktopScreen ? 12 : 14,
                   color: hexToColor("CCCCCC"),
                 ),
-                fillColor: isDesktopScreen ? hexToColor("f3f3f4") : Colors.white,
+                fillColor: isDesktopScreen ? hexToColor("f3f3f4") : Colors.white.withOpacity(0.1),
                 filled: true,
                 isDense: true,
                 hintText: TIM_t("搜索"),
@@ -173,7 +163,7 @@ class TIMUIKitSearchInputState extends TIMUIKitState<TIMUIKitSearchInput> {
                 },
                 child: Text(TIM_t("取消"),
                     style: const TextStyle(
-                      color: Colors.black,
+                      color: Colors.white,
                     )),
               ))
         ],

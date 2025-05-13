@@ -41,7 +41,7 @@ class TIMUIKitSearchIndicator extends TIMUIKitStatelessWidget {
                   padding: const EdgeInsets.all(6),
                   child: Icon(
                     icon,
-                    color: theme.weakTextColor,
+                    color: Colors.white,
                     size: 30,
                   ),
                 ),
@@ -52,7 +52,7 @@ class TIMUIKitSearchIndicator extends TIMUIKitStatelessWidget {
                       child: Container(
                         height: 16,
                         width: 16,
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: theme.primaryColor),
+                        decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF00BBBD)),
                         child: const Icon(
                           Icons.check,
                           size: 8,
@@ -64,7 +64,7 @@ class TIMUIKitSearchIndicator extends TIMUIKitStatelessWidget {
             const SizedBox(height: 4),
             Text(
               TIM_t(titleMap[item]!),
-              style: TextStyle(color: theme.textColor, fontSize: 13),
+              style: const TextStyle(color: Colors.white, fontSize: 13),
             )
           ],
         ),
@@ -86,7 +86,7 @@ class TIMUIKitSearchIndicator extends TIMUIKitStatelessWidget {
             children: [
               Expanded(
                 child: Text(TIM_t("搜索指定内容"),
-                    style: TextStyle(color: theme.weakTextColor, fontSize: 12)),
+                    style: const TextStyle(color: Colors.white, fontSize: 12)),
               )
             ],
           ),
