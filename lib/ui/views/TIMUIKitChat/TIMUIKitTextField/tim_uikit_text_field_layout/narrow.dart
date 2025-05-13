@@ -218,6 +218,7 @@ class _TIMUIKitTextFieldLayoutNarrowState extends TIMUIKitState<TIMUIKitTextFiel
               defaultCustomEmojiStickerList: widget.isUseDefaultEmoji ? TUIKitStickerConstData.emojiList : [])
           : StickerPanel(
               isWideScreen: false,
+              backgroundColor: Colors.red.withOpacity(0.1),
               sendTextMsg: () {
                 widget.onEmojiSubmitted();
                 setSendButton();
