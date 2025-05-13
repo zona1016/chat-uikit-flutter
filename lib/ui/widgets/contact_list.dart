@@ -2,6 +2,7 @@
 import 'package:azlistview_all_platforms/azlistview_all_platforms.dart';
 import 'package:flutter/material.dart';
 import 'package:lpinyin/lpinyin.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
@@ -128,7 +129,7 @@ class _ContactListState extends TIMUIKitState<ContactList> {
     return Container(
       padding: const EdgeInsets.only(top: 8, left: 16, right: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: Colors.transparent,
           border: Border(
               bottom: BorderSide(
                   color:const Color(0xFF00BBBD).withOpacity(0.1)))),
@@ -178,7 +179,7 @@ class _ContactListState extends TIMUIKitState<ContactList> {
             child: Text(
               showName,
               style: TextStyle(
-                  color: const Color(0xFF00BBBD), fontSize: isDesktopScreen ? 14 : 18),
+                  color: Colors.white, fontSize: isDesktopScreen ? 14 : 18),
             ),
           )),
         ],
@@ -203,7 +204,8 @@ class _ContactListState extends TIMUIKitState<ContactList> {
         child: Container(
           padding: const EdgeInsets.only(top: 8, left: 16),
           decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: hexToColor("00BBBD").withOpacity(0.1)))),
+            color: Colors.transparent,
+              border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.1)))),
           child: Row(
             children: [
               Container(
@@ -222,7 +224,7 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                       memberInfo.name,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                          color: hexToColor("00BBBD"),
+                          color: AidaBaseColors.white,
                           fontSize: isDesktopScreen ? 14 : 18),
                     ),
                     Expanded(child: Container()),
@@ -230,9 +232,9 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                     //   const TIMUIKitUnreadCount(),
                     Container(
                       margin: const EdgeInsets.only(right: 16),
-                      child: Icon(
+                      child: const Icon(
                         Icons.keyboard_arrow_right,
-                        color: hexToColor('00BBBD'),
+                        color: AidaBaseColors.white,
                       ),
                     )
                   ],
@@ -281,7 +283,7 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                 ? (widget.currentItem == memberInfo.userProfile.userID
                     ? theme.conversationItemChooseBgColor
                     : widget.bgColor)
-                : null,
+                : Colors.transparent,
             child: InkWell(
               onTap: () {
                 if (widget.isCanSelectMemberItem) {
