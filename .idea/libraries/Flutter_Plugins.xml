@@ -11,7 +11,6 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/open_file-3.5.7" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/package_info_plus-4.2.0" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/url_launcher_windows-3.1.2" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/file_picker-5.5.0" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/url_launcher_linux-3.2.0" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/flutter_plugin_record_plus-0.0.16" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/tencent_calls_uikit-2.5.2" />
@@ -66,6 +65,7 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/pasteboard-0.2.0" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/path_provider_android-2.2.10" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/file_selector_macos-0.9.4+1" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.flutter-io.cn/file_picker-5.5.0" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

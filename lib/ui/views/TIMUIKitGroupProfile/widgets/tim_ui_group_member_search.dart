@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/optimize_utils.dart';
 
 
@@ -24,17 +25,21 @@ class GroupMemberSearchTextField extends TIMUIKitStatelessWidget {
         (text) => onTextChange(text), const Duration(milliseconds: 300));
 
     return Container(
-      color: Colors.white,
+      color: Colors.transparent,
       child: Column(children: [
         if(!isDesktopScreen) Container(
           decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(5.0)),
-              border: Border.all(color: theme.weakBackgroundColor!, width: 12)),
+              border: Border.all(color: Colors.transparent, width: 12)),
           child: TextField(
             onChanged: debounceFunc,
+            style: const TextStyle(color: AidaBaseColors.white),
             decoration: InputDecoration(
               hintText: TIM_t("搜索"),
-              prefixIcon: const Icon(Icons.search),
+              hintStyle: const TextStyle(color: AidaBaseColors.weakTextColor),
+              prefixIcon: const Icon(Icons.search, color: AidaBaseColors.white,),
+              fillColor: AidaBaseColors.whiteWithOpacity01,
+              filled: true
             ),
           ),
         ),
@@ -48,11 +53,11 @@ class GroupMemberSearchTextField extends TIMUIKitStatelessWidget {
             debounceFunc(text);
           }, focusNode: focusNode,
         ),
-        Divider(
+        const Divider(
             thickness: 1,
             indent: 74,
             endIndent: 0,
-            color: theme.weakBackgroundColor,
+            color: Colors.transparent,
             height: 0)
       ]),
     );

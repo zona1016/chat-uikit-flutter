@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
@@ -258,6 +259,7 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
                 autofocus: true,
                 focusNode: _focusNode,
                 controller: _controller,
+                style: const TextStyle(color: AidaBaseColors.white),
                 onChanged: (value) {
                   if (value.trim().isEmpty) {
                     setState(() {

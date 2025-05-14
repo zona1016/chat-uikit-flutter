@@ -36,9 +36,5 @@ class AidaBaseColors {
   static const rejectedStatus = Color(0xFFFF4104);
   static const approvedStatus = Color.fromARGB(255, 0, 255, 110);
 
-  static const baseBackgroundImage = 'assets/image/base/background.png';
-  static const customBackgroundImage = 'assets/images/custom/custom_bg.png';
-  static const incomeBackgroundImage = 'assets/images/custom/income_bg.png';
-  static const incomeTabBackgroundImage =
-      'assets/images/custom/income_bg_tab.png';
+  static const baseBackgroundImage = 'images/background.png';
 }

@@ -7,6 +7,7 @@ import 'package:lpinyin/lpinyin.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/optimize_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
@@ -105,7 +106,7 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
     final isDesktopScreen = TUIKitScreenUtils.getFormFactor() == DeviceType.Desktop;
     final isGroupMember = memberInfo.role == GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_MEMBER;
     return Container(
-        color: Colors.white,
+        color: Colors.transparent,
         child: Slidable(
             endActionPane: widget.canSlideDelete && isGroupMember
                 ? ActionPane(motion: const DrawerMotion(), children: [
@@ -124,7 +125,7 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
                 : null,
             child: Column(children: [
               ListTile(
-                tileColor: Colors.black,
+                tileColor: Colors.transparent,
                 title: Row(
                   children: [
                     if (widget.canSelectMember)
@@ -152,23 +153,24 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
                       height: isDesktopScreen ? 30 : 36,
                       margin: const EdgeInsets.only(right: 10),
                       child: Avatar(
+                        borderRadius: BorderRadius.circular(isDesktopScreen ? 15 : 18),
                         faceUrl: memberInfo.faceUrl ?? "",
                         showName: _getShowName(memberInfo),
                         type: 1,
                       ),
                     ),
-                    Text(_getShowName(memberInfo), style: TextStyle(fontSize: isDesktopScreen ? 14 : 16)),
+                    Text(_getShowName(memberInfo), style: TextStyle(fontSize: isDesktopScreen ? 14 : 16, color: AidaBaseColors.white)),
                     memberInfo.role == GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_OWNER
                         ? Container(
                             margin: const EdgeInsets.only(left: 5),
                             child: Text(TIM_t("群主"),
                                 style: TextStyle(
-                                  color: theme.ownerColor,
+                                  color: AidaBaseColors.primaryColor,
                                   fontSize: isDesktopScreen ? 10 : 12,
                                 )),
                             padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
                             decoration: BoxDecoration(
-                              border: Border.all(color: theme.ownerColor ?? CommonColor.ownerColor, width: 1),
+                              border: Border.all(color: AidaBaseColors.primaryColor),
                               borderRadius: const BorderRadius.all(Radius.circular(4.0)),
                             ),
                           )
@@ -176,13 +178,13 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
                             ? Container(
                                 margin: const EdgeInsets.only(left: 5),
                                 child: Text(TIM_t("管理员"),
-                                    style: TextStyle(
-                                      color: theme.adminColor,
+                                    style: const TextStyle(
+                                      color: AidaBaseColors.secondPrimaryColor,
                                       fontSize: 12,
                                     )),
                                 padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: theme.adminColor ?? CommonColor.adminColor, width: 1),
+                                  border: Border.all(color: AidaBaseColors.secondPrimaryColor, width: 1),
                                   borderRadius: const BorderRadius.all(Radius.circular(4.0)),
                                 ),
                               )
@@ -210,7 +212,7 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
                   }
                 },
               ),
-              Divider(thickness: 1, indent: 74, endIndent: 0, color: theme.weakBackgroundColor, height: 0)
+              Divider(thickness: 1, indent: 74, endIndent: 0, color: AidaBaseColors.whiteWithOpacity01, height: 0)
             ])));
   }
 
@@ -222,14 +224,14 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
       height: susHeight,
       width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.only(left: 16.0),
-      color: theme.weakBackgroundColor,
+      color: Colors.transparent,
       alignment: Alignment.centerLeft,
       child: Text(
         tag,
         softWrap: true,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14.0,
-          color: theme.darkTextColor,
+          color: AidaBaseColors.white,
         ),
       ),
     );
@@ -253,7 +255,7 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
     }, 300);
     final showList = _getShowList(widget.memberList);
     return Container(
-      color: isDesktopScreen ? null : theme.weakBackgroundColor,
+      color: isDesktopScreen ? null : Colors.transparent,
       child: SafeArea(
           child: Column(
         children: [

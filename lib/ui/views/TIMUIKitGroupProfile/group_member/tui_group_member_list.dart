@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -111,19 +114,15 @@ class GroupProfileMemberListPageState
             },
           );
         }
-        return Scaffold(
-            appBar: AppBar(
-                title: Text(
-                  TIM_t_para("群成员({{option1}}人)", "群成员($option1人)")(
-                      option1: option1),
-                  style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-                ),
-                shadowColor: theme.weakBackgroundColor,
-                backgroundColor: theme.appbarBgColor ??
-                    theme.primaryColor,
-                iconTheme: IconThemeData(
-                  color: theme.appbarTextColor,
-                )),
+        return ChatBaseScreen(
+            safeAreaTop: false,
+            safeAreaBottom: false,
+            backgroundColor: Colors.transparent,
+            backgroundImage: AidaBaseColors.baseBackgroundImage,
+            appBar: ChatBaseAppBar(
+              title: TIM_t_para("群成员({{option1}}人)", "群成员($option1人)")(
+                  option1: option1),
+            ),
             body: GroupProfileMemberList(
               customTopArea: PlatformUtils().isWeb
                   ? null
