@@ -9,6 +9,8 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/widget/tim_uikit_operation_item.dart';
@@ -154,13 +156,12 @@ class _GroupProfileGroupManagePageState
                       bottom: isDesktopScreen ? 0 : 12,
                       right: isDesktopScreen ? 0 : 12),
                   decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.transparent,
                       border: isDesktopScreen
                           ? null
                           : Border(
                               bottom: BorderSide(
-                                  color: theme.weakDividerColor ??
-                                      CommonColor.weakDividerColor))),
+                                  color: AidaBaseColors.whiteWithOpacity01))),
                   child: InkWell(
                     onTap: isDesktopScreen
                         ? null
@@ -190,9 +191,9 @@ class _GroupProfileGroupManagePageState
                               Text(TIM_t("设置管理员"),
                                   style: TextStyle(
                                       fontSize: isDesktopScreen ? 14 : 16,
-                                      color: theme.darkTextColor)),
-                              Icon(Icons.keyboard_arrow_right,
-                                  color: theme.weakTextColor)
+                                      color: AidaBaseColors.white)),
+                              const Icon(Icons.keyboard_arrow_right,
+                                  color: AidaBaseColors.white)
                             ],
                           ),
                   ),
@@ -206,25 +207,35 @@ class _GroupProfileGroupManagePageState
                     padding: const EdgeInsets.only(
                         top: 12, left: 16, bottom: 12, right: 12),
                     decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.transparent,
                         border: Border(
                             bottom: BorderSide(
-                                color: theme.weakDividerColor ??
-                                    CommonColor.weakDividerColor))),
+                                color: AidaBaseColors.whiteWithOpacity01))),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           TIM_t("全员禁言"),
-                          style: TextStyle(
-                              fontSize: 16, color: theme.darkTextColor),
+                          style: const TextStyle(
+                              fontSize: 16, color: AidaBaseColors.white),
                         ),
-                        CupertinoSwitch(
-                            value: isAllMuted,
-                            onChanged: (value) async {
-                              widget.model.setMuteAll(value);
+                        Switch(
+                          value: isAllMuted,
+                          onChanged: (value) async {
+                            widget.model.setMuteAll(value);
+                          },
+                          activeColor: AidaBaseColors.black, // 轨道颜
+                          thumbColor: MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.selected)) {
+                                return AidaBaseColors.secondPrimaryColor;
+                              }
+                              return Colors.grey;
                             },
-                            activeColor: theme.primaryColor)
+                          ),// 关闭时滑块颜色
+                          activeTrackColor: AidaBaseColors.black,
+                          inactiveTrackColor: AidaBaseColors.black,
+                        )
                       ],
                     ),
                   ),
@@ -256,12 +267,12 @@ class _GroupProfileGroupManagePageState
                   Container(
                     padding: const EdgeInsets.symmetric(
                         vertical: 10, horizontal: 16),
-                    color: theme.weakBackgroundColor,
+                    color: Colors.transparent,
                     alignment: Alignment.topLeft,
                     child: Text(
                       TIM_t("全员禁言开启后，只允许群主和管理员发言。"),
                       style:
-                          TextStyle(fontSize: 12, color: theme.weakTextColor),
+                          const TextStyle(fontSize: 12, color: AidaBaseColors.weakTextColor),
                     ),
                   ),
                 if (!isAllMuted && isAllowMuteMember)
@@ -412,35 +423,13 @@ class _GroupProfileGroupManagePageState
           return TUIKitScreenUtils.getDeviceWidget(
               context: context,
               desktopWidget: managePage(),
-              defaultWidget: Scaffold(
-                appBar: AppBar(
-                  title: Text(
-                    TIM_t("群管理"),
-                    style:
-                        TextStyle(color: theme.appbarTextColor, fontSize: 17),
-                  ),
-                  backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
-                  shadowColor: theme.weakDividerColor,
-                  iconTheme: IconThemeData(
-                    color: theme.appbarTextColor,
-                  ),
-                  leading: IconButton(
-                    padding: const EdgeInsets.only(left: 16),
-                    constraints: const BoxConstraints(),
-                    icon: Image.asset(
-                      'images/arrow_back.png',
-                      package: 'tencent_cloud_chat_uikit',
-                      height: 34,
-                      width: 34,
-                      color: theme.appbarTextColor,
-                    ),
-                    onPressed: () async {
-                      if (isAllMuted != widget.model.groupInfo?.isAllMuted) {
-                        widget.model.setMuteAll(isAllMuted);
-                      }
-                      Navigator.pop(context);
-                    },
-                  ),
+              defaultWidget: ChatBaseScreen(
+                safeAreaTop: false,
+                safeAreaBottom: false,
+                backgroundColor: Colors.transparent,
+                backgroundImage: AidaBaseColors.baseBackgroundImage,
+                appBar: ChatBaseAppBar(
+                  title: TIM_t("群管理"),
                 ),
                 body: managePage(),
               ));
@@ -470,7 +459,7 @@ Widget _buildListItem(BuildContext context, V2TimGroupMemberFullInfo memberInfo,
 
   Widget nameItem() {
     return Container(
-      color: Colors.white,
+      color: Colors.transparent,
       child: Column(children: [
         ListTile(
           tileColor: Colors.black,
@@ -486,7 +475,7 @@ Widget _buildListItem(BuildContext context, V2TimGroupMemberFullInfo memberInfo,
           title: Row(
             children: [
               Text(_getShowName(memberInfo),
-                  style: TextStyle(fontSize: isDesktopScreen ? 14 : 16)),
+                  style: TextStyle(fontSize: isDesktopScreen ? 14 : 16, color: AidaBaseColors.white)),
             ],
           ),
           onTap: () {},
@@ -496,7 +485,7 @@ Widget _buildListItem(BuildContext context, V2TimGroupMemberFullInfo memberInfo,
               thickness: 1,
               indent: 74,
               endIndent: 0,
-              color: theme.weakDividerColor,
+              color: AidaBaseColors.whiteWithOpacity01,
               height: 0)
       ]),
     );
@@ -571,12 +560,12 @@ class _GroupProfileSetManagerPageState
               if (!isDesktopScreen)
                 Container(
                   alignment: Alignment.topLeft,
-                  color: theme.weakDividerColor,
+                  color: Colors.transparent,
                   padding:
                       const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
                   child: Text(
                     TIM_t("群主"),
-                    style: TextStyle(fontSize: 14, color: theme.weakTextColor),
+                    style: const TextStyle(fontSize: 14, color: AidaBaseColors.white),
                   ),
                 ),
               if (isDesktopScreen)
@@ -601,13 +590,13 @@ class _GroupProfileSetManagerPageState
               if (!isDesktopScreen)
                 Container(
                   alignment: Alignment.topLeft,
-                  color: theme.weakDividerColor,
+                  color: Colors.transparent,
                   padding:
                       const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
                   child: Text(
                     TIM_t_para("管理员 ({{option2}}/10)", "管理员 ($option2/10)")(
                         option2: option2),
-                    style: TextStyle(fontSize: 14, color: theme.weakTextColor),
+                    style: const TextStyle(fontSize: 14, color: AidaBaseColors.white),
                   ),
                 ),
               if (isDesktopScreen)
@@ -622,7 +611,7 @@ class _GroupProfileSetManagerPageState
                 ),
               InkWell(
                 child: Container(
-                    color: Colors.white,
+                    color: Colors.transparent,
                     padding: const EdgeInsets.only(left: 16),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -631,22 +620,21 @@ class _GroupProfileSetManagerPageState
                       decoration: isDesktopScreen
                           ? null
                           : BoxDecoration(
-                              color: Colors.white,
+                              color: Colors.transparent,
                               border: Border(
                                   bottom: BorderSide(
-                                      color: theme.weakDividerColor ??
-                                          CommonColor.weakDividerColor))),
+                                      color: AidaBaseColors.whiteWithOpacity01))),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.add_circle_outline,
-                            color: theme.primaryColor,
+                            color: AidaBaseColors.white,
                             size: 20,
                           ),
                           const SizedBox(
                             width: 12,
                           ),
-                          Text(TIM_t("添加管理员"))
+                          Text(TIM_t("添加管理员"), style: const TextStyle(color: AidaBaseColors.white),)
                         ],
                       ),
                     )),
@@ -763,17 +751,13 @@ class _GroupProfileSetManagerPageState
         return TUIKitScreenUtils.getDeviceWidget(
             context: context,
             desktopWidget: adminPage(),
-            defaultWidget: Scaffold(
-              appBar: AppBar(
-                title: Text(
-                  TIM_t("设置管理员"),
-                  style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-                ),
-                shadowColor: theme.weakDividerColor,
-                backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
-                iconTheme: IconThemeData(
-                  color: theme.appbarTextColor,
-                ),
+            defaultWidget: ChatBaseScreen(
+              safeAreaTop: false,
+              safeAreaBottom: false,
+              backgroundColor: Colors.transparent,
+              backgroundImage: AidaBaseColors.baseBackgroundImage,
+              appBar: ChatBaseAppBar(
+                title: TIM_t("设置管理员"),
               ),
               body: adminPage(),
             ));
@@ -820,21 +804,20 @@ class _GroupProfileAddAdminState extends TIMUIKitState<GroupProfileAddAdmin> {
         children: [
           Container(
             alignment: Alignment.topLeft,
-            color: theme.weakDividerColor,
+            color: Colors.transparent,
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
             child: Text(
               TIM_t("群成员"),
-              style: TextStyle(fontSize: 14, color: theme.weakTextColor),
+              style: TextStyle(fontSize: 14, color: AidaBaseColors.white),
             ),
           ),
           ...widget.memberList
               .map((e) => Container(
                     decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
+                        color: AidaBaseColors.whiteWithOpacity01,
+                        border: const Border(
                             bottom: BorderSide(
-                                color: theme.weakDividerColor ??
-                                    CommonColor.weakDividerColor))),
+                                color: Colors.transparent))),
                     padding: const EdgeInsets.symmetric(
                         vertical: 10, horizontal: 16),
                     child: InkWell(
@@ -869,7 +852,7 @@ class _GroupProfileAddAdminState extends TIMUIKitState<GroupProfileAddAdmin> {
                             width: 10,
                           ),
                           Text(_getShowName(e),
-                              style: const TextStyle(fontSize: 16))
+                              style: TextStyle(fontSize: 16, color: AidaBaseColors.white))
                         ],
                       ),
                     ),
@@ -885,26 +868,21 @@ class _GroupProfileAddAdminState extends TIMUIKitState<GroupProfileAddAdmin> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: addAdminPage(),
         ),
-        defaultWidget: Scaffold(
-            appBar: AppBar(
-              title: Text(
-                widget.appbarTitle,
-                style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-              ),
-              shadowColor: theme.weakDividerColor,
-              backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
-              iconTheme: IconThemeData(
-                color: theme.appbarTextColor,
-              ),
-              leadingWidth: 80,
+        defaultWidget: ChatBaseScreen(
+            safeAreaTop: false,
+            safeAreaBottom: false,
+            backgroundColor: Colors.transparent,
+            backgroundImage: AidaBaseColors.baseBackgroundImage,
+            appBar: ChatBaseAppBar(
+              title: widget.appbarTitle,
               leading: TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
                 child: Text(
                   TIM_t("取消"),
-                  style: TextStyle(
-                    color: theme.appbarTextColor,
+                  style: const TextStyle(
+                    color: AidaBaseColors.white,
                     fontSize: 14,
                   ),
                 ),
@@ -917,8 +895,8 @@ class _GroupProfileAddAdminState extends TIMUIKitState<GroupProfileAddAdmin> {
                   },
                   child: Text(
                     TIM_t("完成"),
-                    style: TextStyle(
-                      color: theme.appbarTextColor,
+                    style: const TextStyle(
+                      color: AidaBaseColors.white,
                       fontSize: 14,
                     ),
                   ),
