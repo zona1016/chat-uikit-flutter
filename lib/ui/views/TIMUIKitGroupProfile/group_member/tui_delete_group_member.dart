@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/group_member_list.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
@@ -85,29 +88,26 @@ class _DeleteGroupMemberPageState extends TIMUIKitState<DeleteGroupMemberPage> {
             touchBottomCallBack: () {},
           ),
         ),
-        defaultWidget: Scaffold(
-            appBar: AppBar(
-                title: Text(
-                  TIM_t("删除群成员"),
-                  style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: submitDelete,
-                    child: Text(
-                      TIM_t("确定"),
-                      style: TextStyle(
-                        color: theme.appbarTextColor,
-                        fontSize: 16,
-                      ),
+        defaultWidget: ChatBaseScreen(
+            safeAreaTop: false,
+            safeAreaBottom: false,
+            backgroundColor: Colors.transparent,
+            backgroundImage: AidaBaseColors.baseBackgroundImage,
+            appBar: ChatBaseAppBar(
+              title: TIM_t("删除群成员"),
+              actions: [
+                TextButton(
+                  onPressed: submitDelete,
+                  child: Text(
+                    TIM_t("确定"),
+                    style: TextStyle(
+                      color: theme.appbarTextColor,
+                      fontSize: 16,
                     ),
-                  )
-                ],
-                shadowColor: theme.weakBackgroundColor,
-                backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
-                iconTheme: IconThemeData(
-                  color: theme.appbarTextColor,
-                )),
+                  ),
+                )
+              ],
+            ),
             body: GroupProfileMemberList(
               memberList: handleRole(searchMemberList ?? widget.model.groupMemberList),
               canSelectMember: true,

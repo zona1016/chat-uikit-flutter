@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 
 class CheckBoxButton extends TIMUIKitStatelessWidget {
   final bool isChecked;
@@ -27,8 +28,8 @@ class CheckBoxButton extends TIMUIKitStatelessWidget {
         ? BoxDecoration(
             border: Border.all(color: hexToColor("888888")),
             shape: BoxShape.circle,
-            color: Colors.white)
-        : const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF00BBBD));
+            color: AidaBaseColors.whiteWithOpacity01)
+        : const BoxDecoration(shape: BoxShape.circle, color: AidaBaseColors.primaryColor);
 
     if (disabled) {
       boxDecoration =
