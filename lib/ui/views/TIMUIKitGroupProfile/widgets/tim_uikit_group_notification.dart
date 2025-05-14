@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
@@ -194,18 +196,13 @@ class _GroupProfileNotificationPageState
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final TUITheme theme = value.theme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          TIM_t("群公告"),
-          style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-        ),
-        backgroundColor: theme.appbarBgColor ??
-            theme.primaryColor,
-        shadowColor: theme.weakDividerColor,
-        iconTheme: IconThemeData(
-          color: theme.appbarTextColor,
-        ),
+    return ChatBaseScreen(
+      safeAreaTop: false,
+      safeAreaBottom: false,
+      backgroundColor: Colors.transparent,
+      backgroundImage: AidaBaseColors.baseBackgroundImage,
+      appBar: ChatBaseAppBar(
+        title: TIM_t("群公告"),
         actions: [
           TextButton(
             onPressed: () {
@@ -219,13 +216,13 @@ class _GroupProfileNotificationPageState
             },
             child: Text(
               isUpdated ? TIM_t("编辑") : TIM_t("完成"),
-              style: TextStyle(
-                color: theme.appbarTextColor,
+              style: const TextStyle(
+                color: AidaBaseColors.white,
                 fontSize: 14,
               ),
             ),
           )
-        ],
+        ]
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -233,6 +230,7 @@ class _GroupProfileNotificationPageState
             readOnly: isUpdated,
             minLines: 1,
             maxLines: 4,
+            style: const TextStyle(color: AidaBaseColors.white),
             controller: _controller,
             keyboardType: TextInputType.multiline,
             autofocus: true,

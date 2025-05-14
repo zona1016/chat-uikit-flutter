@@ -42,14 +42,9 @@ class GroupProfileGroupManageState
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 1),
       decoration: BoxDecoration(
-          color: AidaBaseColors.whiteWithOpacity01,
-          border: isDesktopScreen
-              ? null
-              : Border(
-                  bottom: BorderSide(
-                      color: theme.weakDividerColor ??
-                          CommonColor.weakDividerColor))),
+          color: AidaBaseColors.whiteWithOpacity01,),
       child: Column(
         children: [
           InkWell(
