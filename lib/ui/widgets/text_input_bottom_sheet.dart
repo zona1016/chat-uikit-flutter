@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/drag_widget.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
@@ -20,6 +21,7 @@ class TextInputBottomSheet {
     selectionController.text = initText ?? "";
     return SingleChildScrollView(
         child: Container(
+          color: AidaBaseColors.black,
       padding: EdgeInsets.only(
         top: 16,
         left: 16,
@@ -34,22 +36,38 @@ class TextInputBottomSheet {
             padding: const EdgeInsets.only(bottom: 16),
             child: Text(title,
                 style:
-                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                     const TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: AidaBaseColors.white)),
           ),
-          Divider(height: 2, color: theme.weakDividerColor),
-          TextField(
-
-            onSubmitted: (text) {
-              onSubmitted(text);
-              if (entry != null) {
-                entry?.remove();
-                entry = null;
-              } else {
-                Navigator.pop(context);
-              }
-            },
-            autofocus: true,
-            controller: selectionController,
+          const Divider(height: 2, color: Colors.black87),
+          Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: AidaBaseColors.inputFillColor,
+              borderRadius: BorderRadius.circular(15)
+            ),
+            child: Center(
+              child: TextField(
+                style: const TextStyle(color: AidaBaseColors.white),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  fillColor: AidaBaseColors.inputFillColor,
+                  filled: true,
+                  isDense: true,
+                  hintText: '',
+                ),
+                onSubmitted: (text) {
+                  onSubmitted(text);
+                  if (entry != null) {
+                    entry?.remove();
+                    entry = null;
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
+                autofocus: true,
+                controller: selectionController,
+              ),
+            ),
           ),
           if(tips != null) Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,9 +165,13 @@ class TextInputBottomSheet {
                 Expanded(
                     child: SizedBox(
                   child: ElevatedButton(
-                      style: ButtonStyle(
-                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5))),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AidaBaseColors.whiteWithOpacity01,
+                        foregroundColor: AidaBaseColors.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20), // ✅ 可选：设置内边距
                       ),
                       onPressed: () {
                         String text = selectionController.text;
@@ -199,7 +221,7 @@ class TextInputBottomSheet {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
-                color: theme.wideBackgroundColor,
+                color: AidaBaseColors.black,
                 border: Border.all(
                   width: 2,
                   color: theme.weakBackgroundColor ?? const Color(0xFFbebebe),

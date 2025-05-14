@@ -4,6 +4,7 @@ class AidaBaseColors {
   static const primaryColor = Color(0xFF00BBBD);
   static const secondPrimaryColor = Color(0xFFFD7B19);
   static const black = Colors.black;
+  static const inputFillColor = Color(0xFF0B0E0E);
   static const black15 = Color(0x261A1A1A);
   static const black40 = Color(0x661A1A1A);
   static const gray = Color(0xFF999999);
@@ -20,7 +21,6 @@ class AidaBaseColors {
 
   static const textColor = black;
   static const weakTextColor = gray;
-  static const inputFillColor = Colors.white;
   static const secondaryInputFillColor = Colors.white54;
   static const darkInputFillColor = gray20;
   static const secondaryDarkInputFillColor = Color(0x80333333);
