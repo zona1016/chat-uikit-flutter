@@ -83,6 +83,7 @@ dev_dependencies:
   flutter_lints: ^1.0.0
   build_runner: any
   lints: ^1.0.1
+  event_bus: ^2.0.1
 
 dependency_overrides:
 
