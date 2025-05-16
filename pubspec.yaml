@@ -78,12 +78,12 @@ dependencies:
   logger: ^2.0.1
   image_clipboard: ^1.0.0+2
   easy_localization: ^3.0.5
+  event_bus: ^2.0.1
 
 dev_dependencies:
   flutter_lints: ^1.0.0
   build_runner: any
   lints: ^1.0.1
-  event_bus: ^2.0.1
 
 dependency_overrides:
 

@@ -375,7 +375,7 @@ packages:
     source: hosted
     version: "0.0.2"
   event_bus:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: event_bus
       sha256: "1a55e97923769c286d295240048fc180e7b0768902c3c2e869fe059aafa15304"
