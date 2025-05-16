@@ -11,6 +11,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField/tim_uikit_call_invite_list.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
@@ -172,10 +173,15 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             )),
       if (PlatformUtils().isMobile)
         MorePanelItem(
-            id: "lx",
+            id: "red_packet",
             title: TIM_t("红包"),
             onTap: (c) {
-
+              _onFeatureTap(
+                "red_packet",
+                c,
+                model,
+                theme,
+              );
             },
             icon: Image.asset(
               "images/more_hb.png",
@@ -619,6 +625,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
         break;
       case "videoCall":
         _goToVideoUI(TYPE_VIDEO);
+        break;
+      case "red_packet":
+        eventCenter.post(SendRedPacketNotice());
         break;
     }
   }
