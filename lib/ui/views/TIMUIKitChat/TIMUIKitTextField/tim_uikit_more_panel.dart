@@ -113,19 +113,6 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
   List<MorePanelItem> itemList(TUIChatSeparateViewModel model, TUITheme theme) {
     final config = widget.morePanelConfig ?? MorePanelConfig();
     return [
-      if (PlatformUtils().isMobile)
-        MorePanelItem(
-            id: "screen",
-            title: TIM_t("拍摄"),
-            onTap: (c) {
-              _onFeatureTap("screen", c, model, theme);
-            },
-            icon: Image.asset(
-              "images/more_ps.png",
-              package: 'tencent_cloud_chat_uikit',
-              height: 64,
-              width: 64,
-            )),
       if (!PlatformUtils().isWeb)
         MorePanelItem(
             id: "photo",
@@ -140,6 +127,58 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             },
             icon: Image.asset(
               "images/more_tp.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
+      if (PlatformUtils().isMobile)
+        MorePanelItem(
+            id: "screen",
+            title: TIM_t("拍摄"),
+            onTap: (c) {
+              _onFeatureTap("screen", c, model, theme);
+            },
+            icon: Image.asset(
+              "images/more_ps.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
+      if (PlatformUtils().isMobile)
+        MorePanelItem(
+            id: "lx",
+            title: TIM_t("录像"),
+            onTap: (c) {
+
+            },
+            icon: Image.asset(
+              "images/more_lx.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
+      if (PlatformUtils().isMobile)
+        MorePanelItem(
+            id: "lx",
+            title: TIM_t("阅后即焚"),
+            onTap: (c) {
+
+            },
+            icon: Image.asset(
+              "images/more_yhjf.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
+      if (PlatformUtils().isMobile)
+        MorePanelItem(
+            id: "lx",
+            title: TIM_t("红包"),
+            onTap: (c) {
+
+            },
+            icon: Image.asset(
+              "images/more_hb.png",
               package: 'tencent_cloud_chat_uikit',
               height: 64,
               width: 64,
@@ -175,23 +214,6 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               );
             },
             icon: Icon(Icons.video_file, color: hexToColor("5c6168"), size: 26)),
-      MorePanelItem(
-          id: "file",
-          title: TIM_t("文件"),
-          onTap: (c) {
-            _onFeatureTap(
-              "file",
-              c,
-              model,
-              theme,
-            );
-          },
-          icon: Image.asset(
-            "images/more_wj.png",
-            package: 'tencent_cloud_chat_uikit',
-            height: 64,
-            width: 64,
-          )),
       if (isInstallCallkit && PlatformUtils().isMobile)
         MorePanelItem(
             id: "videoCall",
@@ -228,6 +250,23 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
+      MorePanelItem(
+          id: "file",
+          title: TIM_t("文件"),
+          onTap: (c) {
+            _onFeatureTap(
+              "file",
+              c,
+              model,
+              theme,
+            );
+          },
+          icon: Image.asset(
+            "images/more_wj.png",
+            package: 'tencent_cloud_chat_uikit',
+            height: 64,
+            width: 64,
+          )),
       if (config.extraAction != null) ...?config.extraAction,
     ].where((element) {
       if (element.id == "screen") {
