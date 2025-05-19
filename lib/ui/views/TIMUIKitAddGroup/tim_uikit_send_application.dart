@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
@@ -83,7 +84,7 @@ class _SendJoinGroupApplicationState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              color: theme.white,
+              color: AidaBaseColors.whiteWithOpacity01,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               margin: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -93,7 +94,7 @@ class _SendJoinGroupApplicationState
                     width: 48,
                     height: 48,
                     margin: const EdgeInsets.only(right: 12),
-                    child: Avatar(faceUrl: faceUrl, showName: showName),
+                    child: Avatar(faceUrl: faceUrl, showName: showName, borderRadius: BorderRadius.circular(24),),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,7 +102,7 @@ class _SendJoinGroupApplicationState
                       Text(
                         showName,
                         style:
-                            TextStyle(color: theme.darkTextColor, fontSize: 18),
+                            const TextStyle(color: AidaBaseColors.white, fontSize: 18),
                       ),
                       const SizedBox(
                         height: 4,
@@ -109,7 +110,7 @@ class _SendJoinGroupApplicationState
                       Text(
                         "ID: $groupID",
                         style:
-                            TextStyle(fontSize: 13, color: theme.weakTextColor),
+                            const TextStyle(fontSize: 13, color: AidaBaseColors.primaryColor),
                       ),
                       const SizedBox(
                         height: 4,
@@ -118,7 +119,7 @@ class _SendJoinGroupApplicationState
                         TIM_t_para("群类型: {{option1}}", "群类型: $option1")(
                             option1: option1),
                         style:
-                            TextStyle(fontSize: 12, color: theme.weakTextColor),
+                            const TextStyle(fontSize: 12, color: AidaBaseColors.white),
                       ),
                     ],
                   )
@@ -129,15 +130,16 @@ class _SendJoinGroupApplicationState
               padding: const EdgeInsets.only(left: 16.0),
               child: Text(
                 TIM_t("填写验证信息"),
-                style: TextStyle(fontSize: 16, color: theme.weakTextColor),
+                style: TextStyle(fontSize: 16, color: AidaBaseColors.white),
               ),
             ),
             Container(
               margin: const EdgeInsets.only(top: 6, bottom: 12),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: theme.white,
+              color: AidaBaseColors.whiteWithOpacity01,
               child: TextField(
                   maxLines: 4,
+                  style: const TextStyle(color: AidaBaseColors.white),
                   controller: _verficationController,
                   keyboardType: TextInputType.multiline,
                   decoration: InputDecoration(
@@ -148,7 +150,7 @@ class _SendJoinGroupApplicationState
                       hintText: '')),
             ),
             Container(
-              color: theme.white,
+              color: AidaBaseColors.whiteWithOpacity01,
               width: double.infinity,
               margin: const EdgeInsets.only(top: 10),
               child: TextButton(
@@ -172,19 +174,6 @@ class _SendJoinGroupApplicationState
     return TUIKitScreenUtils.getDeviceWidget(
         context: context,
         desktopWidget: sendGroupApplicationBody(),
-        defaultWidget: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              TIM_t("进群申请"),
-              style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-            ),
-            shadowColor: theme.white,
-            backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
-            iconTheme: IconThemeData(
-              color: theme.appbarTextColor,
-            ),
-          ),
-          body: sendGroupApplicationBody(),
-        ));
+        defaultWidget: sendGroupApplicationBody());
   }
 }

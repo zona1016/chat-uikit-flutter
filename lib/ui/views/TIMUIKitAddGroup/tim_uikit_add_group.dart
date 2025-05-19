@@ -19,6 +19,8 @@ class TIMUIKitAddGroup extends StatefulWidget {
   /// The life cycle hooks for adding group business logic
   final AddGroupLifeCycle? lifeCycle;
 
+  final Function(V2TimGroupInfo groupInfo)? onTapAlreadyGroupItem;
+
   /// Navigate to group chat, if user is already a member of the current group.
   final Function(String groupID, V2TimConversation conversation)
       onTapExistGroup;
@@ -26,7 +28,7 @@ class TIMUIKitAddGroup extends StatefulWidget {
   final VoidCallback? closeFunc;
 
   const TIMUIKitAddGroup(
-      {Key? key, this.lifeCycle, required this.onTapExistGroup, this.closeFunc})
+      {Key? key, this.lifeCycle, required this.onTapExistGroup, this.closeFunc, this.onTapAlreadyGroupItem})
       : super(key: key);
 
   @override
@@ -77,6 +79,11 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     return InkWell(
       onTap: () async {
+        if (widget.onTapAlreadyGroupItem != null) {
+          widget.onTapAlreadyGroupItem!(groupInfo);
+          return;
+        }
+
         final V2TimConversation? groupConversation =
             await getGroupConversation(groupID);
         if (groupConversation != null) {
@@ -91,7 +98,7 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
           return;
         }
 
-        if(isDesktopScreen){
+        if (isDesktopScreen) {
           if (widget.closeFunc != null) {
             widget.closeFunc!();
           }
@@ -102,20 +109,19 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
             height: MediaQuery.of(context).size.width * 0.4,
             title: TIM_t("添加群聊"),
             child: (closeFuncSendApplication) => SendJoinGroupApplication(
-                lifeCycle: widget.lifeCycle,
-                groupInfo: groupInfo,
+              lifeCycle: widget.lifeCycle,
+              groupInfo: groupInfo,
             ),
           );
-        }else{
+        } else {
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                   builder: (context) => SendJoinGroupApplication(
-                    lifeCycle: widget.lifeCycle,
-                    groupInfo: groupInfo,
-                  )));
+                        lifeCycle: widget.lifeCycle,
+                        groupInfo: groupInfo,
+                      )));
         }
-
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -126,22 +132,30 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
               width: isDesktopScreen ? 38 : 48,
               height: isDesktopScreen ? 38 : 48,
               margin: const EdgeInsets.only(right: 16),
-              child: Avatar(faceUrl: faceUrl, showName: showName),
+              child: Avatar(faceUrl: faceUrl, showName: showName, borderRadius: BorderRadius.circular(isDesktopScreen ? 19 : 24),),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   showName,
-                  style: TextStyle(fontSize: isDesktopScreen ? 16 : 18),
+                  style: TextStyle(fontSize: isDesktopScreen ? 16 : 18, color: AidaBaseColors.white),
                 ),
-                Text(
-                  "ID: $groupID",
-                  style: TextStyle(fontSize: 12, color: theme.weakTextColor),
+                Row(
+                  children: [
+                    const Text(
+                      "ID: ",
+                      style: TextStyle(fontSize: 12, color: AidaBaseColors.weakTextColor),
+                    ),
+                    Text(
+                      groupID,
+                      style: const TextStyle(fontSize: 12, color: AidaBaseColors.primaryColor),
+                    ),
+                  ],
                 ),
                 Text(
                   "群类型: $groupType",
-                  style: TextStyle(fontSize: 12, color: theme.weakTextColor),
+                  style: const TextStyle(fontSize: 12, color: AidaBaseColors.weakTextColor),
                 )
               ],
             )
@@ -277,58 +291,20 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
                     setState(() {});
                   }
                 },
+                textAlignVertical: TextAlignVertical.center,
                 decoration: InputDecoration(
-                    prefixIcon: Icon(
+                    prefixIcon: const Icon(
                       Icons.search_outlined,
-                      color: theme.weakTextColor,
+                      color: AidaBaseColors.white,
                     ),
-                    // 普通情况下的边框
-                    border: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF00BBBD),
-                        width: 0.3,
-                      ),
-                    ),
-                    // 当输入框聚焦时的边框
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF00BBBD),
-                        width: 1,
-                      ),
-                    ),
-                    // 输入框未聚焦但启用时的边框
-                    enabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF00BBBD),
-                        width: 1,
-                      ),
-                    ),
-                    // 输入框禁用时的边框
-                    disabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF00BBBD),
-                        width: 1,
-                      ),
-                    ),
-                    // 输入框有错误时的边框
-                    errorBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF00BBBD),
-                        width: 1,
-                      ),
-                    ),
-                    // 输入框聚焦且有错误时的边框
-                    focusedErrorBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF00BBBD),
-                        width: 0.3,
-                      ),
-                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                     hintStyle: TextStyle(
                       color: theme.weakTextColor,
                     ),
-                    fillColor: theme.inputFillColor,
+                    fillColor: AidaBaseColors.whiteWithOpacity01,
                     filled: true,
                     hintText: TIM_t("搜索群ID")),
               )),
