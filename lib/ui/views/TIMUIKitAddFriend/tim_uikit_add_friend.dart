@@ -67,7 +67,6 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
             "";
     return InkWell(
       onTap: () async {
-
         widget.onTapAlreadyFriendsItem(friendInfo);
         return;
 
@@ -139,15 +138,24 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                 Text(
                   showName,
                   style: TextStyle(
-                      color: const Color(0xFF00BBBD),
+                      color: AidaBaseColors.white,
+                      fontWeight: FontWeight.bold,
                       fontSize: isDesktopScreen ? 16 : 18),
                 ),
                 const SizedBox(
                   height: 4,
                 ),
-                Text(
-                  "ID: $userID",
-                  style: TextStyle(fontSize: 12, color: theme.weakTextColor),
+                Row(
+                  children: [
+                    const Text(
+                      "ID: ",
+                      style: TextStyle(fontSize: 12, color: AidaBaseColors.weakTextColor),
+                    ),
+                    Text(
+                      userID,
+                      style: TextStyle(fontSize: 12, color: AidaBaseColors.primaryColor),
+                    )
+                  ],
                 )
               ],
             ),
@@ -239,58 +247,20 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                         setState(() {});
                       }
                     },
+                    textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
-                        prefixIcon: Icon(
+                        prefixIcon: const Icon(
                           Icons.search_outlined,
-                          color: theme.weakTextColor,
+                          color: AidaBaseColors.white,
                         ),
-                        // 普通情况下的边框
-                        border: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0xFF00BBBD),
-                            width: 0.3,
-                          ),
-                        ),
-                        // 当输入框聚焦时的边框
-                        focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0xFF00BBBD),
-                            width: 1,
-                          ),
-                        ),
-                        // 输入框未聚焦但启用时的边框
-                        enabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0xFF00BBBD),
-                            width: 1,
-                          ),
-                        ),
-                        // 输入框禁用时的边框
-                        disabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0xFF00BBBD),
-                            width: 1,
-                          ),
-                        ),
-                        // 输入框有错误时的边框
-                        errorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0xFF00BBBD),
-                            width: 1,
-                          ),
-                        ),
-                        // 输入框聚焦且有错误时的边框
-                        focusedErrorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0xFF00BBBD),
-                            width: 0.3,
-                          ),
-                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
                         hintStyle: TextStyle(
                           color: theme.weakTextColor,
                         ),
-                        fillColor: theme.inputFillColor,
+                        fillColor: AidaBaseColors.whiteWithOpacity01,
                         filled: true,
                         hintText: TIM_t("搜索用户 ID")),
                   ))
@@ -309,14 +279,14 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                     Text(
                       '我的账号：${_selfInfoViewModel.loginInfo?.userID}',
                       style: const TextStyle(
-                        color: Color(0xFF999999),
-                        fontSize: 12
-                      ),
+                          color: AidaBaseColors.white, fontSize: 12),
                     ),
-                    const SizedBox(width: 8,),
+                    const SizedBox(
+                      width: 8,
+                    ),
                     const Icon(
                       Icons.qr_code,
-                      color: Color(0xFF00BBBD),
+                      color: AidaBaseColors.primaryColor,
                       size: 18,
                     ),
                     const Spacer(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/add_friend_life_cycle.dart';
@@ -63,7 +64,7 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              color: theme.white,
+              color: AidaBaseColors.whiteWithOpacity01,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               margin: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -73,7 +74,10 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
                     width: 48,
                     height: 48,
                     margin: const EdgeInsets.only(right: 12),
-                    child: Avatar(faceUrl: faceUrl, showName: showName),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24)
+                    ),
+                    child: Avatar(faceUrl: faceUrl, showName: showName, borderRadius: BorderRadius.circular(24),),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +85,7 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
                       Text(
                         showName,
                         style:
-                            TextStyle(color: theme.darkTextColor, fontSize: 18),
+                            const TextStyle(color: AidaBaseColors.white, fontSize: 18),
                       ),
                       const SizedBox(
                         height: 4,
@@ -89,7 +93,7 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
                       Text(
                         "ID: $userID",
                         style:
-                            TextStyle(fontSize: 13, color: theme.weakTextColor),
+                            const TextStyle(fontSize: 13, color: AidaBaseColors.weakTextColor),
                       ),
                       const SizedBox(
                         height: 4,
@@ -98,8 +102,8 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
                         Text(
                           TIM_t_para("个性签名: {{option2}}", "个性签名: $option2")(
                               option2: option2),
-                          style: TextStyle(
-                              fontSize: 13, color: theme.weakTextColor),
+                          style: const TextStyle(
+                              fontSize: 13, color: AidaBaseColors.white),
                         ),
                     ],
                   )
@@ -110,21 +114,22 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
               padding: const EdgeInsets.only(left: 16.0),
               child: Text(
                 TIM_t("填写验证信息"),
-                style: TextStyle(fontSize: 16, color: theme.weakTextColor),
+                style: const TextStyle(fontSize: 16, color: AidaBaseColors.white),
               ),
             ),
             Container(
               margin: const EdgeInsets.only(top: 6, bottom: 12),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: theme.white,
+              color: AidaBaseColors.whiteWithOpacity01,
               child: TextField(
                 // minLines: 1,
                 maxLines: 4,
+                style: const TextStyle(color: AidaBaseColors.white),
                 controller: _verficationController,
                 keyboardType: TextInputType.multiline,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: InputBorder.none,
-                  hintStyle: TextStyle(color: theme.textgrey),
+                  hintStyle: TextStyle(color: AidaBaseColors.white),
                   hintText: '',
                 ),
               ),
@@ -133,11 +138,11 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
               padding: const EdgeInsets.only(left: 16.0),
               child: Text(
                 TIM_t("请填写备注"),
-                style: TextStyle(fontSize: 16, color: theme.weakTextColor),
+                style: const TextStyle(fontSize: 16, color: AidaBaseColors.white),
               ),
             ),
             Container(
-              color: theme.white,
+              color: AidaBaseColors.whiteWithOpacity01,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               margin: const EdgeInsets.only(top: 6),
               child: Row(
@@ -145,17 +150,18 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
                 children: [
                   Text(
                     TIM_t("备注"),
-                    style: TextStyle(color: theme.darkTextColor, fontSize: 16),
+                    style: TextStyle(color: AidaBaseColors.white, fontSize: 16),
                   ),
                   SizedBox(
                     width: 50,
                     child: TextField(
                       controller: _nickNameController,
-                      decoration: InputDecoration(
+                      style: const TextStyle(color: AidaBaseColors.white),
+                      decoration: const InputDecoration(
                         contentPadding: EdgeInsets.zero,
                         border: InputBorder.none,
                         hintStyle: TextStyle(
-                          color: theme.textgrey,
+                          color: AidaBaseColors.white,
                         ),
                         hintText: '',
                       ),
@@ -166,7 +172,7 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
             ),
             if (widget.isShowDefaultGroup == true)
               Container(
-                color: theme.white,
+                color: AidaBaseColors.whiteWithOpacity01,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
@@ -175,18 +181,18 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
                     Text(
                       TIM_t("分组"),
                       style:
-                          TextStyle(color: theme.darkTextColor, fontSize: 16),
+                          const TextStyle(color: AidaBaseColors.white, fontSize: 16),
                     ),
                     Text(
                       TIM_t("我的好友"),
                       style:
-                          TextStyle(color: theme.darkTextColor, fontSize: 16),
+                          const TextStyle(color: AidaBaseColors.white, fontSize: 16),
                     )
                   ],
                 ),
               ),
             Container(
-              color: theme.white,
+              color: AidaBaseColors.whiteWithOpacity01,
               width: double.infinity,
               margin: const EdgeInsets.only(top: 10),
               child: TextButton(
