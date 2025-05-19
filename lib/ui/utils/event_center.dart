@@ -32,6 +32,11 @@ class SendRedPacketNotice {
   SendRedPacketNotice();
 }
 
+// 红包点击
+class RedPacketTipNotice {
+  RedPacketTipNotice();
+}
+
 
 // 快捷访问
 final eventCenter = EventCenter();

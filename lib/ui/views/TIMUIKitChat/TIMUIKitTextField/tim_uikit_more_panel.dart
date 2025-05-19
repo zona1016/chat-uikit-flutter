@@ -11,6 +11,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField/tim_uikit_call_invite_list.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
@@ -149,9 +150,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
         MorePanelItem(
             id: "lx",
             title: TIM_t("录像"),
-            onTap: (c) {
-
-            },
+            onTap: (c) {},
             icon: Image.asset(
               "images/more_lx.png",
               package: 'tencent_cloud_chat_uikit',
@@ -160,11 +159,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             )),
       if (PlatformUtils().isMobile)
         MorePanelItem(
-            id: "lx",
+            id: "yhjf",
             title: TIM_t("阅后即焚"),
-            onTap: (c) {
-
-            },
+            onTap: (c) {},
             icon: Image.asset(
               "images/more_yhjf.png",
               package: 'tencent_cloud_chat_uikit',
@@ -219,7 +216,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                 theme,
               );
             },
-            icon: Icon(Icons.video_file, color: hexToColor("5c6168"), size: 26)),
+            icon:
+                Icon(Icons.video_file, color: hexToColor("5c6168"), size: 26)),
       if (isInstallCallkit && PlatformUtils().isMobile)
         MorePanelItem(
             id: "videoCall",
@@ -388,7 +386,11 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
       final convType = widget.conversationType;
 
       if (PlatformUtils().isMobile) {
-        final pickedAssets = await AssetPicker.pickAssets(context);
+        final pickedAssets = await AssetPicker.pickAssets(context,
+            pickerConfig: AssetPickerConfig(
+              pickerTheme: AssetPicker.themeData(AidaBaseColors.primaryColor),
+            ),
+        );
 
         if (pickedAssets != null) {
           for (var asset in pickedAssets) {
