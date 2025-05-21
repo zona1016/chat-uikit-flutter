@@ -130,9 +130,9 @@ class _TIMUIKitReplyElemState extends TIMUIKitState<TIMUIKitReplyElem> {
     return Text(text,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
+        style: const TextStyle(
             fontSize: 12,
-            color: theme?.weakTextColor,
+            color: AidaBaseColors.whiteGray,
             fontWeight: FontWeight.w400));
   }
 
@@ -409,9 +409,9 @@ class _TIMUIKitReplyElemState extends TIMUIKitState<TIMUIKitReplyElem> {
                     repliedMessage != null
                         ? "${repliedMessage!.messageSender}:"
                         : "",
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 12,
-                        color: theme.weakTextColor,
+                        color: AidaBaseColors.whiteGray,
                         fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(

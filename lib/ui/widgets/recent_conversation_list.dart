@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_conversation_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
@@ -102,6 +103,7 @@ class _RecentForwardListState extends TIMUIKitState<RecentForwardList> {
                     faceUrl: faceUrl,
                     showName: showName,
                     type: conversation.type,
+                    borderRadius: BorderRadius.circular(isDesktopScreen ? 15 : 20),
                   ),
                 ),
                 Expanded(
@@ -110,12 +112,12 @@ class _RecentForwardListState extends TIMUIKitState<RecentForwardList> {
                   padding: EdgeInsets.only(top: 10, bottom: isDesktopScreen ? 12 : 19),
                   decoration: isDesktopScreen ? null : const BoxDecoration(
                       border:
-                          Border(bottom: BorderSide(color: Color(0xFFDBDBDB)))),
+                          Border(bottom: BorderSide(color: Colors.transparent))),
                   child: Text(
                     showName,
                     // textAlign: TextAlign.center,
                     style:
-                    TextStyle(color: const Color(0xFF111111), fontSize: isDesktopScreen ? 16 : 18),
+                    TextStyle(color: AidaBaseColors.white, fontSize: isDesktopScreen ? 16 : 18),
                   ),
                 ))
               ],
@@ -151,7 +153,7 @@ class _RecentForwardListState extends TIMUIKitState<RecentForwardList> {
             TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
         return Container(
-          color: const Color(0xFFF5F5F5),
+          color: Colors.transparent,
           child: AZListViewContainer(
             memberList: showList,
             isShowIndexBar: false,
@@ -160,14 +162,14 @@ class _RecentForwardListState extends TIMUIKitState<RecentForwardList> {
                 height: 40,
                 width: MediaQuery.of(context).size.width,
                 padding: const EdgeInsets.only(left: 16.0),
-                color: theme.weakDividerColor,
+                color: Colors.transparent,
                 alignment: Alignment.centerLeft,
                 child: Text(
                   TIM_t("最近联系人"),
                   softWrap: true,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14.0,
-                    color: theme.weakTextColor,
+                    color: AidaBaseColors.weakTextColor,
                   ),
                 ),
               );

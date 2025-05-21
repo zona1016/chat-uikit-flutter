@@ -1,5 +1,6 @@
 // ignore_for_file: unused_field, avoid_print, unused_import
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:fc_native_video_thumbnail/fc_native_video_thumbnail.dart';
@@ -11,6 +12,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField/tim_uikit_call_invite_list.dart';
@@ -269,6 +272,23 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
           },
           icon: Image.asset(
             "images/more_wj.png",
+            package: 'tencent_cloud_chat_uikit',
+            height: 64,
+            width: 64,
+          )),
+      MorePanelItem(
+          id: "card",
+          title: TIM_t("分享名片"),
+          onTap: (c) {
+            _onFeatureTap(
+              "card",
+              c,
+              model,
+              theme,
+            );
+          },
+          icon: Image.asset(
+            "images/more_card.png",
             package: 'tencent_cloud_chat_uikit',
             height: 64,
             width: 64,
@@ -636,7 +656,47 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
       case "red_packet":
         eventCenter.post(SendRedPacketNotice());
         break;
+      case "card":
+        _shareCard(model);
+        break;
     }
+  }
+
+  _shareCard(TUIChatSeparateViewModel model) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatBaseScreen(
+            safeAreaTop: false,
+            safeAreaBottom: false,
+            backgroundColor: Colors.transparent,
+            backgroundImage: AidaBaseColors.baseBackgroundImage,
+            appBar: ChatBaseAppBar(
+              title: TIM_t("选择名片"),
+            ),
+            body: TIMUIKitContact(
+              onTapItem: (V2TimFriendInfo item) {
+                MessageUtils.handleMessageError(
+                    model.sendCustomMessage(
+                      data: jsonEncode({
+                        "type": "Card",
+                        "name": item.userProfile?.nickName ?? '',
+                        "imageUrl": item.userProfile?.faceUrl ?? '',
+                        "userID": item.userProfile?.userID ?? ''
+                      }),
+                      convID: widget.conversationID,
+                      convType: widget.conversationType,
+                    ),
+                    context);
+                Navigator.pop(context);
+              },
+              emptyBuilder: (context) => Center(
+                child: Text(TIM_t('无联系人')),
+              ),
+            )),
+      ),
+    );
+
   }
 
   _goToVideoUI(String type) async {

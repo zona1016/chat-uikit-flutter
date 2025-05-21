@@ -194,7 +194,7 @@ class TIMUIKitMergerElemState extends TIMUIKitState<TIMUIKitMergerElem> {
                               overflow: TextOverflow.ellipsis,
                               maxLines: 2,
                               style: const TextStyle(
-                                color: AidaBaseColors.weakTextColor,
+                                color: AidaBaseColors.whiteGray,
                                 fontSize: 12,
                               ),
                             ),

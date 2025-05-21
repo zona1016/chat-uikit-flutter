@@ -5,6 +5,9 @@ import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_glo
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_self_info_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
@@ -106,20 +109,13 @@ class _ForwardMessageScreenState extends TIMUIKitState<ForwardMessageScreen> {
         },
       );
     }
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          isMultiSelect ? TIM_t("选择多个会话") : TIM_t("选择一个会话"),
-          style: const TextStyle(
-            color: Color(0xFF00BBBD),
-            fontSize: 17,
-            fontWeight: FontWeight.bold
-          ),
-        ),
-        shadowColor: theme.weakBackgroundColor,
-        backgroundColor: const Color(0xFFF5F5F5),
-        leadingWidth: 80,
+    return ChatBaseScreen(
+      safeAreaTop: false,
+      safeAreaBottom: false,
+      backgroundColor: Colors.transparent,
+      backgroundImage: AidaBaseColors.baseBackgroundImage,
+      appBar: ChatBaseAppBar(
+        title: isMultiSelect ? TIM_t("选择多个会话") : TIM_t("选择一个会话"),
         leading: TextButton(
           onPressed: () {
             if (isMultiSelect) {
@@ -138,8 +134,8 @@ class _ForwardMessageScreenState extends TIMUIKitState<ForwardMessageScreen> {
           },
           child: Text(
             TIM_t("取消"),
-            style: TextStyle(
-              color: theme.appbarTextColor,
+            style: const TextStyle(
+              color: AidaBaseColors.white,
               fontSize: 14,
             ),
           ),
@@ -157,8 +153,8 @@ class _ForwardMessageScreenState extends TIMUIKitState<ForwardMessageScreen> {
             },
             child: Text(
               !isMultiSelect ? TIM_t("多选") : TIM_t("完成"),
-              style: TextStyle(
-                color: theme.appbarTextColor,
+              style: const TextStyle(
+                color: AidaBaseColors.white,
                 fontSize: 14,
               ),
             ),

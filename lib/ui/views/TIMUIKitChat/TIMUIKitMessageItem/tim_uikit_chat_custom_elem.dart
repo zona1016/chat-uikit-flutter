@@ -1,5 +1,6 @@
 // ignore_for_file: unrelated_type_equality_checks
 
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
@@ -9,10 +10,10 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/single_call_me
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
-
 
 class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   final V2TimCustomElem? customElem;
@@ -52,14 +53,19 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
             topRight: Radius.circular(10),
             bottomLeft: Radius.circular(10),
             bottomRight: Radius.circular(10));
-    final backgroundColor = isDesktopScreen ? isFromSelf
-        ? theme.lightPrimaryMaterialColor.shade50
-        : theme.weakBackgroundColor : isFromSelf
-        ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01;
+    final backgroundColor = isDesktopScreen
+        ? isFromSelf
+            ? theme.lightPrimaryMaterialColor.shade50
+            : theme.weakBackgroundColor
+        : isFromSelf
+            ? AidaBaseColors.primaryColor
+            : AidaBaseColors.whiteWithOpacity01;
 
-    if (message.customElem?.data != null && message.customElem!.data!.contains('call_type')) {
+    if (message.customElem?.data != null &&
+        message.customElem!.data!.contains('call_type')) {
       final callingMessageDataProvider = CallingMessageDataProvider(message);
-      if (callingMessageDataProvider.participantType == CallParticipantType.group) {
+      if (callingMessageDataProvider.participantType ==
+          CallParticipantType.group) {
         // Group Call message
         return Container(
             padding: textPadding ?? const EdgeInsets.all(10),
@@ -67,7 +73,8 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
               color: messageBackgroundColor ?? backgroundColor,
               borderRadius: messageBorderRadius ?? borderRadius,
             ),
-            child: GroupCallMessageItem(callingMessageDataProvider: callingMessageDataProvider));
+            child: GroupCallMessageItem(
+                callingMessageDataProvider: callingMessageDataProvider));
       } else {
         return GestureDetector(
           onTap: () {
@@ -95,6 +102,17 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
       }
     }
 
+    if (message.customElem?.data != null && isCardData(message.customElem!.data!)) {
+
+      return Container(
+          padding: textPadding ?? const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: messageBackgroundColor ?? backgroundColor,
+            borderRadius: messageBorderRadius ?? borderRadius,
+          ),
+          constraints: const BoxConstraints(maxWidth: 180),
+          child: cardWidget());
+    }
     return Container(
         padding: textPadding ?? const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -104,9 +122,107 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
         constraints: const BoxConstraints(maxWidth: 240),
         child: Column(
           children: [
-            Text(TIM_t("自定义消息"), style: TextStyle(color: isDesktopScreen ? Colors.black : !isFromSelf
-                ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01),)
+            Text(
+              TIM_t("自定义消息"),
+              style: TextStyle(
+                  color: isDesktopScreen
+                      ? Colors.black
+                      : !isFromSelf
+                          ? AidaBaseColors.primaryColor
+                          : AidaBaseColors.white),
+            )
           ],
         ));
+  }
+
+  cardWidget() {
+    Map<String, dynamic> result = getMap(message.customElem!.data!);
+    ContactCardModel model = ContactCardModel.fromJson(result);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 40,
+              width: 40,
+              child: Avatar(
+                faceUrl: model.imageUrl,
+                showName: model.name,
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+            const SizedBox(width: 16,),
+            Text(
+              model.name,
+              style: const TextStyle(color: AidaBaseColors.white),
+            )
+          ],
+        ),
+        const SizedBox(height: 8,),
+        const Divider(height: 1, color: AidaBaseColors.whiteGray,),
+        const SizedBox(height: 8,),
+        const Text(
+          '个人名片',
+          style: TextStyle(color: AidaBaseColors.white),
+        )
+      ],
+    );
+  }
+
+  bool isCardData(String data) {
+    Map result = getMap(data);
+    return result['type']?.toString().toLowerCase() == 'card';
+  }
+
+  Map<String, dynamic> getMap(String data) {
+    Map<String, dynamic>? map;
+
+    try {
+      final decoded = json.decode(data);
+      if (decoded is Map<String, dynamic>) {
+        map = decoded;
+      } else {
+        return {}; // 解析后不是Map
+      }
+    } catch (e) {
+      return {}; // 解析异常
+    }
+
+    return map;
+  }
+}
+
+class ContactCardModel {
+  final String type;
+  final String name;
+  final String imageUrl;
+  final String userID;
+
+  ContactCardModel({
+    required this.type,
+    required this.name,
+    required this.imageUrl,
+    required this.userID,
+  });
+
+  factory ContactCardModel.fromJson(Map<String, dynamic> json) {
+    return ContactCardModel(
+      type: json['type'] ?? '',
+      name: json['name'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
+      userID: json['userID'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'BussinessID': type,
+      'text': name,
+      'imageUrl': imageUrl,
+      'contactId': userID,
+    };
   }
 }

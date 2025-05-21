@@ -470,9 +470,9 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
                                   if (fileSize != null)
                                     Text(
                                       showFileSize(fileSize),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 14,
-                                          color: theme.weakTextColor),
+                                          color: AidaBaseColors.white),
                                     )
                                 ],
                               )),
