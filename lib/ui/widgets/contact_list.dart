@@ -230,13 +230,13 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                     Expanded(child: Container()),
                     // if (item.id == "newContact")
                     //   const TIMUIKitUnreadCount(),
-                    Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      child: const Icon(
-                        Icons.keyboard_arrow_right,
-                        color: AidaBaseColors.white,
-                      ),
-                    )
+                    // Container(
+                    //   margin: const EdgeInsets.only(right: 16),
+                    //   child: const Icon(
+                    //     Icons.keyboard_arrow_right,
+                    //     color: AidaBaseColors.white,
+                    //   ),
+                    // )
                   ],
                 ),
               ))

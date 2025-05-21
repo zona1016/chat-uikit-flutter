@@ -148,9 +148,11 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             )),
       if (PlatformUtils().isMobile)
         MorePanelItem(
-            id: "lx",
+            id: "screens",
             title: TIM_t("录像"),
-            onTap: (c) {},
+            onTap: (c) {
+              _onFeatureTap("screen", c, model, theme);
+            },
             icon: Image.asset(
               "images/more_lx.png",
               package: 'tencent_cloud_chat_uikit',
@@ -386,10 +388,11 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
       final convType = widget.conversationType;
 
       if (PlatformUtils().isMobile) {
-        final pickedAssets = await AssetPicker.pickAssets(context,
-            pickerConfig: AssetPickerConfig(
-              pickerTheme: AssetPicker.themeData(AidaBaseColors.primaryColor),
-            ),
+        final pickedAssets = await AssetPicker.pickAssets(
+          context,
+          pickerConfig: AssetPickerConfig(
+            pickerTheme: AssetPicker.themeData(AidaBaseColors.primaryColor),
+          ),
         );
 
         if (pickedAssets != null) {
@@ -443,10 +446,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
     }
   }
 
-  _sendImageFromCamera(
-    TUIChatSeparateViewModel model,
-    TUITheme theme,
-  ) async {
+  _sendImageFromCamera(TUIChatSeparateViewModel model, TUITheme theme,
+      bool onlyEnableRecording) async {
     try {
       if (!await Permissions.checkPermission(
         context,
@@ -466,6 +467,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
       final pickedFile = await CameraPicker.pickFromCamera(context,
           pickerConfig: CameraPickerConfig(
               enableRecording: true,
+              onlyEnableRecording: onlyEnableRecording,
               textDelegate: IntlCameraPickerTextDelegate()));
       final originFile = await pickedFile?.originFile;
       if (originFile != null) {
@@ -609,7 +611,10 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
         _sendImageMessage(model, theme);
         break;
       case "screen":
-        _sendImageFromCamera(model, theme);
+        _sendImageFromCamera(model, theme, false);
+        break;
+      case "screens":
+        _sendImageFromCamera(model, theme, true);
         break;
       case "file":
         _sendFile(model, theme);

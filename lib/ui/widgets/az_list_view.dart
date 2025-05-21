@@ -5,6 +5,7 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 
 class AZListViewContainer extends StatefulWidget {
@@ -47,11 +48,11 @@ class _AZListViewContainerState extends TIMUIKitState<AZListViewContainer> {
       color: Colors.transparent,
       alignment: Alignment.centerLeft,
       child: Text(
-        tag,
+        '# $tag',
         softWrap: true,
         style: const TextStyle(
           fontSize: 14.0,
-          color: Color(0xFF00BBBD),
+          color: AidaBaseColors.weakTextColor,
         ),
       ),
     );

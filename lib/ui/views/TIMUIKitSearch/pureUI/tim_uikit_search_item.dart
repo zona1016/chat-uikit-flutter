@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/tim_uikit_search_item_wide.dart';
 
@@ -58,10 +59,12 @@ class TIMUIKitSearchItem extends TIMUIKitStatelessWidget {
       defaultWidget: GestureDetector(
         onTap: onClick,
         child: Container(
-          decoration: const BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(color: Colors.white, width: 0.5))),
-          padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: AidaBaseColors.whiteWithOpacity01,
+            borderRadius: BorderRadius.circular(16)
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -71,7 +74,7 @@ class TIMUIKitSearchItem extends TIMUIKitStatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   clipBehavior: Clip.none,
-                  children: [Avatar(faceUrl: faceUrl, showName: showName)],
+                  children: [Avatar(faceUrl: faceUrl, showName: showName, borderRadius: BorderRadius.circular(20),)],
                 ),
               ),
               Expanded(

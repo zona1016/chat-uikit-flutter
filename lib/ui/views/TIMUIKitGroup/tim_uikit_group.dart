@@ -2,6 +2,7 @@ import 'package:azlistview_all_platforms/azlistview_all_platforms.dart';
 import 'package:flutter/material.dart';
 import 'package:lpinyin/lpinyin.dart';
 import 'package:provider/provider.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
@@ -73,12 +74,12 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     return Container(
-      decoration: BoxDecoration(
-          border: Border(
-              bottom: BorderSide(
-                  color:const Color(0xFF00BBBD).withOpacity(0.1)))),
+      margin: const EdgeInsets.only(bottom: 0.5),
+      decoration: const BoxDecoration(
+        color: Colors.transparent
+      ),
       child: Material(
-        color: isDesktopScreen ? theme.wideBackgroundColor : null,
+        color: isDesktopScreen ? theme.wideBackgroundColor : Colors.transparent,
         child: InkWell(
           onTap: (() async {
             if (widget.onTapItem != null) {
@@ -101,7 +102,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
             }
           }),
           child: Container(
-            color: const Color(0xFFF5F5F5),
+            color: Colors.transparent,
             padding: const EdgeInsets.only(top: 10, left: 16),
             child: Row(
               children: [
@@ -126,7 +127,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                   child: Text(
                     showName,
                     style: TextStyle(
-                        color: const Color(0xFF00BBBD), fontSize: isDesktopScreen ? 14 : 18),
+                        color: AidaBaseColors.white, fontSize: isDesktopScreen ? 14 : 18),
                   ),
                 ))
               ],
