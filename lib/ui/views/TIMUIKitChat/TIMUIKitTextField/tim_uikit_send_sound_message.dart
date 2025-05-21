@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField/voice_send_panel.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
@@ -38,7 +39,7 @@ class SendSoundMessage extends StatefulWidget {
   State<StatefulWidget> createState() => _SendSoundMessageState();
 }
 
-class _SendSoundMessageState extends TIMUIKitState<SendSoundMessage> {
+class _SendSoundMessageState extends TIMUIKitState<SendSoundMessage> with SingleTickerProviderStateMixin {
   final TUIChatGlobalModel model = serviceLocator<TUIChatGlobalModel>();
   String soundTipsText = "";
   bool isRecording = false;
@@ -46,13 +47,34 @@ class _SendSoundMessageState extends TIMUIKitState<SendSoundMessage> {
   bool isCancelSend = false;
   DateTime startTime = DateTime.now();
   List<StreamSubscription<Object>> subscriptions = [];
+  SlideStatus currentSlideStatus = SlideStatus.center;
 
   OverlayEntry? overlayEntry;
   String voiceIcon = "images/voice_volume_1.png";
   double volume = 0.1;
 
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 动画控制器：控制缩放速度和曲线
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500), // 跳动频率
+    )..repeat(reverse: true); // 循环来回跳动
+
+    // 缩放范围：从 0.9 到 1.1
+    _scaleAnimation = Tween<double>(begin: 1, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
   buildOverLayView(BuildContext context) {
     if (overlayEntry == null) {
+
       overlayEntry = OverlayEntry(builder: (content) {
         return Positioned(
           top: 0,
@@ -62,70 +84,50 @@ class _SendSoundMessageState extends TIMUIKitState<SendSoundMessage> {
           child: Material(
             color: Colors.transparent,
             type: MaterialType.canvas,
-            child: Center(
-              child: Opacity(
-                opacity: 0.8,
-                child: Container(
-                  width: 160,
-                  height: 160,
-                  decoration: const BoxDecoration(
-                    color: Color(0xff77797A),
-                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      const SizedBox(
-                        height: 20,
+            child: Column(
+              children: [
+                const Spacer(
+                  flex: 2,
+                ),
+                Opacity(
+                  opacity: 0.8,
+                  child: Container(
+                    width: 150,
+                    height: 81,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('images/record_bg.png',
+                            package: 'tencent_cloud_chat_uikit'),
                       ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(top: 10),
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                    ),
+                    child: Center(
+                      child: AnimatedBuilder(
+                        animation: _scaleAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _scaleAnimation.value, // 缩放动画
                             child: Image.asset(
-                              "images/microphone.png",
-                              width: 50,
-                              height: 60,
-                              package: 'flutter_plugin_record_plus',
+                              'images/record_center.png',
+                              width: 90,
+                              height: 30,
+                              package: 'tencent_cloud_chat_uikit',
                             ),
-                          ),
-                          ClipRect(
-                            clipBehavior: Clip.hardEdge,
-                            child: Align(
-                              heightFactor: max(min(volume, 1), 0.1),
-                              alignment: Alignment.bottomCenter,
-                              child: SizedBox(
-                                width: 50,
-                                height: 60,
-                                child: Image.asset(
-                                  "images/voice_volume_total.png",
-                                  width: 50,
-                                  height: 60,
-                                  package: 'flutter_plugin_record_plus',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        soundTipsText,
-                        style: const TextStyle(
-                          fontStyle: FontStyle.normal,
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      )
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                const Spacer(),
+                SizedBox(
+                  height: 200,
+                  child: VoiceSendPanel(
+                    slideStatus: currentSlideStatus,
+                  ),
+                )
+              ],
             ),
           ),
         );
@@ -146,29 +148,32 @@ class _SendSoundMessageState extends TIMUIKitState<SendSoundMessage> {
   }
 
   onLongPressUpdate(e) {
-    double height = MediaQuery.of(context).size.height * 0.5 - 240;
-    double dy = e.localPosition.dy;
+    double x = e.globalPosition.dx;
+    double y = e.localPosition.dy.abs();
+    double screenWidth = MediaQuery.of(context).size.width;
 
-    if (dy.abs() > height) {
-      if (mounted && soundTipsText != TIM_t("松开取消")) {
-        setState(() {
-          soundTipsText = TIM_t("松开取消");
-        });
-      }
-    } else {
-      if (mounted && soundTipsText == TIM_t("松开取消")) {
-        setState(() {
-          soundTipsText = TIM_t("手指上滑，取消发送");
-        });
-      }
+    SlideStatus newStatus;
+    print(y);
+    if (x < screenWidth * 0.3 && y > 20) {
+      newStatus = SlideStatus.left;
+    }
+    // else if (x > screenWidth * 0.7 && y > 20) {
+    //   newStatus = SlideStatus.right;
+    // }
+    else {
+      newStatus = SlideStatus.center;
+    }
+
+    if (newStatus != currentSlideStatus) {
+      currentSlideStatus = newStatus;
     }
   }
 
   onLongPressEnd(e) {
-    double dy = e.localPosition.dy;
-    // 此高度为 160为录音取消组件距离顶部的预留距离
-    double height = MediaQuery.of(context).size.height * 0.5 - 240;
-    if (dy.abs() > height) {
+    // double dy = e.localPosition.dy;
+    // // 此高度为 160为录音取消组件距离顶部的预留距离
+    // double height = MediaQuery.of(context).size.height * 0.5 - 240;
+    if (currentSlideStatus == SlideStatus.left || currentSlideStatus == SlideStatus.right) {
       isCancelSend = true;
     } else {
       isCancelSend = false;
@@ -304,7 +309,7 @@ class _SendSoundMessageState extends TIMUIKitState<SendSoundMessage> {
       child: Container(
         height: 35,
         decoration: BoxDecoration(
-            color: isRecording ? theme.weakBackgroundColor : Colors.black,
+            color: isRecording ? Colors.black : Colors.black,
             borderRadius: BorderRadius.circular(35)),
         alignment: Alignment.center,
         child: Text(

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:extended_text/extended_text.dart';
 import 'package:flutter/material.dart';
@@ -202,7 +203,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
       }
     }
     final defaultStyle = widget.isFromSelf
-        ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF);
+        ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01;
 
     final backgroundColor = isShowJumpState
         ? const Color.fromRGBO(245, 166, 35, 1)
@@ -225,8 +226,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
               ? textWithLink!(
                   style: widget.fontStyle ??
                       TextStyle(
-                        color: isDesktopScreen ? Colors.black : !widget.isFromSelf
-                            ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF),
+                        color: isDesktopScreen ? Colors.black : AidaBaseColors.white,
                           fontSize: isDesktopScreen ? 14 : 16,
                           textBaseline: TextBaseline.ideographic,
                           height: widget.chatModel.chatConfig.textHeight))

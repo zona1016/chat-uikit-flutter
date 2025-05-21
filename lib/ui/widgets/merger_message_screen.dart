@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKItMessageList/tim_uikit_chat_history_message_list_item.dart';
@@ -58,10 +61,11 @@ class MergerMessageScreenState extends TIMUIKitState<MergerMessageScreen> {
         message.cloudCustomData != null && message.cloudCustomData != "";
     if (hasCustomData) {
       try {
-        final CloudCustomData messageCloudCustomData = CloudCustomData.fromJson(json.decode(
-            TencentUtils.checkString(message.cloudCustomData) != null
-                ? message.cloudCustomData!
-                : "{}"));
+        final CloudCustomData messageCloudCustomData = CloudCustomData.fromJson(
+            json.decode(
+                TencentUtils.checkString(message.cloudCustomData) != null
+                    ? message.cloudCustomData!
+                    : "{}"));
         if (messageCloudCustomData.messageReply != null) {
           MessageRepliedData.fromJson(messageCloudCustomData.messageReply!);
           return true;
@@ -237,18 +241,22 @@ class MergerMessageScreenState extends TIMUIKitState<MergerMessageScreen> {
       margin: const EdgeInsets.only(top: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: isSelf ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isSelf ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
-          if(!isSelf) SizedBox(
-            width: 40,
-            height: 40,
-            child: Avatar(faceUrl: faceUrl, showName: showName),
-          ),
-          if(!isSelf) const SizedBox(
-            width: 12,
-          ),
+          if (!isSelf)
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: Avatar(faceUrl: faceUrl, showName: showName, borderRadius: BorderRadius.circular(20),),
+            ),
+          if (!isSelf)
+            const SizedBox(
+              width: 12,
+            ),
           Column(
-            crossAxisAlignment: isSelf ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            crossAxisAlignment:
+                isSelf ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
               Text(showName,
                   style: TextStyle(fontSize: 12, color: theme.weakTextColor)),
@@ -261,14 +269,16 @@ class MergerMessageScreenState extends TIMUIKitState<MergerMessageScreen> {
               )
             ],
           ),
-          if(isSelf) const SizedBox(
-            width: 12,
-          ),
-          if(isSelf) SizedBox(
-            width: 40,
-            height: 40,
-            child: Avatar(faceUrl: faceUrl, showName: showName),
-          ),
+          if (isSelf)
+            const SizedBox(
+              width: 12,
+            ),
+          if (isSelf)
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: Avatar(faceUrl: faceUrl, showName: showName, borderRadius: BorderRadius.circular(20),),
+            ),
         ],
       ),
     );
@@ -320,18 +330,12 @@ class MergerMessageScreenState extends TIMUIKitState<MergerMessageScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: messageListPage(),
         ),
-        defaultWidget: Scaffold(
-          appBar: AppBar(
-              title: Text(
-                TIM_t("聊天记录"),
-                style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-              ),
-              shadowColor: theme.weakDividerColor,
-              backgroundColor: theme.appbarBgColor ??
-                  theme.primaryColor,
-              iconTheme: IconThemeData(
-                color: theme.appbarTextColor,
-              )),
+        defaultWidget: ChatBaseScreen(
+          safeAreaTop: false,
+          safeAreaBottom: false,
+          backgroundColor: Colors.transparent,
+          backgroundImage: AidaBaseColors.baseBackgroundImage,
+          appBar: ChatBaseAppBar(title: TIM_t("聊天记录")),
           body: messageListPage(),
         ));
   }

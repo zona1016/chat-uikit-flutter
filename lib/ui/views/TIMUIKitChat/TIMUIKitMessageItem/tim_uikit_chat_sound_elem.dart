@@ -11,6 +11,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_glo
 import 'package:tencent_cloud_chat_uikit/data_services/message/message_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/sound_record.dart';
@@ -175,7 +176,7 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final theme = value.theme;
 
-    final backgroundColor = widget.isFromSelf ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF);
+    final backgroundColor = widget.isFromSelf ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01;
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
@@ -250,7 +251,7 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
                         " ${stateElement.duration}''",
                         style: isDesktopScreen
                             ? widget.fontStyle
-                            : const TextStyle(color: Color(0xFF00BBBD)),
+                            : const TextStyle(color: AidaBaseColors.white),
                       ),
                       Container(width: _getSoundLen()),
                     ],

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKItMessageList/tim_uikit_chat_history_message_list_item.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/merger_message_screen.dart';
@@ -131,23 +132,21 @@ class TIMUIKitMergerElemState extends TIMUIKitState<TIMUIKitMergerElem> {
     }
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+    final backgroundColor = isDesktopScreen ? widget.isSelf
+        ? theme.lightPrimaryMaterialColor.shade50
+        : theme.weakBackgroundColor : widget.isSelf
+        ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01;
     return Container(
       constraints: BoxConstraints(
           maxWidth:
               MediaQuery.of(context).size.width * (isDesktopScreen ? 0.3 : 0.6)),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: backgroundColor,
         borderRadius: BorderRadius.only(
           topLeft: widget.isSelf ? const Radius.circular(10) : Radius.zero,
           bottomLeft: const Radius.circular(10),
           topRight: widget.isSelf ? Radius.zero : const Radius.circular(10),
           bottomRight: const Radius.circular(10),
-        ),
-        border: Border.all(
-          color: isShowJumpState
-              ? const Color.fromRGBO(245, 166, 35, 1)
-              : (theme.weakDividerColor ?? CommonColor.weakDividerColor),
-          width: 1,
         ),
       ),
       child: GestureDetector(
@@ -170,7 +169,7 @@ class TIMUIKitMergerElemState extends TIMUIKitState<TIMUIKitMergerElem> {
                       maxLines: 1,
                       style: const TextStyle(
                         fontSize: 16,
-                        color: Colors.black,
+                        color: AidaBaseColors.white,
                       ),
                     ),
                   )
@@ -194,8 +193,8 @@ class TIMUIKitMergerElemState extends TIMUIKitState<TIMUIKitMergerElem> {
                               softWrap: true,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 2,
-                              style: TextStyle(
-                                color: theme.weakTextColor,
+                              style: const TextStyle(
+                                color: AidaBaseColors.weakTextColor,
                                 fontSize: 12,
                               ),
                             ),
@@ -208,11 +207,11 @@ class TIMUIKitMergerElemState extends TIMUIKitState<TIMUIKitMergerElem> {
               const SizedBox(
                 height: 4,
               ),
-              const Divider(),
+              const Divider(color: AidaBaseColors.weakTextColor,),
               Text(
                 TIM_t("聊天记录"),
-                style: TextStyle(
-                  color: theme.weakTextColor,
+                style: const TextStyle(
+                  color: AidaBaseColors.white,
                   fontSize: 10,
                 ),
               ),

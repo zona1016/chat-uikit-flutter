@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_model_tools.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
@@ -348,7 +349,7 @@ class _TIMUIKitReplyElemState extends TIMUIKitState<TIMUIKitReplyElem> {
     final isFromSelf = widget.message.isSelf ?? true;
 
     final defaultStyle = isFromSelf
-        ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF);
+        ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01;
 
     final backgroundColor = isShowJumpState
         ? const Color.fromRGBO(245, 166, 35, 1)
@@ -429,8 +430,7 @@ class _TIMUIKitReplyElemState extends TIMUIKitState<TIMUIKitReplyElem> {
                 ? textWithLink!(
                     style: widget.fontStyle ??
                         TextStyle(
-                          color: isDesktopScreen ? Colors.black : !isFromSelf
-                              ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF),
+                          color: isDesktopScreen ? Colors.black : AidaBaseColors.white,
                             fontSize: isDesktopScreen ? 14 : 16,
                             textBaseline: TextBaseline.ideographic,
                             height: widget.chatModel.chatConfig.textHeight))

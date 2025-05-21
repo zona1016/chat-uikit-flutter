@@ -14,6 +14,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/permission.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
@@ -419,8 +420,8 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
                           ? theme.weakDividerColor ??
                               CommonColor.weakDividerColor
                           : widget.isSelf
-                              ? const Color(0xFF00BBBD)
-                              : const Color(0xFFFFFFFF),
+                              ? AidaBaseColors.primaryColor
+                              : AidaBaseColors.whiteWithOpacity01,
                       borderRadius: borderRadius),
                   child: Stack(children: [
                     // ClipRRect(
@@ -459,9 +460,7 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
                                           style: TextStyle(
                                             color: isDesktopScreen
                                                 ? theme.darkTextColor
-                                                : !widget.isSelf
-                                                ? const Color(0xFF00BBBD)
-                                                : const Color(0xFFFFFFFF),
+                                                : AidaBaseColors.white,
                                             fontSize: 16,
                                           ),
                                         );

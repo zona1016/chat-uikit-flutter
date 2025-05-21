@@ -6,6 +6,7 @@ import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/group_call_message_builder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/single_call_message_builder.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
@@ -54,7 +55,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     final backgroundColor = isDesktopScreen ? isFromSelf
         ? theme.lightPrimaryMaterialColor.shade50
         : theme.weakBackgroundColor : isFromSelf
-        ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF);
+        ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01;
 
     if (message.customElem?.data != null && message.customElem!.data!.contains('call_type')) {
       final callingMessageDataProvider = CallingMessageDataProvider(message);
@@ -104,7 +105,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
         child: Column(
           children: [
             Text(TIM_t("自定义消息"), style: TextStyle(color: isDesktopScreen ? Colors.black : !isFromSelf
-                ? const Color(0xFF00BBBD) : const Color(0xFFFFFFFF)),)
+                ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01),)
           ],
         ));
   }
