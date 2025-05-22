@@ -273,7 +273,7 @@ class _GroupProfileGroupManagePageState
                 if (!isAllMuted && isAllowMuteMember)
                   InkWell(
                     child: Container(
-                        color: Colors.white,
+                        color: AidaBaseColors.whiteWithOpacity01,
                         padding: const EdgeInsets.only(left: 16),
                         child: Container(
                           padding: !isDesktopScreen
@@ -283,25 +283,17 @@ class _GroupProfileGroupManagePageState
                               : const EdgeInsets.only(
                                   bottom: 4,
                                 ),
-                          decoration: isDesktopScreen
-                              ? null
-                              : BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border(
-                                      bottom: BorderSide(
-                                          color: theme.weakDividerColor ??
-                                              CommonColor.weakDividerColor))),
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.add_circle_outline,
-                                color: theme.primaryColor,
+                                color: AidaBaseColors.primaryColor,
                                 size: 20,
                               ),
                               const SizedBox(
                                 width: 12,
                               ),
-                              Text(TIM_t("添加需要禁言的群成员"))
+                              Text(TIM_t("添加需要禁言的群成员"), style: const TextStyle(color: AidaBaseColors.white),)
                             ],
                           ),
                         )),
@@ -465,6 +457,7 @@ Widget _buildListItem(BuildContext context, V2TimGroupMemberFullInfo memberInfo,
               faceUrl: memberInfo.faceUrl ?? "",
               showName: _getShowName(memberInfo),
               type: 2,
+              borderRadius: BorderRadius.circular(isDesktopScreen ? 15 : 18),
             ),
           ),
           title: Row(
@@ -803,7 +796,7 @@ class _GroupProfileAddAdminState extends TIMUIKitState<GroupProfileAddAdmin> {
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
             child: Text(
               TIM_t("群成员"),
-              style: TextStyle(fontSize: 14, color: AidaBaseColors.white),
+              style: const TextStyle(fontSize: 14, color: AidaBaseColors.white),
             ),
           ),
           ...widget.memberList
@@ -841,13 +834,14 @@ class _GroupProfileAddAdminState extends TIMUIKitState<GroupProfileAddAdmin> {
                               faceUrl: e?.faceUrl ?? "",
                               showName: _getShowName(e),
                               type: 2,
+                              borderRadius: BorderRadius.circular(18),
                             ),
                           ),
                           const SizedBox(
                             width: 10,
                           ),
                           Text(_getShowName(e),
-                              style: TextStyle(fontSize: 16, color: AidaBaseColors.white))
+                              style: const TextStyle(fontSize: 16, color: AidaBaseColors.white))
                         ],
                       ),
                     ),

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/chat_bottom_sheet_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_add_opt_widget.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/column_menu.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
@@ -53,12 +55,10 @@ class GroupProfileAddOpt extends TIMUIKitStatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: EdgeInsets.only(bottom: isDesktopScreen ? 0 : 1),
       decoration: BoxDecoration(
           color: AidaBaseColors.whiteWithOpacity01,
-          border: isDesktopScreen ? null : Border(
-              bottom: BorderSide(
-                  color:
-                      theme.weakDividerColor ?? CommonColor.weakDividerColor))),
+      ),
       child: InkWell(
         onTapDown: (details) async {
           if(isDesktopScreen){
@@ -82,39 +82,18 @@ class GroupProfileAddOpt extends TIMUIKitStatelessWidget {
                 )
             );
           }else{
-            showCupertinoModalPopup<String>(
+            ChatBottomSheetUtils.showBaseBottomSheet(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              title: TIM_t("加群方式"),
+              isDynamicHeight: true,
               context: context,
-              builder: (BuildContext context) {
-                return CupertinoActionSheet(
-                  title: Text(TIM_t("加群方式")),
-                  cancelButton: CupertinoActionSheetAction(
-                    onPressed: () {
-                      Navigator.pop(
-                        context,
-                        "cancel",
-                      );
-                    },
-                    child: Text(TIM_t("取消")),
-                    isDefaultAction: false,
-                  ),
-                  actions: actionList
-                      .map((e) => CupertinoActionSheetAction(
-                    onPressed: () {
-                      _handleActionTap(e["id"] as int);
-                      Navigator.pop(
-                        context,
-                        "cancel",
-                      );
-                    },
-                    child: Text(
-                      e["label"] as String,
-                      style: TextStyle(color: theme.primaryColor),
-                    ),
-                    isDefaultAction: false,
-                  ))
-                      .toList(),
-                );
-              },
+              showCancel: false,
+              backgroundColor: AidaBaseColors.black,
+              child: GroupAddOptWidget(
+                callback: (type) {
+                  _handleActionTap(type);
+                },
+              ),
             );
           }
         },
@@ -123,15 +102,15 @@ class GroupProfileAddOpt extends TIMUIKitStatelessWidget {
           children: [
             Text(
               TIM_t("加群方式"),
-              style: TextStyle(fontSize: isDesktopScreen ? 14 : 16, color: theme.darkTextColor),
+              style: TextStyle(fontSize: isDesktopScreen ? 14 : 16, color: AidaBaseColors.white),
             ),
             Row(
               children: [
                 Text(
                   addOpt,
-                  style: TextStyle(fontSize: isDesktopScreen ? 14 : 16, color: Colors.black),
+                  style: TextStyle(fontSize: isDesktopScreen ? 14 : 16, color: AidaBaseColors.weakTextColor),
                 ),
-                Icon(Icons.keyboard_arrow_right, color: theme.weakTextColor)
+                const Icon(Icons.keyboard_arrow_right, color: AidaBaseColors.weakTextColor)
               ],
             )
           ],
