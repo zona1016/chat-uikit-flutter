@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_class.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_button.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 
@@ -293,51 +294,21 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
       VoidCallback handleDeleteFriend,
       bool smallCardMode) {
     _buildDeleteFriend(V2TimConversation conversation, theme) {
-      return InkWell(
-        onTap: () {
+      return ChatBaseButton(
+        type: ChatBaseButtonType.secondary,
+        onPressed: () {
           handleDeleteFriend();
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 37),
-          child: Container(
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: const BorderRadius.all(Radius.circular(5)),
-                border:
-                    Border.all(color: const Color(0xFF00BBBD)),),
-            child: Center(
-              child: Text(
-                TIM_t("清除好友"),
-                style: const TextStyle(color: Color(0xFF00BBBD), fontSize: 17),
-              ),
-            ),
-          ),
-        ),
+        text: TIM_t("清除好友"),
       );
     }
 
     _buildAddOperation() {
-      return Container(
-        alignment: Alignment.center,
-        // padding: const EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(
-            color: AidaBaseColors.whiteWithOpacity01,
-            border: Border(
-                bottom: BorderSide(
-                    color: theme.weakDividerColor ??
-                        CommonColor.weakDividerColor))),
-        child: Row(children: [
-          Expanded(
-            child: TextButton(
-                child: Text(TIM_t("加为好友"),
-                    style: const TextStyle(color: AidaBaseColors.white, fontSize: 17)),
-                onPressed: () {
-                  handleAddFriend();
-                }),
-          )
-        ]),
+      return ChatBaseButton(
+        onPressed: () {
+          handleAddFriend();
+        },
+        text: TIM_t("加为好友"),
       );
     }
 
@@ -360,62 +331,28 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
       VoidCallback handleDeleteFriend,
       bool smallCardMode) {
     _buildVideo(V2TimConversation conversation, theme) {
-      return InkWell(
-        onTap: () {
+      return ChatBaseButton(
+        onPressed: () {
           TUICore().callService(TUICALLKIT_SERVICE_NAME, METHOD_NAME_CALL, {
             PARAM_NAME_TYPE: TYPE_AUDIO,
             PARAM_NAME_USERIDS: [conversation.userID!],
             PARAM_NAME_GROUPID: ""
           });
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 37),
-          child: Container(
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: const BorderRadius.all(Radius.circular(5)),
-              border:
-              Border.all(color: const Color(0xFF00BBBD)),),
-            child: Center(
-              child: Text(
-                TIM_t("语音通话"),
-                style: const TextStyle(color: Color(0xFF00BBBD), fontSize: 17),
-              ),
-            ),
-          ),
-        ),
+        text: TIM_t("语音通话"),
       );
     }
 
     _buildAudio(V2TimConversation conversation, theme) {
-      return InkWell(
-        onTap: () async {
+      return ChatBaseButton(
+        onPressed: () async {
           TUICore().callService(TUICALLKIT_SERVICE_NAME, METHOD_NAME_CALL, {
             PARAM_NAME_TYPE: TYPE_VIDEO,
             PARAM_NAME_USERIDS: [conversation.userID!],
             PARAM_NAME_GROUPID: ""
           });
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 37),
-          child: Container(
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: const BorderRadius.all(Radius.circular(5)),
-              border:
-              Border.all(color: const Color(0xFF00BBBD)),),
-            child: Center(
-              child: Text(
-                TIM_t("视频通话"),
-                style: const TextStyle(color: Color(0xFF00BBBD), fontSize: 17),
-              ),
-            ),
-          ),
-        ),
+        text: TIM_t("视频通话"),
       );
     }
 

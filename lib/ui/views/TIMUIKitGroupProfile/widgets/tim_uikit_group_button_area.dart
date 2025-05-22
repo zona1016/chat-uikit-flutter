@@ -6,6 +6,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_grou
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/controller/tim_uikit_chat_controller.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_button.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
@@ -319,28 +320,29 @@ class GroupProfileButtonArea extends TIMUIKitStatelessWidget {
                   e["label"]!,
                   style: TextStyle(color: theme.cautionColor),
                 ))
-            : InkWell(
-                onTap: () {
-                  if (e["id"]! == "clearHistory") {
-                    _clearHistory(context, theme);
-                  } else if (e["id"] == "quitGroup") {
-                    _quitGroup(context, theme);
-                  } else if (e["id"] == "dismissGroup") {
-                    _dismissGroup(context, theme);
-                  } else if (e["id"] == "transimitOwner") {
-                    _transmitOwner(context, groupID);
-                  }
-                },
-                child: Container(
-                  alignment: Alignment.center,
-                  margin: EdgeInsets.only(bottom: 1),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  decoration: BoxDecoration(
-                      color: AidaBaseColors.whiteWithOpacity01, ),
-                  child: Text(
-                    e["label"]!,
-                    style: TextStyle(color: theme.cautionColor, fontSize: 17),
-                  ),
+            : Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: ChatBaseButton(
+                  onPressed: () {
+                    if (e["id"]! == "clearHistory") {
+                      _clearHistory(context, theme);
+                    } else if (e["id"] == "quitGroup") {
+                      _quitGroup(context, theme);
+                    } else if (e["id"] == "dismissGroup") {
+                      _dismissGroup(context, theme);
+                    } else if (e["id"] == "transimitOwner") {
+                      _transmitOwner(context, groupID);
+                    }
+                  },
+                  customDecoration: (e["id"] == "quitGroup")
+                      ? const BoxDecoration(
+                          image: DecorationImage(
+                              image: AssetImage(
+                                  'assets/image/wallet/custom_bg.png'),
+                              fit: BoxFit.fill),
+                        )
+                      : null,
+                  text: e["label"]!,
                 ),
               ))
         .toList();

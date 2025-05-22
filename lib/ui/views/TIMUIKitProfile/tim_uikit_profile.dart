@@ -201,7 +201,7 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
           final isSelf = (model.userProfile?.friendInfo?.userID ==
               _selfInfoViewModel.loginInfo?.userID);
           final isMute = model.isDisturb ?? false;
-          
+
           Widget profilePage({required Widget child}) {
             return Container(
               color: isDesktopScreen ? theme.wideBackgroundColor : null,
@@ -444,15 +444,15 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
                       : TIMUIKitProfileWidget.addAudioAndVideoArea(
-                      userInfo,
-                      conversation,
-                      0,
-                      isMute,
-                      model.isAddToBlackList ?? false,
-                      theme,
-                      handleAddFriend,
-                      handleDeleteFriend,
-                      widget.smallCardMode))!;
+                          userInfo,
+                          conversation,
+                          0,
+                          isMute,
+                          model.isAddToBlackList ?? false,
+                          theme,
+                          handleAddFriend,
+                          handleDeleteFriend,
+                          widget.smallCardMode))!;
                 case ProfileWidgetEnum.customBuilderTwo:
                   if (!isFriend || isDesktopScreen) {
                     return Container();
@@ -462,15 +462,15 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
                       : TIMUIKitProfileWidget.addAudioAndVideoArea(
-                      userInfo,
-                      conversation,
-                      1,
-                      isMute,
-                      model.isAddToBlackList ?? false,
-                      theme,
-                      handleAddFriend,
-                      handleDeleteFriend,
-                      widget.smallCardMode))!;
+                          userInfo,
+                          conversation,
+                          1,
+                          isMute,
+                          model.isAddToBlackList ?? false,
+                          theme,
+                          handleAddFriend,
+                          handleDeleteFriend,
+                          widget.smallCardMode))!;
                 case ProfileWidgetEnum.customBuilderThree:
                   return (customBuilder?.customBuilderThree != null
                       ? customBuilder?.customBuilderThree!(
@@ -489,9 +489,6 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
                       : Text(TIM_t("如使用自定义区域，请在profileWidgetBuilder传入对应组件")))!;
-
-                default:
-                  return Container();
               }
             }).toList();
           }
@@ -501,16 +498,26 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                 context, userInfo, conversation, value.friendType, isMute);
           } else if (widget.profileWidgetsOrder != null) {
             return profilePage(
-              child: Column(
-                children: [
-                  ..._renderWidgetsWithOrder(widget.profileWidgetsOrder!)
-                ],
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height,
+                ),
+                child: Column(
+                  children: [
+                    ..._renderWidgetsWithOrder(widget.profileWidgetsOrder!)
+                  ],
+                ),
               ),
             );
           } else {
             return profilePage(
-                child: Column(
-              children: [..._renderWidgetsWithOrder(_defaultWidgetOrder)],
+                child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height,
+              ),
+              child: Column(
+                children: [..._renderWidgetsWithOrder(_defaultWidgetOrder)],
+              ),
             ));
           }
         },
