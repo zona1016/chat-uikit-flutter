@@ -18,6 +18,7 @@ import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.dart';
 import 'package:tencent_cloud_chat_uikit/ui/controller/tim_uikit_chat_controller.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/frame.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/logger.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/optimize_utils.dart';
@@ -306,7 +307,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
     String option1 = amount.toString();
     return Container(
       height: 36,
-      decoration: BoxDecoration(color: hexToColor("f6eabc")),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
       child: GestureDetector(
         onTap: () {
           if (widget.onDealWithGroupApplication != null) {
@@ -319,15 +320,16 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
           children: [
             Text(
               TIM_t_para("{{option1}} 条入群请求", "$option1 条入群请求")(option1: option1),
-              style: const TextStyle(
+              style:  const TextStyle(
                 fontSize: 12,
+                color: AidaBaseColors.white
               ),
             ),
             Container(
               margin: const EdgeInsets.only(left: 12),
               child: Text(
                 TIM_t("去处理"),
-                style: TextStyle(fontSize: 12, color: theme.primaryColor),
+                style: const TextStyle(fontSize: 12, color: AidaBaseColors.primaryColor),
               ),
             )
           ],
@@ -390,9 +392,9 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
           widget.controller?.textFieldController = textFieldController;
           widget.controller?.scrollController = autoController;
           List<V2TimGroupApplication> filteredApplicationList = [];
-          if (widget.conversationType == ConvType.group && widget.onDealWithGroupApplication != null) {
+          if (_getConvType() == ConvType.group && widget.onDealWithGroupApplication != null) {
             filteredApplicationList = chatGlobalModel.groupApplicationList.where((item) {
-              return (item.groupID == widget.conversationID) && item.handleStatus == 0;
+              return (item.groupID == _getConvID()) && item.handleStatus == 0;
             }).toList();
           }
 
