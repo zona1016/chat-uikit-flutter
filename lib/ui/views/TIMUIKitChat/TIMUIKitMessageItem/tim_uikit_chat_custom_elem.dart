@@ -3,11 +3,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_services.dart';
+import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/group_call_message_builder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/single_call_message_builder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
@@ -102,17 +105,25 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
       }
     }
 
-    if (message.customElem?.data != null && isCardData(message.customElem!.data!)) {
-
-      return Container(
-          padding: textPadding ?? const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: messageBackgroundColor ?? backgroundColor,
-            borderRadius: messageBorderRadius ?? borderRadius,
-          ),
-          constraints: const BoxConstraints(maxWidth: 180),
-          child: cardWidget());
+    if (message.customElem?.data != null &&
+        isCardData(message.customElem!.data!)) {
+      Map<String, dynamic> result = getMap(message.customElem!.data!);
+      ContactCardModel model = ContactCardModel.fromJson(result);
+      return GestureDetector(
+        onTap: () {
+          _cardOnTap(model);
+        },
+        child: Container(
+            padding: textPadding ?? const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: messageBackgroundColor ?? backgroundColor,
+              borderRadius: messageBorderRadius ?? borderRadius,
+            ),
+            constraints: const BoxConstraints(maxWidth: 180),
+            child: cardWidget(model)),
+      );
     }
+
     return Container(
         padding: textPadding ?? const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -135,9 +146,17 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
         ));
   }
 
-  cardWidget() {
-    Map<String, dynamic> result = getMap(message.customElem!.data!);
-    ContactCardModel model = ContactCardModel.fromJson(result);
+  _cardOnTap(ContactCardModel model) async {
+    final FriendshipServices friendshipServices =
+        serviceLocator<FriendshipServices>();
+    final checkFriend = await friendshipServices.checkFriend(
+        userIDList: [model.userID],
+        checkType: FriendTypeEnum.V2TIM_FRIEND_TYPE_SINGLE);
+    eventCenter.post(CardTipNotice(
+        isFriend: checkFriend != null ? true : false, userId: model.userID));
+  }
+
+  cardWidget(ContactCardModel model) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -154,16 +173,25 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
                 borderRadius: BorderRadius.circular(24),
               ),
             ),
-            const SizedBox(width: 16,),
+            const SizedBox(
+              width: 16,
+            ),
             Text(
               model.name,
               style: const TextStyle(color: AidaBaseColors.white),
             )
           ],
         ),
-        const SizedBox(height: 8,),
-        const Divider(height: 1, color: AidaBaseColors.whiteGray,),
-        const SizedBox(height: 8,),
+        const SizedBox(
+          height: 8,
+        ),
+        const Divider(
+          height: 1,
+          color: AidaBaseColors.whiteGray,
+        ),
+        const SizedBox(
+          height: 8,
+        ),
         const Text(
           '个人名片',
           style: TextStyle(color: AidaBaseColors.white),

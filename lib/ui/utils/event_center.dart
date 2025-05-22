@@ -37,6 +37,12 @@ class RedPacketTipNotice {
   RedPacketTipNotice();
 }
 
+// 个人名片点击 加好友
+class CardTipNotice {
+  final bool isFriend;
+  final String userId;
+  CardTipNotice({required this.isFriend, required this.userId});
+}
 
 // 快捷访问
 final eventCenter = EventCenter();
