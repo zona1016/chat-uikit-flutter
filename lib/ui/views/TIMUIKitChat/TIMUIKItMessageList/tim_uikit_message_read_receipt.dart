@@ -5,6 +5,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/message_read_receipt.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -65,10 +66,10 @@ class TIMUIKitMessageReadReceipt extends TIMUIKitStatelessWidget {
             padding: EdgeInsets.only(
                 bottom: 3, right: 6, left: 6, top: isDesktopScreen ? 2 : 6),
             child: ((value?.unreadCount ?? 0) == 0 && (value?.readCount ?? 0) > 0)
-                ? Icon(
+                ? const Icon(
                     Icons.check_circle_outline,
                     size: 18,
-                    color: theme.weakTextColor,
+                    color: AidaBaseColors.primaryColor,
                   )
                 : Container(
                     width: 14,
@@ -79,14 +80,14 @@ class TIMUIKitMessageReadReceipt extends TIMUIKitStatelessWidget {
                         border: Border.all(
                             width: 1.3,
                             color: (value?.readCount ?? 0) > 0
-                                ? theme.primaryColor!
+                                ? AidaBaseColors.primaryColor
                                 : theme.weakTextColor!)),
                     child: (value?.readCount ?? 0) > 0
                         ? Text(
                             '${value?.readCount ?? 0}',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 8, color: theme.primaryColor),
+                            style: const TextStyle(
+                                fontSize: 8, color: AidaBaseColors.primaryColor),
                           )
                         : null,
                   ),

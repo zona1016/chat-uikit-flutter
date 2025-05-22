@@ -61,7 +61,7 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
                 height: isDesktopScreen ? 36 : 50,
                 child: Avatar(
                   borderRadius:
-                      isDesktopScreen ? BorderRadius.circular(18) : null,
+                      isDesktopScreen ? BorderRadius.circular(18) : BorderRadius.circular(isDesktopScreen ? 18 : 25),
                   faceUrl: faceUrl,
                   showName: showName,
                   type: 1,
@@ -233,7 +233,7 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
                 if (isCanInviteMember)
                   DottedBorder(
                       borderType: BorderType.RRect,
-                      radius: Radius.circular(isDesktopScreen ? 18 : 4.5),
+                      radius: Radius.circular(isDesktopScreen ? 18 : 24),
                       color: theme.weakTextColor!,
                       dashPattern: const [6, 3],
                       child: SizedBox(
@@ -277,7 +277,7 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
                 if (isCanKickOffMember)
                   DottedBorder(
                       borderType: BorderType.RRect,
-                      radius: Radius.circular(isDesktopScreen ? 18 : 4.5),
+                      radius: Radius.circular(isDesktopScreen ? 18 : 24),
                       color: theme.weakTextColor!,
                       dashPattern: const [6, 3],
                       child: SizedBox(

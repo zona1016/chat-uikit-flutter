@@ -441,15 +441,15 @@ class _TIMUIKitTextFieldLayoutNarrowState
                         Expanded(
                             child: Container(
                           height: 35,
-                          color: theme.weakBackgroundColor,
+                          color: Colors.transparent,
                           alignment: Alignment.center,
                           child: Text(
                             TIM_t(widget.forbiddenText!),
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: theme.weakTextColor,
+                              color: AidaBaseColors.white,
                             ),
                           ),
                         )),
