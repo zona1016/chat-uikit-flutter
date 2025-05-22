@@ -152,8 +152,16 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     final checkFriend = await friendshipServices.checkFriend(
         userIDList: [model.userID],
         checkType: FriendTypeEnum.V2TIM_FRIEND_TYPE_SINGLE);
+    if (checkFriend != null) {
+      final res = checkFriend.first;
+      if (res.resultCode == 0 && res.resultType != 0) {
+        eventCenter.post(CardTipNotice(
+            isFriend: true, userId: model.userID));
+        return;
+      }
+    }
     eventCenter.post(CardTipNotice(
-        isFriend: checkFriend != null ? true : false, userId: model.userID));
+        isFriend: false, userId: model.userID));
   }
 
   cardWidget(ContactCardModel model) {

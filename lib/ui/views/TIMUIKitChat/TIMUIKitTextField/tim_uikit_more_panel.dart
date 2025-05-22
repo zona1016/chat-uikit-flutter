@@ -162,7 +162,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      if (PlatformUtils().isMobile)
+      if (PlatformUtils().isMobile && widget.conversationType == ConvType.c2c)
         MorePanelItem(
             id: "yhjf",
             title: TIM_t("阅后即焚"),

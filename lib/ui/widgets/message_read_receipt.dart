@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 // ignore: unused_import
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/tim_uikit_chat_custom_elem.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
 
@@ -96,7 +100,11 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
 
     switch (type) {
       case MessageElemType.V2TIM_ELEM_TYPE_CUSTOM:
-        return Text(TIM_t("[自定义]"));
+        return TIMUIKitCustomElem(
+          message: message,
+          customElem: message.customElem,
+          isFromSelf: false,
+        );
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
         return TIMUIKitSoundElem(
             isShowMessageReaction: false,
@@ -186,21 +194,23 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
             Container(
               height: isDesktopScreen ? 30 : 40,
               width: isDesktopScreen ? 30 : 40,
-              margin: EdgeInsets.only(right: 12, bottom: isDesktopScreen ? 6 : 0),
-              child: Avatar(faceUrl: faceUrl, showName: showName),
+              margin:
+                  EdgeInsets.only(right: 12, bottom: isDesktopScreen ? 6 : 0),
+              child: Avatar(faceUrl: faceUrl, showName: showName, borderRadius: BorderRadius.circular(isDesktopScreen ? 15 : 20),),
             ),
             Expanded(
                 child: Container(
               alignment: Alignment.centerLeft,
-              padding: EdgeInsets.only(top: 10, bottom: isDesktopScreen ? 14 : 19, right: 28),
+              padding: EdgeInsets.only(
+                  top: 10, bottom: isDesktopScreen ? 14 : 19, right: 28),
               decoration: BoxDecoration(
                   border: Border(
                       bottom: BorderSide(
-                          color: theme.weakDividerColor ??
-                              CommonColor.weakDividerColor))),
+                          color: AidaBaseColors.whiteWithOpacity01))),
               child: Text(
                 showName,
-                style: TextStyle(color: Colors.black, fontSize: isDesktopScreen ? 14 : 18),
+                style: TextStyle(
+                    color: AidaBaseColors.white, fontSize: isDesktopScreen ? 14 : 18),
               ),
             )),
           ],
@@ -219,7 +229,7 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
 
     Widget pageBody() {
       return Container(
-        color: isDesktopScreen ? null : Colors.white,
+        color: isDesktopScreen ? null : Colors.transparent,
         child: Column(
           children: [
             Padding(
@@ -229,7 +239,7 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
                 children: [
                   Row(
                     children: [
-                      Text(MessageUtils.getDisplayName(widget.messageItem)),
+                      Text(MessageUtils.getDisplayName(widget.messageItem), style: const TextStyle(color: AidaBaseColors.white),),
                       const SizedBox(
                         width: 8,
                       ),
@@ -238,7 +248,7 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
                             widget.messageItem.timestamp ?? 0),
                         softWrap: true,
                         style:
-                            TextStyle(fontSize: 12, color: theme.weakTextColor),
+                            const TextStyle(fontSize: 12, color: AidaBaseColors.whiteGray),
                       )
                     ],
                   ),
@@ -251,7 +261,7 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
             ),
             Container(
               height: 8,
-              color: theme.weakBackgroundColor,
+              color: AidaBaseColors.whiteWithOpacity01,
             ),
             Row(
               // direction: Axis.horizontal,
@@ -266,22 +276,23 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
                     child: Container(
                       height: isDesktopScreen ? 40 : 50.0,
                       alignment: Alignment.bottomCenter,
-                      padding: EdgeInsets.only(bottom: isDesktopScreen ? 8 : 12),
+                      padding:
+                          EdgeInsets.only(bottom: isDesktopScreen ? 8 : 12),
                       decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AidaBaseColors.whiteWithOpacity01,
                           border: Border(
                               bottom: BorderSide(
                                   width: 2,
                                   color: currentIndex == 0
-                                      ? theme.primaryColor!
-                                      : Colors.white))),
+                                      ? AidaBaseColors.primaryColor
+                                      : AidaBaseColors.whiteWithOpacity01))),
                       child: Text(
                         TIM_t_para("{{option1}}人已读", "$option1人已读")(
                             option1: option1),
                         style: TextStyle(
                           color: currentIndex != 0
-                              ? theme.weakTextColor
-                              : Colors.black,
+                              ? AidaBaseColors.weakTextColor
+                              : AidaBaseColors.white,
                           fontSize: isDesktopScreen ? 14 : 18,
                         ),
                       ),
@@ -298,22 +309,23 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
                     child: Container(
                       alignment: Alignment.bottomCenter,
                       height: isDesktopScreen ? 40 : 50.0,
-                      padding: EdgeInsets.only(bottom: isDesktopScreen ? 8 : 12),
+                      padding:
+                          EdgeInsets.only(bottom: isDesktopScreen ? 8 : 12),
                       decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AidaBaseColors.whiteWithOpacity01,
                           border: Border(
                               bottom: BorderSide(
                                   width: 2,
                                   color: currentIndex == 1
-                                      ? theme.primaryColor!
-                                      : Colors.white))),
+                                      ? AidaBaseColors.primaryColor
+                                      : AidaBaseColors.whiteWithOpacity01))),
                       child: Text(
                         TIM_t_para("{{option2}}人未读", "$option2人未读")(
                             option2: option2),
                         style: TextStyle(
                           color: currentIndex != 1
-                              ? theme.weakTextColor
-                              : Colors.black,
+                              ? AidaBaseColors.weakTextColor
+                              : AidaBaseColors.white,
                           fontSize: isDesktopScreen ? 14 : 18,
                         ),
                       ),
@@ -366,18 +378,14 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
         desktopWidget: pageBody(),
         defaultWidget: DefaultTabController(
           length: 2,
-          child: Scaffold(
-              appBar: AppBar(
-                  title: Text(
-                    TIM_t("消息详情"),
-                    style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
-                  ),
-                  shadowColor: theme.weakDividerColor,
-                  backgroundColor: theme.appbarBgColor ??
-                      theme.primaryColor,
-                  iconTheme: IconThemeData(
-                    color: theme.appbarTextColor,
-                  )),
+          child: ChatBaseScreen(
+              safeAreaTop: false,
+              safeAreaBottom: false,
+              backgroundColor: Colors.transparent,
+              backgroundImage: AidaBaseColors.baseBackgroundImage,
+              appBar: ChatBaseAppBar(
+                title: TIM_t("消息详情"),
+              ),
               body: pageBody()),
         ));
   }
