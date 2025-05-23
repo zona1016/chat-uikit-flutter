@@ -5,6 +5,7 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget
 
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 
 class TIMUIKitSearchShowALl extends TIMUIKitStatelessWidget {
@@ -26,16 +27,15 @@ class TIMUIKitSearchShowALl extends TIMUIKitStatelessWidget {
       onTap: onClick,
       child: Container(
         decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(
-                bottom: BorderSide(color: hexToColor("DBDBDB"), width: 0.5))),
+            color: AidaBaseColors.whiteWithOpacity01,
+        ),
         padding: EdgeInsets.fromLTRB(0, 8, 0, (isNeedMoreBottom ? 24 : 8)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.search,
-              color: hexToColor("979797"),
+              color: AidaBaseColors.white,
             ),
             Expanded(
                 child: Container(
@@ -50,7 +50,7 @@ class TIMUIKitSearchShowALl extends TIMUIKitStatelessWidget {
                     child: Text(
                       textShow,
                       style: TextStyle(
-                          color: Colors.black,
+                          color: AidaBaseColors.white,
                           fontSize: isDesktopScreen ? 14 : 16.0,
                           fontWeight: FontWeight.w400),
                     ),
@@ -58,9 +58,9 @@ class TIMUIKitSearchShowALl extends TIMUIKitStatelessWidget {
                 ],
               ),
             )),
-            Icon(
+            const Icon(
               Icons.expand_more,
-              color: hexToColor("979797"),
+              color: AidaBaseColors.white,
             ),
           ],
         ),

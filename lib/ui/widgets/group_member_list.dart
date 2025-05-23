@@ -7,6 +7,7 @@ import 'package:lpinyin/lpinyin.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/optimize_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
@@ -135,6 +136,7 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
                             onChanged: (isChecked) {
                               if (isChecked) {
                                 if (widget.maxSelectNum != null && selectedMember.length >= widget.maxSelectNum!) {
+                                  TUIToast.show(content: '最多选择5个成员');
                                   return;
                                 }
                                 selectedMember.add(memberInfo);

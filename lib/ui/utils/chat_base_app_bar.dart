@@ -7,6 +7,8 @@ class ChatBaseAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBack;
   final List<Widget>? actions;
   final Widget? leading;
+  final Widget? flexibleSpace;
+  final bool automaticallyImplyLeading;
 
   const ChatBaseAppBar({
     Key? key,
@@ -16,13 +18,17 @@ class ChatBaseAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.backgroundColor = const Color.fromRGBO(255, 255, 255, 0.05),
     this.onBack,
     this.actions,
+    this.flexibleSpace,
+    this.automaticallyImplyLeading = true,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      automaticallyImplyLeading: automaticallyImplyLeading,
       backgroundColor: backgroundColor,
       elevation: 0,
+      flexibleSpace: flexibleSpace,
       leading: leading ?? IconButton(
         icon: Image.asset(
           'images/back.png',

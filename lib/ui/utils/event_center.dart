@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
+import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 
 class EventCenter {
   static final EventCenter _instance = EventCenter._internal();
@@ -42,6 +43,12 @@ class CardTipNotice {
   final bool isFriend;
   final String userId;
   CardTipNotice({required this.isFriend, required this.userId});
+}
+
+// 群聊消息搜索点击
+class SearchMessageTipNotice {
+  final V2TimConversation selectedConversation;
+  SearchMessageTipNotice({required this.selectedConversation});
 }
 
 // 快捷访问

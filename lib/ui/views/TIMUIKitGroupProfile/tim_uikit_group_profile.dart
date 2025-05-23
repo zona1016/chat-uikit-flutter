@@ -236,7 +236,7 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                 case GroupProfileWidgetEnum.searchMessage:
                   return (customBuilder?.searchMessage != null
                       ? customBuilder?.searchMessage!()
-                      : Text(TIM_t("你必须自定义search bar，并处理点击跳转")))!;
+                      : TIMUIKitGroupProfileWidget.groupSearch())!;
                 case GroupProfileWidgetEnum.operationDivider:
                   return (customBuilder?.operationDivider != null
                       ? customBuilder?.operationDivider!()
