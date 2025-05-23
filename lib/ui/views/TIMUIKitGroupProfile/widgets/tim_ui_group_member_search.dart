@@ -38,6 +38,7 @@ class GroupMemberSearchTextField extends TIMUIKitStatelessWidget {
               hintText: TIM_t("搜索"),
               hintStyle: const TextStyle(color: AidaBaseColors.weakTextColor),
               prefixIcon: const Icon(Icons.search, color: AidaBaseColors.white,),
+              border: InputBorder.none,
               fillColor: AidaBaseColors.whiteWithOpacity01,
               filled: true
             ),
@@ -53,6 +54,7 @@ class GroupMemberSearchTextField extends TIMUIKitStatelessWidget {
             debounceFunc(text);
           }, focusNode: focusNode,
         ),
+        if(isDesktopScreen)
         const Divider(
             thickness: 1,
             indent: 74,

@@ -3,6 +3,9 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
@@ -117,26 +120,13 @@ class _SelectNewGroupOwner extends TIMUIKitState<SelectNewGroupOwner> {
 
     return TUIKitScreenUtils.getDeviceWidget(
         context: context,
-        defaultWidget: Scaffold(
-            appBar: AppBar(
-              shadowColor: theme.weakBackgroundColor,
-              iconTheme: IconThemeData(
-                color: theme.appbarTextColor,
-              ),
-              backgroundColor: theme.appbarBgColor ??
-                  theme.primaryColor,
-              leading: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  TIM_t("取消"),
-                  style: TextStyle(
-                    color: theme.appbarTextColor,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
+        defaultWidget: ChatBaseScreen(
+            safeAreaTop: false,
+            safeAreaBottom: false,
+            backgroundColor: Colors.transparent,
+            backgroundImage: AidaBaseColors.baseBackgroundImage,
+            appBar: ChatBaseAppBar(
+              title: TIM_t("转让群主"),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -146,22 +136,13 @@ class _SelectNewGroupOwner extends TIMUIKitState<SelectNewGroupOwner> {
                   },
                   child: Text(
                     TIM_t("完成"),
-                    style: TextStyle(
-                      color: theme.appbarTextColor,
-                      fontSize: 16,
+                    style: const TextStyle(
+                      color: AidaBaseColors.white,
+                      fontSize: 12,
                     ),
                   ),
                 )
               ],
-              centerTitle: true,
-              leadingWidth: 100,
-              title: Text(
-                "转让群主",
-                style: TextStyle(
-                  color: theme.appbarTextColor,
-                  fontSize: 16,
-                ),
-              ),
             ),
             body: memberBody()),
         desktopWidget: memberBody());
