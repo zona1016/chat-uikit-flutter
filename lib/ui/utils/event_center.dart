@@ -42,13 +42,17 @@ class RedPacketTipNotice {
 class CardTipNotice {
   final bool isFriend;
   final String userId;
+
   CardTipNotice({required this.isFriend, required this.userId});
 }
 
 // 群聊消息搜索点击
 class SearchMessageTipNotice {
   final V2TimConversation selectedConversation;
-  SearchMessageTipNotice({required this.selectedConversation});
+  final V2TimMessage? message;
+
+  SearchMessageTipNotice(
+      {required this.selectedConversation, required this.message});
 }
 
 // 快捷访问

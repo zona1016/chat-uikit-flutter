@@ -37,15 +37,16 @@ class _GroupMessageSearchState extends State<GroupMessageSearch> {
   List<String> userIDList = [];
 
   final List<Map<String, dynamic>> filters = [
-    {'label': '群成员', 'type': 1},
+    {'label': TIM_t('群成员'), 'type': 1},
     {'label': '日期', 'type': 2},
     {
+      // [3, 5]
       'label': '图片与视频',
-      'type': [3, 5]
+      'type': 3,
     },
-    {'label': '文件', 'type': 6},
-    {'label': '链接', 'type': 8},
-    {'label': '音频', 'type': 4},
+    {'label': TIM_t('文件'), 'type': 4}, // 6
+    {'label': '链接', 'type': 5},
+    {'label': '音频', 'type': 6},
     {'label': '', 'type': 0},
     {'label': '交易', 'type': 7},
     {'label': '', 'type': 0},
@@ -236,6 +237,7 @@ class _GroupMessageSearchState extends State<GroupMessageSearch> {
           lineTwo: _getMsgElem(message),
           onClick: () {
             eventCenter.post(SearchMessageTipNotice(
+                message: message,
                 selectedConversation: V2TimConversation(
                     conversationID: "group_${widget.model.groupID}",
                     groupID: widget.model.groupID,
