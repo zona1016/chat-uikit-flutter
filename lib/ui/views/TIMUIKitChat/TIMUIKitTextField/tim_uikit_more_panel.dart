@@ -163,34 +163,34 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               width: 64,
             )),
       if (PlatformUtils().isMobile && widget.conversationType == ConvType.c2c)
-        MorePanelItem(
-            id: "yhjf",
-            title: TIM_t("阅后即焚"),
-            onTap: (c) {},
-            icon: Image.asset(
-              "images/more_yhjf.png",
-              package: 'tencent_cloud_chat_uikit',
-              height: 64,
-              width: 64,
-            )),
+        // MorePanelItem(
+        //     id: "yhjf",
+        //     title: TIM_t("阅后即焚"),
+        //     onTap: (c) {},
+        //     icon: Image.asset(
+        //       "images/more_yhjf.png",
+        //       package: 'tencent_cloud_chat_uikit',
+        //       height: 64,
+        //       width: 64,
+        //     )),
       if (PlatformUtils().isMobile)
-        MorePanelItem(
-            id: "red_packet",
-            title: TIM_t("红包"),
-            onTap: (c) {
-              _onFeatureTap(
-                "red_packet",
-                c,
-                model,
-                theme,
-              );
-            },
-            icon: Image.asset(
-              "images/more_hb.png",
-              package: 'tencent_cloud_chat_uikit',
-              height: 64,
-              width: 64,
-            )),
+        // MorePanelItem(
+        //     id: "red_packet",
+        //     title: TIM_t("红包"),
+        //     onTap: (c) {
+        //       _onFeatureTap(
+        //         "red_packet",
+        //         c,
+        //         model,
+        //         theme,
+        //       );
+        //     },
+        //     icon: Image.asset(
+        //       "images/more_hb.png",
+        //       package: 'tencent_cloud_chat_uikit',
+        //       height: 64,
+        //       width: 64,
+        //     )),
       if (PlatformUtils().isWeb)
         MorePanelItem(
             id: "image",

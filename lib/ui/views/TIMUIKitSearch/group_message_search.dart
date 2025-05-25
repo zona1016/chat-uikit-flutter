@@ -13,6 +13,7 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/time_ago.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/group_search_member_list_page.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/pureUI/tim_uikit_search_input.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/pureUI/tim_uikit_search_item.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/search_date_widget.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/merger_message_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
 
@@ -277,6 +278,10 @@ class _GroupMessageSearchState extends State<GroupMessageSearch> {
                       navigateToMemberList(
                           context, widget.model, widget.model.groupMemberList);
                       break;
+                    case 2:
+                      navigateToSearchDate();
+                      break;
+
                   }
                   print('Clicked: ${item['type']}');
                 },
@@ -332,5 +337,21 @@ class _GroupMessageSearchState extends State<GroupMessageSearch> {
           child: (onClose) =>
               GroupSearchMemberListPage(model: model, memberList: memberList));
     }
+  }
+
+  navigateToSearchDate() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatBaseScreen(
+              safeAreaTop: true,
+              safeAreaBottom: false,
+              backgroundColor: Colors.transparent,
+              backgroundImage: AidaBaseColors.baseBackgroundImage,
+              appBar: ChatBaseAppBar(
+                title: TIM_t('按日期查找'),
+              ),
+              body: SearchDateWidget()),
+        ));
   }
 }
