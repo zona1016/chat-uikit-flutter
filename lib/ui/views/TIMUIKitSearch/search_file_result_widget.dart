@@ -54,7 +54,7 @@ class _SearchFileResultWidgetState extends TIMUIKitState<SearchFileResultWidget>
                 final key = keys[superIndex];
                 final result = messageResult?[key];
                 return ListView.builder(
-                  shrinkWrap: false,
+                  shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: result?.length,
                   itemBuilder: (_, index) {
