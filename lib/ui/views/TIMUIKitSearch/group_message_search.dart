@@ -14,7 +14,7 @@ import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/group_search_me
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/pureUI/tim_uikit_search_input.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/pureUI/tim_uikit_search_item.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/search_date_widget.dart';
-import 'package:tencent_cloud_chat_uikit/ui/widgets/merger_message_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitSearch/search_image_video_result_widget.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
 
 class GroupMessageSearch extends StatefulWidget {
@@ -86,6 +86,47 @@ class _GroupMessageSearchState extends State<GroupMessageSearch> {
     setState(() {
       messageList = searchLocalMessagesRes
           .data?.messageSearchResultItems?.first.messageList;
+    });
+  }
+
+  searchImageAndVideoFunction() async {
+    V2TimMessageSearchParam searchParam = V2TimMessageSearchParam(
+        conversationID: "group_${widget.model.groupID}",
+        // conversationID == null，代表搜索全部会话，conversationID != null，代表搜索指定会话。
+        keywordList: [],
+        // 关键字列表，最多支持5个。当消息发送者以及消息类型均未指定时，关键字列表必须非空；否则，关键字列表可以为空。
+        type: 1,
+        // 获取历史消息类型
+        userIDList: null,
+        // 指定 userID 发送的消息，最多支持5个。
+        messageTypeList: [3, 5],
+        // 消息类型过滤列表
+        searchTimePeriod: 0,
+        // 从起始时间点开始的过去时间范围，单位秒。默认为0即代表不限制时间范围，传24x60x60代表过去一天。
+        searchTimePosition: 0,
+        // 搜索的起始时间点。默认为0即代表从现在开始搜索。UTC 时间戳，单位：秒
+        pageIndex: 0,
+        // 分页的页号：用于分页展示查找结果，从零开始起步。
+        pageSize: 0);
+    V2TimValueCallback<V2TimMessageSearchResult> searchLocalMessagesRes =
+        await TencentImSDKPlugin.v2TIMManager
+            .getMessageManager()
+            .searchLocalMessages(searchParam: searchParam);
+    setState(() {
+      final items = searchLocalMessagesRes.data?.messageSearchResultItems;
+      final hasMessages = items != null &&
+          items.isNotEmpty &&
+          items.first.messageList != null &&
+          items.first.messageList!.isNotEmpty;
+      if (hasMessages) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => SearchImageVideoResultWidget(
+                    messageList: items.first.messageList!)));
+      } else {
+        TUIToast.show(content: '暂无图片视频消息', duration: TUIDuration.long);
+      }
     });
   }
 
@@ -281,7 +322,9 @@ class _GroupMessageSearchState extends State<GroupMessageSearch> {
                     case 2:
                       navigateToSearchDate();
                       break;
-
+                    case 3:
+                      searchImageAndVideoFunction();
+                      break;
                   }
                   print('Clicked: ${item['type']}');
                 },
@@ -351,7 +394,9 @@ class _GroupMessageSearchState extends State<GroupMessageSearch> {
               appBar: ChatBaseAppBar(
                 title: TIM_t('按日期查找'),
               ),
-              body: SearchDateWidget(model: widget.model,)),
+              body: SearchDateWidget(
+                model: widget.model,
+              )),
         ));
   }
 }

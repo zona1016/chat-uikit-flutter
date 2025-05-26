@@ -218,7 +218,7 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
         searchTimePeriod: 24 * 60 * 60,
         // 从起始时间点开始的过去时间范围，单位秒。默认为0即代表不限制时间范围，传24x60x60代表过去一天。
         searchTimePosition:
-            seconds == 0 ? 0 : startOfDay!.millisecondsSinceEpoch ~/ 1000,
+            seconds == 0 ? 0 : startOfDay.millisecondsSinceEpoch ~/ 1000,
         // 搜索的起始时间点。默认为0即代表从现在开始搜索。UTC 时间戳，单位：秒
         pageIndex: 0,
         // 分页的页号：用于分页展示查找结果，从零开始起步。
