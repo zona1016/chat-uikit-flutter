@@ -351,7 +351,7 @@ class _GroupMessageSearchState extends State<GroupMessageSearch> {
               appBar: ChatBaseAppBar(
                 title: TIM_t('按日期查找'),
               ),
-              body: SearchDateWidget()),
+              body: SearchDateWidget(model: widget.model,)),
         ));
   }
 }
