@@ -69,7 +69,7 @@ class _SearchImageVideoResultWidgetState
             body: ListView(
               padding: const EdgeInsets.all(16),
               children: (messageResult == null)
-                  ? [Text('暂无数据')]
+                  ? [Text('无数据')]
                   : messageResult!.entries.map((entry) {
                       final month = entry.key;
                       final messages = entry.value;
