@@ -4,6 +4,9 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/group/group_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_ui_group_member_search.dart';
@@ -132,22 +135,21 @@ class _SelectCallInviterState extends TIMUIKitState<SelectCallInviter> {
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final TUITheme theme = value.theme;
 
-    return Scaffold(
-        appBar: AppBar(
-          shadowColor: theme.weakBackgroundColor,
-          iconTheme: IconThemeData(
-            color: theme.appbarTextColor,
-          ),
-          backgroundColor: theme.appbarBgColor ??
-              theme.primaryColor,
+    return ChatBaseScreen(
+        safeAreaTop: false,
+        safeAreaBottom: false,
+        backgroundColor: Colors.transparent,
+        backgroundImage: AidaBaseColors.baseBackgroundImage,
+        appBar: ChatBaseAppBar(
+          title: TIM_t("发起呼叫"),
           leading: TextButton(
             onPressed: () {
               Navigator.pop(context);
             },
             child: Text(
               TIM_t("取消"),
-              style: TextStyle(
-                color: theme.appbarTextColor,
+              style: const TextStyle(
+                color: AidaBaseColors.white,
                 fontSize: 14,
               ),
             ),
@@ -161,22 +163,13 @@ class _SelectCallInviterState extends TIMUIKitState<SelectCallInviter> {
               },
               child: Text(
                 TIM_t("完成"),
-                style: TextStyle(
-                  color: theme.appbarTextColor,
+                style: const TextStyle(
+                  color: AidaBaseColors.white,
                   fontSize: 14,
                 ),
               ),
             )
           ],
-          centerTitle: true,
-          leadingWidth: 80,
-          title: Text(
-            TIM_t("发起呼叫"),
-            style: TextStyle(
-              color: theme.appbarTextColor,
-              fontSize: 17,
-            ),
-          ),
         ),
         body: ((searchMemberList ?? []).isNotEmpty || loading == false)
             ? GroupProfileMemberList(
