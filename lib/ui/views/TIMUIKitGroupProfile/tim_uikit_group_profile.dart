@@ -111,6 +111,7 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
     GroupProfileWidgetEnum.operationDivider,
     GroupProfileWidgetEnum.groupNotice,
     GroupProfileWidgetEnum.groupManage,
+    GroupProfileWidgetEnum.customBuilderOne,
     GroupProfileWidgetEnum.groupJoiningModeBar,
     GroupProfileWidgetEnum.groupTypeBar,
     GroupProfileWidgetEnum.operationDivider,
@@ -279,6 +280,13 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                       ? customBuilder?.buttonArea!(groupInfo, memberList)
                       : GroupProfileButtonArea(groupInfo.groupID, model))!;
                 case GroupProfileWidgetEnum.customBuilderOne:
+                  if (isAdmin || isGroupOwner) {
+                    return (customBuilder?.customBuilderOne != null
+                        ? customBuilder?.customBuilderOne!(groupInfo, memberList)
+                        : TIMUIKitGroupProfileWidget.allowAddingFriends())!;
+                  } else {
+                    return Container();
+                  }
                   return (customBuilder?.customBuilderOne != null
                       ? customBuilder?.customBuilderOne!(groupInfo, memberList)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.

@@ -354,7 +354,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
     if (_getConvType() != ConvType.group) {
       return;
     }
-    final w = await TUICore.instance.raiseExtension(TUIExtensionID.joinInGroup, {GROUP_ID: widget.conversationID!});
+    final w = await TUICore.instance.raiseExtension(TUIExtensionID.joinInGroup, {GROUP_ID: _getConvID()});
     if(w != _joinInGroupCallWidget){
 
       setState(() {
