@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
+import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'dart:convert';
 
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 
 class SearchDateWidget extends StatefulWidget {
-  const SearchDateWidget({Key? key}) : super(key: key);
+  final TUIGroupProfileModel model;
+
+  const SearchDateWidget({Key? key, required this.model}) : super(key: key);
 
   @override
   State<SearchDateWidget> createState() => _SearchDateWidgetState();
@@ -23,23 +28,18 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
   }
 
   Future<void> fetchServerTime() async {
+    V2TimValueCallback<int> loginRes =
+        await TencentImSDKPlugin.v2TIMManager.getServerTime();
     setState(() {
-      serverNow = DateTime.now(); // fallback
-      selectedDate = DateTime.now();
+      final result = ServerTimeResponse.fromJson(loginRes.toJson());
+      if (result.code == 0) {
+        serverNow = result.toDateTime();
+        selectedDate = result.toDateTime();
+      } else {
+        serverNow = DateTime.now(); // fallback
+        selectedDate = DateTime.now();
+      }
     });
-    // final response = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Shanghai"));
-    //
-    // if (response.statusCode == 200) {
-    //   final data = jsonDecode(response.body);
-    //   final timeStr = data["datetime"];
-    //   final time = DateTime.parse(timeStr);
-    //   setState(() {
-    //     serverNow = time;
-    //     selectedDate = time;
-    //   });
-    // } else {
-    //
-    // }
   }
 
   List<Widget> buildCalendarForMonth(DateTime monthDate) {
@@ -60,8 +60,16 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
         dayWidgets.add(Container()); // 空格
       } else {
         final dayDate = DateTime(monthDate.year, monthDate.month, dayNumber);
-        final isToday = serverNow != null &&
-            dayDate.year == serverNow!.year &&
+
+        final isCurrentMonth = serverNow!.year == monthDate.year &&
+            serverNow!.month == monthDate.month;
+
+        if (isCurrentMonth && dayDate.isAfter(serverNow!)) {
+          dayWidgets.add(Container()); // 用空格占位
+          continue;
+        }
+
+        final isToday = dayDate.year == serverNow!.year &&
             dayDate.month == serverNow!.month &&
             dayDate.day == serverNow!.day;
 
@@ -70,6 +78,7 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
             onTap: () {
               setState(() {
                 selectedDate = dayDate;
+                searchMessageFunction();
               });
             },
             child: Column(
@@ -78,16 +87,22 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: isToday ? Colors.green : Colors.transparent,
+                    color: isToday
+                        ? AidaBaseColors.secondPrimaryColor
+                        : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     '$dayNumber',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: selectedDate?.day == dayNumber &&
+                              selectedDate?.month == monthDate.month &&
+                              !isToday
+                          ? AidaBaseColors.secondPrimaryColor
+                          : Colors.white,
                       fontWeight: selectedDate?.day == dayNumber &&
-                          selectedDate?.month == monthDate.month
+                              selectedDate?.month == monthDate.month
                           ? FontWeight.bold
                           : FontWeight.normal,
                     ),
@@ -96,7 +111,8 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
                 if (isToday)
                   const Text(
                     "今天",
-                    style: TextStyle(color: AidaBaseColors.primaryColor, fontSize: 12),
+                    style: TextStyle(
+                        color: AidaBaseColors.secondPrimaryColor, fontSize: 12),
                   ),
               ],
             ),
@@ -122,21 +138,24 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
       backgroundColor: AidaBaseColors.whiteWithOpacity01,
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            // 月份文本（只显示当前月）
-            Text(
-              DateFormat("yyyy年M月").format(serverNow!),
-              style: const TextStyle(fontSize: 16),
-            ),
-
-            const SizedBox(height: 16),
-            // 日历头部
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                DateFormat("yyyy年M月").format(
+                  DateTime(serverNow!.year, serverNow!.month - 1),
+                ),
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text("日"),
                   Text("一"),
                   Text("二"),
@@ -147,9 +166,6 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
-
-            // 上一月日历
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GridView.count(
@@ -159,9 +175,13 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
                 children: buildCalendarForMonth(previousMonth),
               ),
             ),
-
-            const SizedBox(height: 16),
-            // 当前月日历
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                DateFormat("M月").format(serverNow!),
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GridView.count(
@@ -175,5 +195,90 @@ class _SearchDateWidgetState extends State<SearchDateWidget> {
         ),
       ),
     );
+  }
+
+  searchMessageFunction() async {
+    int seconds = selectedDate!.difference(serverNow!).inDays.abs();
+    DateTime startOfDay = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+    ).add(const Duration(days: 1));
+    V2TimMessageSearchParam searchParam = V2TimMessageSearchParam(
+        conversationID: "group_${widget.model.groupID}",
+        // conversationID == null，代表搜索全部会话，conversationID != null，代表搜索指定会话。
+        keywordList: [],
+        // 关键字列表，最多支持5个。当消息发送者以及消息类型均未指定时，关键字列表必须非空；否则，关键字列表可以为空。
+        type: 1,
+        // 获取历史消息类型
+        userIDList: null,
+        // 指定 userID 发送的消息，最多支持5个。
+        messageTypeList: [1, 2, 3, 4, 5, 6, 7],
+        // 消息类型过滤列表
+        searchTimePeriod: 24 * 60 * 60,
+        // 从起始时间点开始的过去时间范围，单位秒。默认为0即代表不限制时间范围，传24x60x60代表过去一天。
+        searchTimePosition:
+            seconds == 0 ? 0 : startOfDay.millisecondsSinceEpoch ~/ 1000,
+        // 搜索的起始时间点。默认为0即代表从现在开始搜索。UTC 时间戳，单位：秒
+        pageIndex: 0,
+        // 分页的页号：用于分页展示查找结果，从零开始起步。
+        pageSize: 0);
+    V2TimValueCallback<V2TimMessageSearchResult> searchLocalMessagesRes =
+        await TencentImSDKPlugin.v2TIMManager
+            .getMessageManager()
+            .searchLocalMessages(searchParam: searchParam);
+    setState(() {
+      final items = searchLocalMessagesRes.data?.messageSearchResultItems;
+      final hasMessages = items != null &&
+          items.isNotEmpty &&
+          items.first.messageList != null &&
+          items.first.messageList!.isNotEmpty;
+      if (hasMessages) {
+        eventCenter.post(SearchMessageTipNotice(
+            message: searchLocalMessagesRes
+                .data!.messageSearchResultItems!.first.messageList!.last,
+            selectedConversation: V2TimConversation(
+                conversationID: "group_${widget.model.groupID}",
+                groupID: widget.model.groupID,
+                faceUrl: widget.model.groupInfo?.faceUrl ?? '',
+                showName: widget.model.groupInfo?.groupName ?? '',
+                type: 2)));
+      } else {
+        TUIToast.show(content: '当前时间无消息');
+      }
+    });
+  }
+}
+
+class ServerTimeResponse {
+  final int code;
+  final String desc;
+  final int data; // 时间戳（例如：1748222660）
+
+  ServerTimeResponse({
+    required this.code,
+    required this.desc,
+    required this.data,
+  });
+
+  factory ServerTimeResponse.fromJson(Map<String, dynamic> json) {
+    return ServerTimeResponse(
+      code: json['code'],
+      desc: json['desc'],
+      data: json['data'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'code': code,
+      'desc': desc,
+      'data': data,
+    };
+  }
+
+  /// 转换为 DateTime（秒级时间戳 → DateTime）
+  DateTime toDateTime() {
+    return DateTime.fromMillisecondsSinceEpoch(data * 1000);
   }
 }
