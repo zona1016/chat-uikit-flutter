@@ -87,7 +87,7 @@ class TIMUIKitMessageReadReceipt extends TIMUIKitStatelessWidget {
                             '${value?.readCount ?? 0}',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                                fontSize: 8, color: AidaBaseColors.primaryColor),
+                                fontSize: 8, color: AidaBaseColors.white),
                           )
                         : null,
                   ),
