@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -298,6 +299,28 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
           List<V2TimConversation?> filteredConversationList = getFilteredConversation();
 
+          // TencentUtils.aidTeam 是否加了好友 是否有来聊天消息 是否
+          V2TimConversation? aidTeamConversation = filteredConversationList.firstWhereOrNull(
+                (conversation) => conversation?.userID == TencentUtils.aidTeam,
+          );
+
+          if (aidTeamConversation != null) {
+            filteredConversationList.remove(aidTeamConversation);
+            filteredConversationList.insert(0, aidTeamConversation);
+          } else {
+            aidTeamConversation = V2TimConversation(
+              conversationID: 'c2c_${TencentUtils.aidTeam}',
+              userID: TencentUtils.aidTeam,
+              showName: 'AID 团队',
+              faceUrl: 'https://example.com/aid_team_avatar.png', // 替换为你自己的头像链接
+              lastMessage: null,
+              draftText: '',
+            );
+            aidTeamConversation.isPinned = true;
+            filteredConversationList.add(aidTeamConversation);
+            _pinConversation(aidTeamConversation);
+          }
+
           if (TencentUtils.checkString(_model.scrollToConversation) != null) {
             _onScrollToConversation(_model.scrollToConversation!);
             _model.clearScrollToConversation();
@@ -381,7 +404,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                             key: ValueKey(conversationItem.conversationID),
                             controller: _autoScrollController,
                             index: index,
-                            child: Slidable(groupTag: 'conversation-list', child: conversationLineItem(), endActionPane: ActionPane(extentRatio: slideChildren.length > 2 ? 0.77 : 0.5, motion: const DrawerMotion(), children: slideChildren)),
+                            child: Slidable(enabled: TencentUtils.aidTeam != conversationItem.userID, groupTag: 'conversation-list', child: conversationLineItem(), endActionPane: ActionPane(extentRatio: slideChildren.length > 2 ? 0.77 : 0.5, motion: const DrawerMotion(), children: slideChildren)),
                           ));
                     })
                 : (widget.emptyBuilder != null ? widget.emptyBuilder!() : Container());

@@ -173,24 +173,24 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
         //       height: 64,
         //       width: 64,
         //     )),
-      if (PlatformUtils().isMobile)
-        // MorePanelItem(
-        //     id: "red_packet",
-        //     title: TIM_t("红包"),
-        //     onTap: (c) {
-        //       _onFeatureTap(
-        //         "red_packet",
-        //         c,
-        //         model,
-        //         theme,
-        //       );
-        //     },
-        //     icon: Image.asset(
-        //       "images/more_hb.png",
-        //       package: 'tencent_cloud_chat_uikit',
-        //       height: 64,
-        //       width: 64,
-        //     )),
+        if (PlatformUtils().isMobile)
+          MorePanelItem(
+              id: "red_packet",
+              title: TIM_t("红包"),
+              onTap: (c) {
+                _onFeatureTap(
+                  "red_packet",
+                  c,
+                  model,
+                  theme,
+                );
+              },
+              icon: Image.asset(
+                "images/more_hb.png",
+                package: 'tencent_cloud_chat_uikit',
+                height: 64,
+                width: 64,
+              )),
       if (PlatformUtils().isWeb)
         MorePanelItem(
             id: "image",
@@ -654,7 +654,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
         _goToVideoUI(TYPE_VIDEO);
         break;
       case "red_packet":
-        eventCenter.post(SendRedPacketNotice());
+        eventCenter.post(SendRedPacketNotice(
+            conversationType: widget.conversationType,
+            conversationID: widget.conversationID));
         break;
       case "card":
         _shareCard(model);
@@ -696,7 +698,6 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             )),
       ),
     );
-
   }
 
   _goToVideoUI(String type) async {

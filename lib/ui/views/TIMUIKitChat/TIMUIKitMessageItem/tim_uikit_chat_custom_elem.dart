@@ -105,6 +105,56 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
       }
     }
 
+    if (message.customElem?.data != null) {
+      Map<String, dynamic> result = getMap(message.customElem!.data!);
+
+      return GestureDetector(
+        onTap: () {
+          _redPacketOnTap();
+        },
+        child: Container(
+          height: 70,
+          constraints: const BoxConstraints(maxWidth: 160),
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('images/red_pagket_bg.png',
+                  package: 'tencent_cloud_chat_uikit'), // 本地图片
+              fit: BoxFit.fitHeight,
+            ),
+          ),
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 16,
+              ),
+              Image.asset(
+                'images/red_pagket_icon.png',
+                package: 'tencent_cloud_chat_uikit',
+                width: 40,
+                height: 40,
+              ),
+              const SizedBox(
+                width: 16,
+              ),
+              Expanded(
+                  child: Text(
+                result['desc'] ?? 'AID 红包',
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AidaBaseColors.white,
+                ),
+              )),
+              const SizedBox(
+                width: 16,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (message.customElem?.data != null &&
         isCardData(message.customElem!.data!)) {
       Map<String, dynamic> result = getMap(message.customElem!.data!);
@@ -155,13 +205,16 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     if (checkFriend != null) {
       final res = checkFriend.first;
       if (res.resultCode == 0 && res.resultType != 0) {
-        eventCenter.post(CardTipNotice(
-            isFriend: true, userId: model.userID));
+        eventCenter.post(CardTipNotice(isFriend: true, userId: model.userID));
         return;
       }
     }
-    eventCenter.post(CardTipNotice(
-        isFriend: false, userId: model.userID));
+    eventCenter.post(CardTipNotice(isFriend: false, userId: model.userID));
+  }
+
+  _redPacketOnTap() async {
+    Map<String, dynamic> result = getMap(message.customElem!.data!);
+    eventCenter.post(RedPacketTipNotice(redEnvelopId: 'redEnvelopId', desc: 'desc'));
   }
 
   cardWidget(ContactCardModel model) {

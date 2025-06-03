@@ -166,7 +166,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
           info: V2TimGroupInfo.fromJson({
             "groupID": _groupID,
             "groupType": _groupInfo!.groupType,
-            "customInfo": {'isAllow': isAllow ? 'true' : 'false'},
+            "customInfo": {'custom_key_1': isAllow ? 'true' : 'false'},
           }));
       if (response.code == 0) {
         notifyListeners();

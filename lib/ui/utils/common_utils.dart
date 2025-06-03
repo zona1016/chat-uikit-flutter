@@ -1,4 +1,7 @@
 class TencentUtils{
+
+  static String aidTeam = '942861422';
+
   static bool isTextNotEmpty(String? text){
     return text != null && text.isNotEmpty;
   }
