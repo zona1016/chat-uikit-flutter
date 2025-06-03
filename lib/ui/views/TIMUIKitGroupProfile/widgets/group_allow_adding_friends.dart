@@ -13,7 +13,7 @@ class GroupAllowAddingFriends extends TIMUIKitStatelessWidget {
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final model = Provider.of<TUIGroupProfileModel>(context);
-    final isAllow = model.groupInfo?.customInfo?['isAllow'] == 'true';
+    final isAllow = model.groupInfo?.customInfo?['url_detail'] == 'true';
     return TIMUIKitOperationItem(
       isEmpty: false,
       operationName: TIM_t("允许添加好友"),
