@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
@@ -214,6 +215,9 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
 
   _redPacketOnTap() async {
     Map<String, dynamic> result = getMap(message.customElem!.data!);
+
+    print(result);
+    return;
     eventCenter.post(RedPacketTipNotice(redEnvelopId: 'redEnvelopId', desc: 'desc'));
   }
 
@@ -253,9 +257,9 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
         const SizedBox(
           height: 8,
         ),
-        const Text(
-          '个人名片',
-          style: TextStyle(color: AidaBaseColors.white),
+        Text(
+          tr('wallet.personal_card'),
+          style: const TextStyle(color: AidaBaseColors.white),
         )
       ],
     );

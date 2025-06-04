@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -299,26 +300,28 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
           List<V2TimConversation?> filteredConversationList = getFilteredConversation();
 
-          // TencentUtils.aidTeam 是否加了好友 是否有来聊天消息 是否
+          // TencentUtils.aidTeam 是否加了好友 是否有来聊天消息
           V2TimConversation? aidTeamConversation = filteredConversationList.firstWhereOrNull(
                 (conversation) => conversation?.userID == TencentUtils.aidTeam,
           );
 
           if (aidTeamConversation != null) {
+            aidTeamConversation.isPinned = true;
+            aidTeamConversation.recvOpt = 0;
             filteredConversationList.remove(aidTeamConversation);
             filteredConversationList.insert(0, aidTeamConversation);
           } else {
             aidTeamConversation = V2TimConversation(
               conversationID: 'c2c_${TencentUtils.aidTeam}',
               userID: TencentUtils.aidTeam,
-              showName: 'AID 团队',
+              showName: tr('wallet.aid_team'),
               faceUrl: 'https://example.com/aid_team_avatar.png', // 替换为你自己的头像链接
               lastMessage: null,
               draftText: '',
             );
             aidTeamConversation.isPinned = true;
-            filteredConversationList.add(aidTeamConversation);
-            _pinConversation(aidTeamConversation);
+            aidTeamConversation.recvOpt = 0;
+            filteredConversationList.insert(0, aidTeamConversation);
           }
 
           if (TencentUtils.checkString(_model.scrollToConversation) != null) {

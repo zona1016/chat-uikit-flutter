@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
@@ -65,7 +66,13 @@ class _TIMUIKitContactState extends TIMUIKitState<TIMUIKitContact> {
           final model = Provider.of<TUIFriendShipViewModel>(context);
           model.contactListLifeCycle = widget.lifeCycle;
           final memberList = model.friendList ?? [];
-
+          V2TimFriendInfo? member = memberList.firstWhereOrNull(
+                (conversation) => conversation.userID == TencentUtils.aidTeam,
+          );
+          if (member != null) {
+            memberList.remove(member);
+          }
+          // 移除AID 团队
           return ContactList(
             currentItem: currentItem,
             emptyBuilder: widget.emptyBuilder,
