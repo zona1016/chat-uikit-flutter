@@ -169,6 +169,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
             "customInfo": {'url_detail': isAllow ? 'true' : 'false'},
           }));
       if (response.code == 0) {
+        conversation?.customData = 'url_detail = ${isAllow ? 'true' : 'false'}';
         notifyListeners();
       }
     }
