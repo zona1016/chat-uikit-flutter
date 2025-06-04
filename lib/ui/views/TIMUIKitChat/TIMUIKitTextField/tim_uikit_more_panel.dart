@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:fc_native_video_thumbnail/fc_native_video_thumbnail.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -162,7 +163,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      if (PlatformUtils().isMobile && widget.conversationType == ConvType.c2c)
+      // if (PlatformUtils().isMobile && widget.conversationType == ConvType.c2c)
         // MorePanelItem(
         //     id: "yhjf",
         //     title: TIM_t("阅后即焚"),
@@ -176,7 +177,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
         if (PlatformUtils().isMobile)
           MorePanelItem(
               id: "red_packet",
-              title: TIM_t("红包"),
+              title: tr('wallet.red_packet'),
               onTap: (c) {
                 _onFeatureTap(
                   "red_packet",

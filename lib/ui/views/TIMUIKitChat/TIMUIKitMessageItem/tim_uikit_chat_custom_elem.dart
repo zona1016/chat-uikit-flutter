@@ -106,9 +106,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
       }
     }
 
-    if (message.customElem?.data != null) {
-      Map<String, dynamic> result = getMap(message.customElem!.data!);
-
+    if (message.customElem?.data != null && message.customElem?.data == 'Envelopes') {
       return GestureDetector(
         onTap: () {
           _redPacketOnTap();
@@ -139,7 +137,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
               ),
               Expanded(
                   child: Text(
-                result['desc'] ?? 'AID 红包',
+                    message.customElem?.desc ?? 'AID ${tr('wallet.red_packet')}',
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -214,11 +212,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   }
 
   _redPacketOnTap() async {
-    Map<String, dynamic> result = getMap(message.customElem!.data!);
-
-    print(result);
-    return;
-    eventCenter.post(RedPacketTipNotice(redEnvelopId: 'redEnvelopId', desc: 'desc'));
+    eventCenter.post(RedPacketTipNotice(redEnvelopId: message.customElem!.extension!, desc: message.customElem!.desc!));
   }
 
   cardWidget(ContactCardModel model) {
