@@ -106,7 +106,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
       }
     }
 
-    if (message.customElem?.data != null && message.customElem?.data == 'Envelopes') {
+    if (message.customElem?.data != null && message.customElem!.data!.contains('Envelopes')) {
       return GestureDetector(
         onTap: () {
           _redPacketOnTap();
@@ -154,7 +154,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
       );
     }
 
-    if (message.customElem?.data != null &&
+    if (message.customElem?.data != null && message.customElem!.data!.contains('card') &&
         isCardData(message.customElem!.data!)) {
       Map<String, dynamic> result = getMap(message.customElem!.data!);
       ContactCardModel model = ContactCardModel.fromJson(result);

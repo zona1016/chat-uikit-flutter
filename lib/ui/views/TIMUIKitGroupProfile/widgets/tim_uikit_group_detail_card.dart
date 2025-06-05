@@ -278,15 +278,22 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                                 fontSize: isDesktopScreen ? 13 : 13,
                                 color: theme.weakTextColor)),
                         GestureDetector(
-                            onTap: () {
-                              Clipboard.setData(ClipboardData(text: groupID));
-                              TUIToast.show(content: TIM_t('已复制'));
-                            },
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: groupID));
+                            TUIToast.show(content: TIM_t('已复制'));
+                          },
+                          behavior: HitTestBehavior.translucent,
+                          child: Container(
+                            width: 40,
+                            height: 20,
+                            alignment: Alignment.center, // 图标居中
                             child: const Icon(
                               Icons.copy,
                               color: AidaBaseColors.primaryColor,
                               size: 16,
-                            )),
+                            ),
+                          ),
+                        )
                       ],
                     )
                   ],
