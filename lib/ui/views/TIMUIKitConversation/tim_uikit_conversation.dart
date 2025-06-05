@@ -302,7 +302,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
           // TencentUtils.aidTeam 是否加了好友 是否有来聊天消息
           V2TimConversation? aidTeamConversation = filteredConversationList.firstWhereOrNull(
-                (conversation) => conversation?.userID == TencentUtils.aidTeam,
+                (conversation) => conversation?.groupID == TencentUtils.aidTeam,
           );
 
           if (aidTeamConversation != null) {
@@ -312,8 +312,8 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
             filteredConversationList.insert(0, aidTeamConversation);
           } else {
             aidTeamConversation = V2TimConversation(
-              conversationID: 'c2c_${TencentUtils.aidTeam}',
-              userID: TencentUtils.aidTeam,
+              conversationID: 'group_${TencentUtils.aidTeam}',
+              groupID: TencentUtils.aidTeam,
               showName: tr('wallet.aid_team'),
               faceUrl: 'https://example.com/aid_team_avatar.png', // 替换为你自己的头像链接
               lastMessage: null,
@@ -407,7 +407,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                             key: ValueKey(conversationItem.conversationID),
                             controller: _autoScrollController,
                             index: index,
-                            child: Slidable(enabled: TencentUtils.aidTeam != conversationItem.userID, groupTag: 'conversation-list', child: conversationLineItem(), endActionPane: ActionPane(extentRatio: slideChildren.length > 2 ? 0.77 : 0.5, motion: const DrawerMotion(), children: slideChildren)),
+                            child: Slidable(enabled: TencentUtils.aidTeam != conversationItem.groupID, groupTag: 'conversation-list', child: conversationLineItem(), endActionPane: ActionPane(extentRatio: slideChildren.length > 2 ? 0.77 : 0.5, motion: const DrawerMotion(), children: slideChildren)),
                           ));
                     })
                 : (widget.emptyBuilder != null ? widget.emptyBuilder!() : Container());

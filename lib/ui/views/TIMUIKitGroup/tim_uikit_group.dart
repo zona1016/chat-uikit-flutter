@@ -1,8 +1,10 @@
 import 'package:azlistview_all_platforms/azlistview_all_platforms.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:lpinyin/lpinyin.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
@@ -178,6 +180,14 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
         if (widget.groupCollector != null) {
           groupList = groupList.where(widget.groupCollector!).toList();
         }
+
+        V2TimGroupInfo? group = groupList.firstWhereOrNull(
+              (conversation) => conversation.groupID == TencentUtils.aidTeam,
+        );
+        if (group != null) {
+          groupList.remove(group);
+        }
+
         if (groupList.isNotEmpty) {
           final showList = _getShowList(groupList);
           return AZListViewContainer(
