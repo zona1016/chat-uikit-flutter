@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 
 class CallMessageItem extends StatelessWidget {
   final CallingMessageDataProvider callingMessageDataProvider;
@@ -32,17 +33,14 @@ class CallMessageItem extends StatelessWidget {
               height: 16,
               width: 16,
               package: 'tencent_cloud_chat_uikit',
-              color: Colors.black,
+              color: AidaBaseColors.white,
             ),
           ),
 
         Text(
           callingMessageDataProvider.content,
-          style: TextStyle(
-              color: callingMessageDataProvider.direction ==
-                      CallMessageDirection.incoming
-                  ? Colors.black
-                  : Colors.white),
+          style: const TextStyle(
+              color: AidaBaseColors.white),
         ),
         if (callingMessageDataProvider.direction == CallMessageDirection.outcoming)
           Padding(
@@ -53,6 +51,7 @@ class CallMessageItem extends StatelessWidget {
                   : "images/video_call.png",
               height: 16,
               width: 16,
+              color: AidaBaseColors.white,
               package: 'tencent_cloud_chat_uikit',
             ),
           ),
