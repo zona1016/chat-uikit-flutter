@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/base_network_image.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/group_call_message_builder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/single_call_message_builder.dart';
@@ -106,71 +107,21 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
       }
     }
 
-    if (message.customElem?.data != null && message.customElem!.data!.contains('Envelopes')) {
-      return GestureDetector(
-        onTap: () {
-          _redPacketOnTap();
-        },
-        child: Container(
-          height: 70,
-          constraints: const BoxConstraints(maxWidth: 160),
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('images/red_pagket_bg.png',
-                  package: 'tencent_cloud_chat_uikit'), // 本地图片
-              fit: BoxFit.fitHeight,
-            ),
-          ),
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 16,
-              ),
-              Image.asset(
-                'images/red_pagket_icon.png',
-                package: 'tencent_cloud_chat_uikit',
-                width: 40,
-                height: 40,
-              ),
-              const SizedBox(
-                width: 16,
-              ),
-              Expanded(
-                  child: Text(
-                    message.customElem?.desc ?? 'AID ${tr('wallet.red_packet')}',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AidaBaseColors.white,
-                ),
-              )),
-              const SizedBox(
-                width: 16,
-              ),
-            ],
-          ),
-        ),
-      );
+    /// AID 团队
+    if (message.customElem?.data != null && message.customElem!.data!.contains('aidTeam') &&
+        isCardData(message.customElem!.data!)) {
+      return _aidTeam();
     }
 
-    if (message.customElem?.data != null && message.customElem!.data!.contains('card') &&
+    /// 红包
+    if (message.customElem?.data != null && message.customElem!.data!.contains('Envelopes')) {
+      return _redPacketItem();
+    }
+
+    /// 名片
+    if (message.customElem?.data != null && message.customElem!.data!.contains('Card') &&
         isCardData(message.customElem!.data!)) {
-      Map<String, dynamic> result = getMap(message.customElem!.data!);
-      ContactCardModel model = ContactCardModel.fromJson(result);
-      return GestureDetector(
-        onTap: () {
-          _cardOnTap(model);
-        },
-        child: Container(
-            padding: textPadding ?? const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: messageBackgroundColor ?? backgroundColor,
-              borderRadius: messageBorderRadius ?? borderRadius,
-            ),
-            constraints: const BoxConstraints(maxWidth: 180),
-            child: cardWidget(model)),
-      );
+      return _cardItem(backgroundColor, borderRadius);
     }
 
     return Container(
@@ -195,24 +146,22 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
         ));
   }
 
-  _cardOnTap(ContactCardModel model) async {
-    final FriendshipServices friendshipServices =
-        serviceLocator<FriendshipServices>();
-    final checkFriend = await friendshipServices.checkFriend(
-        userIDList: [model.userID],
-        checkType: FriendTypeEnum.V2TIM_FRIEND_TYPE_SINGLE);
-    if (checkFriend != null) {
-      final res = checkFriend.first;
-      if (res.resultCode == 0 && res.resultType != 0) {
-        eventCenter.post(CardTipNotice(isFriend: true, userId: model.userID));
-        return;
-      }
-    }
-    eventCenter.post(CardTipNotice(isFriend: false, userId: model.userID));
-  }
-
-  _redPacketOnTap() async {
-    eventCenter.post(RedPacketTipNotice(redEnvelopId: message.customElem!.extension!, desc: message.customElem!.desc!));
+  _cardItem(backgroundColor, borderRadius) {
+    Map<String, dynamic> result = getMap(message.customElem!.data!);
+    ContactCardModel model = ContactCardModel.fromJson(result);
+    return GestureDetector(
+      onTap: () {
+        _cardOnTap(model);
+      },
+      child: Container(
+          padding: textPadding ?? const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: messageBackgroundColor ?? backgroundColor,
+            borderRadius: messageBorderRadius ?? borderRadius,
+          ),
+          constraints: const BoxConstraints(maxWidth: 180),
+          child: cardWidget(model)),
+    );
   }
 
   cardWidget(ContactCardModel model) {
@@ -259,6 +208,22 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     );
   }
 
+  _cardOnTap(ContactCardModel model) async {
+    final FriendshipServices friendshipServices =
+        serviceLocator<FriendshipServices>();
+    final checkFriend = await friendshipServices.checkFriend(
+        userIDList: [model.userID],
+        checkType: FriendTypeEnum.V2TIM_FRIEND_TYPE_SINGLE);
+    if (checkFriend != null) {
+      final res = checkFriend.first;
+      if (res.resultCode == 0 && res.resultType != 0) {
+        eventCenter.post(CardTipNotice(isFriend: true, userId: model.userID));
+        return;
+      }
+    }
+    eventCenter.post(CardTipNotice(isFriend: false, userId: model.userID));
+  }
+
   bool isCardData(String data) {
     Map result = getMap(data);
     return result['type']?.toString().toLowerCase() == 'card';
@@ -279,6 +244,101 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     }
 
     return map;
+  }
+
+  _redPacketItem() {
+    return GestureDetector(
+      onTap: () {
+        _redPacketOnTap();
+      },
+      child: Container(
+        height: 70,
+        constraints: const BoxConstraints(maxWidth: 160),
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/red_pagket_bg.png',
+                package: 'tencent_cloud_chat_uikit'), // 本地图片
+            fit: BoxFit.fitHeight,
+          ),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+            ),
+            Image.asset(
+              'images/red_pagket_icon.png',
+              package: 'tencent_cloud_chat_uikit',
+              width: 40,
+              height: 40,
+            ),
+            const SizedBox(
+              width: 16,
+            ),
+            Expanded(
+                child: Text(
+                  message.customElem?.desc ?? 'AID ${tr('wallet.red_packet')}',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AidaBaseColors.white,
+                  ),
+                )),
+            const SizedBox(
+              width: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  _redPacketOnTap() async {
+    eventCenter.post(RedPacketTipNotice(redEnvelopId: message.customElem!.extension!, desc: message.customElem!.desc!));
+  }
+
+  _aidTeam() {
+    return GestureDetector(
+      onTap: () {
+        // 跳转网页
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
+        decoration: BoxDecoration(
+          color: AidaBaseColors.whiteWithOpacity01,
+          borderRadius: BorderRadius.circular(10)
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              height: 188,
+              decoration: BoxDecoration(
+                  color: AidaBaseColors.primaryColor,
+                  borderRadius: BorderRadius.circular(10)
+              ),
+              child: const BaseNetworkImage(
+                imageURL: '',
+                fit: BoxFit.contain,
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10),
+              child: Text(
+                '不“劳”而获，设计师如何优雅地“摸鱼”过五一',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AidaBaseColors.white
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }
 

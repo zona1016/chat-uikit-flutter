@@ -243,8 +243,11 @@ class TIMUIKitChatConfig {
   /// [Default]: 400
   final double desktopStickerPanelHeight;
 
+  final bool isAidTeam;
+
   const TIMUIKitChatConfig(
       {this.onTapLink,
+      this.isAidTeam = false,
       this.timeDividerConfig,
       this.desktopStickerPanelHeight = 400,
       this.stickerPanelConfig,
@@ -262,7 +265,7 @@ class TIMUIKitChatConfig {
       this.isUseMessageReaction = true,
       this.isShowAvatar = true,
       this.isShowSelfNameInGroup = false,
-        this.isAtWhenReplyDynamic,
+      this.isAtWhenReplyDynamic,
       this.offlinePushInfo,
       @Deprecated("Please use [isShowGroupReadingStatus] instead")
       this.isShowGroupMessageReadReceipt = true,

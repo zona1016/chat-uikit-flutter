@@ -1146,7 +1146,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
 
     return LayoutBuilder(
       builder: (context, constraints) => Container(
-        padding: EdgeInsets.only(left: isSelf ? 0 : 16, right: isSelf ? 16 : 0),
+        padding: model.chatConfig.isAidTeam ? const EdgeInsets.symmetric(horizontal: 16) : EdgeInsets.only(left: isSelf ? 0 : 16, right: isSelf ? 16 : 0),
         margin: widget.padding ?? const EdgeInsets.only(bottom: 20),
         child: Row(
           key: _key,
@@ -1265,7 +1265,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                           ),
                         ),
                       Container(
-                        margin: widget.showAvatar ? (isSelf ? const EdgeInsets.only(right: 13) : const EdgeInsets.only(left: 13)) : null,
+                        margin: model.chatConfig.isAidTeam ? null : widget.showAvatar ? (isSelf ? const EdgeInsets.only(right: 13) : const EdgeInsets.only(left: 13)) : null,
                         child: Column(
                           crossAxisAlignment: isSelf ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                           children: [
@@ -1288,7 +1288,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                                 if (isSelf) renderHoverTipAndReadStatus(model, isSelf, message, isPeerRead, theme, isDownloadWaiting),
                                 Container(
                                   constraints: BoxConstraints(
-                                    maxWidth: constraints.maxWidth * 0.77,
+                                    maxWidth: model.chatConfig.isAidTeam ? (constraints.maxWidth - 32) : constraints.maxWidth * 0.77,
                                   ),
                                   child: Builder(builder: (context) {
                                     return Column(
