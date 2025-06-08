@@ -5,6 +5,7 @@ class AidaBaseColors {
   static const secondPrimaryColor = Color(0xFFFD7B19);
   static const black = Colors.black;
   static const inputFillColor = Color(0xFF0B0E0E);
+  static const switchColor = Color(0xFF333333);
   static const black15 = Color(0x261A1A1A);
   static const black40 = Color(0x661A1A1A);
   static const gray = Color(0xFF999999);
