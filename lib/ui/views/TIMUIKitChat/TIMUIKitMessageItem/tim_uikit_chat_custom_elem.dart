@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
@@ -19,6 +20,7 @@ import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   final V2TimCustomElem? customElem;
@@ -108,9 +110,10 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     }
 
     /// AID 团队
-    if (message.customElem?.data != null && message.customElem!.data!.contains('aidTeam') &&
-        isCardData(message.customElem!.data!)) {
-      return _aidTeam();
+    if (message.customElem?.data != null && message.customElem!.data!.contains('aid_team_notice')) {
+
+      final map = getMap(message.customElem!.data!);
+      return _aidTeam(map);
     }
 
     /// 红包
@@ -247,6 +250,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   }
 
   _redPacketItem() {
+
     return GestureDetector(
       onTap: () {
         _redPacketOnTap();
@@ -298,10 +302,34 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     eventCenter.post(RedPacketTipNotice(redEnvelopId: message.customElem!.extension!, desc: message.customElem!.desc!));
   }
 
-  _aidTeam() {
+  _aidTeam(Map<String, dynamic> result) {
+
+    final Map<String, dynamic> titleMap = result['title'];
+    final Map<String, dynamic> contentMap = result['content'];
+    String title = '';
+    String content = '';
+    String url = result['video'];
+    if (titleMap.isNotEmpty) {
+      final locale = GetStorage().read(TencentUtils.currentLocale);
+      title = titleMap[locale] ?? '';
+      if (title.isEmpty) {
+        title = titleMap.values.first;
+      }
+    }
+
+    if (contentMap.isNotEmpty) {
+      final locale = GetStorage().read(TencentUtils.currentLocale);
+      content = titleMap[locale] ?? '';
+      if (content.isEmpty) {
+        content = contentMap.values.first;
+      }
+    }
+
     return GestureDetector(
       onTap: () {
-        // 跳转网页
+        if (url.isNotEmpty) {
+          launchUrl(Uri.parse('https:www.baidu.com'), mode: LaunchMode.inAppWebView);
+        }
       },
       child: Container(
         width: double.infinity,
@@ -319,16 +347,16 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
                   color: AidaBaseColors.primaryColor,
                   borderRadius: BorderRadius.circular(10)
               ),
-              child: const BaseNetworkImage(
-                imageURL: '',
-                fit: BoxFit.contain,
+              child: BaseNetworkImage(
+                imageURL: TencentUtils.baseUrl + result['image'],
+                fit: BoxFit.cover,
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Text(
-                '不“劳”而获，设计师如何优雅地“摸鱼”过五一',
-                style: TextStyle(
+                title,
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AidaBaseColors.white
