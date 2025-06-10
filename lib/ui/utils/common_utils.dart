@@ -1,6 +1,8 @@
 class TencentUtils{
 
   static String aidTeam = '@TGS#_@TGS#cUALV6JM62CG';
+  static String baseUrl = 'https://api.aitm-data.com/';
+  static const currentLocale = "current_locale";
 
   static bool isTextNotEmpty(String? text){
     return text != null && text.isNotEmpty;

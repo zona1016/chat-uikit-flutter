@@ -328,7 +328,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     return GestureDetector(
       onTap: () {
         if (url.isNotEmpty) {
-          launchUrl(Uri.parse('https:www.baidu.com'), mode: LaunchMode.inAppWebView);
+          launchUrl(Uri.parse(url), mode: LaunchMode.inAppWebView);
         }
       },
       child: Container(

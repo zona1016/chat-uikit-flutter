@@ -424,18 +424,18 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
                               : AidaBaseColors.whiteWithOpacity01,
                       borderRadius: borderRadius),
                   child: Stack(children: [
-                    // ClipRRect(
-                    //   borderRadius: borderRadius,
-                    //   child: LinearProgressIndicator(
-                    //     minHeight: ((containerHeight) ?? 72) - 6,
-                    //     value: (received == 100 ? 0 : received) / 100,
-                    //     backgroundColor: received == 100
-                    //         ? theme.weakBackgroundColor
-                    //         : Colors.white,
-                    //     valueColor: AlwaysStoppedAnimation(
-                    //         theme.lightPrimaryMaterialColor.shade50),
-                    //   ),
-                    // ),
+                    ClipRRect(
+                      borderRadius: borderRadius,
+                      child: LinearProgressIndicator(
+                        minHeight: ((containerHeight) ?? 72) - 6,
+                        value: (received == 100 ? 0 : received) / 100,
+                        backgroundColor: received == 100
+                            ? widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01
+                            : AidaBaseColors.weakTextColor,
+                        valueColor: AlwaysStoppedAnimation(
+                            widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.black),
+                      ),
+                    ),
                     Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: 8, horizontal: 12),
