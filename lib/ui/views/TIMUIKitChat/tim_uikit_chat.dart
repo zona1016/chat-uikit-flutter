@@ -35,6 +35,7 @@ class TIMUIKitChat extends StatefulWidget {
   int startTime = 0;
   int endTime = 0;
 
+  bool? showInput;
   /// The chat controller you tend to used.
   /// You have to provide this before using it since tencent_cloud_chat_uikit 0.1.4.
   final TIMUIKitChatController? controller;
@@ -165,6 +166,7 @@ class TIMUIKitChat extends StatefulWidget {
 
   TIMUIKitChat(
       {Key? key,
+        this.showInput,
       this.groupID,
       required this.conversation,
       this.conversationID,
@@ -509,7 +511,10 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
                                 )),
                           )),
                           widget.inputTopBuilder ?? Container(),
-                          Selector<TUIChatSeparateViewModel, bool>(
+                          if (widget.showInput == true)
+                            SafeArea(child: Container()),
+                          if (widget.showInput == true)
+                            Selector<TUIChatSeparateViewModel, bool>(
                             builder: (context, value, child) {
                               return value
                                   ? MultiSelectPanel(
