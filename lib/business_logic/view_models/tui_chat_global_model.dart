@@ -993,7 +993,12 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
         listWithTimestamp.add(V2TimMessage.fromJson(item.toJson()));
       }
     }
-    return listWithTimestamp.reversed.toList();
+    final cutoffMillis = DateTime(2025, 6, 11, 13).millisecondsSinceEpoch;
+
+    final filteredMessages = listWithTimestamp.reversed.toList()
+        .where((msg) => ((msg.timestamp ?? 0) * 1000) > cutoffMillis) // < 6月11日13点
+        .toList();
+    return conversationID == TencentUtils.aidTeam ? filteredMessages : listWithTimestamp.reversed.toList();
   }
 
   HistoryMessagePosition getMessageListPosition(String? conversationID) {

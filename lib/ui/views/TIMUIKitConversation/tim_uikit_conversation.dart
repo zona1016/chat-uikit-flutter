@@ -308,6 +308,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           if (aidTeamConversation != null) {
             aidTeamConversation.isPinned = true;
             aidTeamConversation.recvOpt = 0;
+            aidTeamConversation.unreadCount = 0;
             filteredConversationList.remove(aidTeamConversation);
             filteredConversationList.insert(0, aidTeamConversation);
           } else {
@@ -321,6 +322,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
             );
             aidTeamConversation.isPinned = true;
             aidTeamConversation.recvOpt = 0;
+            aidTeamConversation.unreadCount = 0;
             filteredConversationList.insert(0, aidTeamConversation);
           }
 
