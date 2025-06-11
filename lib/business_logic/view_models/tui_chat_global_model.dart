@@ -995,10 +995,6 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
     }
     final cutoffMillis = DateTime(2025, 6, 11, 13).millisecondsSinceEpoch;
 
-    for (var msg in listWithTimestamp.reversed.toList()) {
-      print(msg.toJson());
-    }
-
     final filteredMessages = listWithTimestamp.reversed
         .toList()
         .where((msg) =>
