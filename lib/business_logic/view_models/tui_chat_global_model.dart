@@ -995,8 +995,19 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
     }
     final cutoffMillis = DateTime(2025, 6, 11, 13).millisecondsSinceEpoch;
 
-    final filteredMessages = listWithTimestamp.reversed.toList()
-        .where((msg) => ((msg.timestamp ?? 0) * 1000) > cutoffMillis) // < 6月11日13点
+    for (var msg in listWithTimestamp.reversed.toList()) {
+      print(msg.toJson());
+    }
+
+    final filteredMessages = listWithTimestamp.reversed
+        .toList()
+        .where((msg) =>
+    (((msg.timestamp ?? 0) * 1000) > cutoffMillis) &&
+        (msg.elemType == 11 ||
+            (msg.elemType == 2 &&
+                msg.customElem!.data != null &&
+                msg.customElem!.data!.contains('aid_team_notice')) &&
+                msg.status != 6))
         .toList();
     return conversationID == TencentUtils.aidTeam ? filteredMessages : listWithTimestamp.reversed.toList();
   }
