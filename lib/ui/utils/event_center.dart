@@ -37,13 +37,16 @@ class SendRedPacketNotice {
 
   /// 会话类型
   final ConvType conversationType;
-  SendRedPacketNotice({required this.conversationType, required this.conversationID});
+
+  SendRedPacketNotice(
+      {required this.conversationType, required this.conversationID});
 }
 
 // 红包点击
 class RedPacketTipNotice {
   final String redEnvelopId;
   final String desc;
+
   RedPacketTipNotice({required this.redEnvelopId, required this.desc});
 }
 
@@ -62,6 +65,12 @@ class SearchMessageTipNotice {
 
   SearchMessageTipNotice(
       {required this.selectedConversation, required this.message});
+}
+
+class AidTeamTipNotice {
+  final V2TimMessage message;
+
+  AidTeamTipNotice({required this.message});
 }
 
 // 快捷访问

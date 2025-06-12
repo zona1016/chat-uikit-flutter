@@ -1,10 +1,14 @@
 // ignore_for_file: unrelated_type_equality_checks
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:fc_native_video_thumbnail/fc_native_video_thumbnail.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
@@ -19,10 +23,9 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
-import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
+class TIMUIKitCustomElem extends StatefulWidget {
   final V2TimCustomElem? customElem;
   final bool isFromSelf;
   final TextStyle? messageFontStyle;
@@ -32,7 +35,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   final V2TimMessage message;
   final bool? isShowMessageReaction;
 
-  TIMUIKitCustomElem({
+  const TIMUIKitCustomElem({
     Key? key,
     required this.message,
     this.isShowMessageReaction,
@@ -45,11 +48,20 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   }) : super(key: key);
 
   @override
+  State<StatefulWidget> createState() => _TIMUIKitCustomElemState();
+}
+
+class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
+  // 你可以在这里声明需要刷新的状态
+  bool _isLoading = false;
+  String _path = '';
+
+  @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final theme = value.theme;
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
-    final borderRadius = isFromSelf
+    final borderRadius = widget.isFromSelf
         ? const BorderRadius.only(
             topLeft: Radius.circular(10),
             topRight: Radius.circular(2),
@@ -61,24 +73,25 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
             bottomLeft: Radius.circular(10),
             bottomRight: Radius.circular(10));
     final backgroundColor = isDesktopScreen
-        ? isFromSelf
+        ? widget.isFromSelf
             ? theme.lightPrimaryMaterialColor.shade50
             : theme.weakBackgroundColor
-        : isFromSelf
+        : widget.isFromSelf
             ? AidaBaseColors.primaryColor
             : AidaBaseColors.whiteWithOpacity01;
 
-    if (message.customElem?.data != null &&
-        message.customElem!.data!.contains('call_type')) {
-      final callingMessageDataProvider = CallingMessageDataProvider(message);
+    if (widget.message.customElem?.data != null &&
+        widget.message.customElem!.data!.contains('call_type')) {
+      final callingMessageDataProvider =
+          CallingMessageDataProvider(widget.message);
       if (callingMessageDataProvider.participantType ==
           CallParticipantType.group) {
         // Group Call message
         return Container(
-            padding: textPadding ?? const EdgeInsets.all(10),
+            padding: widget.textPadding ?? const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: messageBackgroundColor ?? backgroundColor,
-              borderRadius: messageBorderRadius ?? borderRadius,
+              color: widget.messageBackgroundColor ?? backgroundColor,
+              borderRadius: widget.messageBorderRadius ?? borderRadius,
             ),
             child: GroupCallMessageItem(
                 callingMessageDataProvider: callingMessageDataProvider));
@@ -91,16 +104,16 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
                         CallStreamMediaType.audio
                     ? TYPE_AUDIO
                     : TYPE_VIDEO,
-                PARAM_NAME_USERIDS: [message.userID!],
+                PARAM_NAME_USERIDS: [widget.message.userID!],
                 PARAM_NAME_GROUPID: ""
               });
             }
           },
           child: Container(
-              padding: textPadding ?? const EdgeInsets.all(10),
+              padding: widget.textPadding ?? const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: messageBackgroundColor ?? backgroundColor,
-                borderRadius: messageBorderRadius ?? borderRadius,
+                color: widget.messageBackgroundColor ?? backgroundColor,
+                borderRadius: widget.messageBorderRadius ?? borderRadius,
               ),
               child: CallMessageItem(
                   callingMessageDataProvider: callingMessageDataProvider,
@@ -110,28 +123,30 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
     }
 
     /// AID 团队
-    if (message.customElem?.data != null && message.customElem!.data!.contains('aid_team_notice')) {
-
-      final map = getMap(message.customElem!.data!);
+    if (widget.message.customElem?.data != null &&
+        widget.message.customElem!.data!.contains('aid_team_notice')) {
+      final map = getMap(widget.message.customElem!.data!);
       return _aidTeam(map);
     }
 
     /// 红包
-    if (message.customElem?.data != null && message.customElem!.data!.contains('Envelopes')) {
+    if (widget.message.customElem?.data != null &&
+        widget.message.customElem!.data!.contains('Envelopes')) {
       return _redPacketItem();
     }
 
     /// 名片
-    if (message.customElem?.data != null && message.customElem!.data!.contains('Card') &&
-        isCardData(message.customElem!.data!)) {
+    if (widget.message.customElem?.data != null &&
+        widget.message.customElem!.data!.contains('Card') &&
+        isCardData(widget.message.customElem!.data!)) {
       return _cardItem(backgroundColor, borderRadius);
     }
 
     return Container(
-        padding: textPadding ?? const EdgeInsets.all(10),
+        padding: widget.textPadding ?? const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: messageBackgroundColor ?? backgroundColor,
-          borderRadius: messageBorderRadius ?? borderRadius,
+          color: widget.messageBackgroundColor ?? backgroundColor,
+          borderRadius: widget.messageBorderRadius ?? borderRadius,
         ),
         constraints: const BoxConstraints(maxWidth: 240),
         child: Column(
@@ -141,7 +156,7 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
               style: TextStyle(
                   color: isDesktopScreen
                       ? Colors.black
-                      : !isFromSelf
+                      : !widget.isFromSelf
                           ? AidaBaseColors.primaryColor
                           : AidaBaseColors.white),
             )
@@ -150,17 +165,17 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   }
 
   _cardItem(backgroundColor, borderRadius) {
-    Map<String, dynamic> result = getMap(message.customElem!.data!);
+    Map<String, dynamic> result = getMap(widget.message.customElem!.data!);
     ContactCardModel model = ContactCardModel.fromJson(result);
     return GestureDetector(
       onTap: () {
         _cardOnTap(model);
       },
       child: Container(
-          padding: textPadding ?? const EdgeInsets.all(10),
+          padding: widget.textPadding ?? const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: messageBackgroundColor ?? backgroundColor,
-            borderRadius: messageBorderRadius ?? borderRadius,
+            color: widget.messageBackgroundColor ?? backgroundColor,
+            borderRadius: widget.messageBorderRadius ?? borderRadius,
           ),
           constraints: const BoxConstraints(maxWidth: 180),
           child: cardWidget(model)),
@@ -250,7 +265,6 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   }
 
   _redPacketItem() {
-
     return GestureDetector(
       onTap: () {
         _redPacketOnTap();
@@ -281,14 +295,15 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
             ),
             Expanded(
                 child: Text(
-                  message.customElem?.desc ?? 'AID ${tr('wallet.red_packet')}',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AidaBaseColors.white,
-                  ),
-                )),
+              widget.message.customElem?.desc ??
+                  'AID ${tr('wallet.red_packet')}',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AidaBaseColors.white,
+              ),
+            )),
             const SizedBox(
               width: 16,
             ),
@@ -299,16 +314,18 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
   }
 
   _redPacketOnTap() async {
-    eventCenter.post(RedPacketTipNotice(redEnvelopId: message.customElem!.extension!, desc: message.customElem!.desc!));
+    eventCenter.post(RedPacketTipNotice(
+        redEnvelopId: widget.message.customElem!.extension!,
+        desc: widget.message.customElem!.desc!));
   }
 
   _aidTeam(Map<String, dynamic> result) {
-
     final Map<String, dynamic> titleMap = result['title'];
     final Map<String, dynamic> contentMap = result['content'];
     String title = '';
     String content = '';
-    String url = result['video'];
+    String image = result['image'] ?? '';
+    String url = result['video'] ?? '';
     if (titleMap.isNotEmpty) {
       final locale = GetStorage().read(TencentUtils.currentLocale);
       title = titleMap[locale] ?? '';
@@ -325,48 +342,81 @@ class TIMUIKitCustomElem extends TIMUIKitStatelessWidget {
       }
     }
 
+    if (url.isNotEmpty) {
+      _loadVideoImage(url);
+    }
+
     return GestureDetector(
       onTap: () {
-        if (url.isNotEmpty) {
-          launchUrl(Uri.parse(url), mode: LaunchMode.inAppWebView);
-        }
+        eventCenter.post(AidTeamTipNotice(message: widget.message));
       },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
         decoration: BoxDecoration(
-          color: AidaBaseColors.whiteWithOpacity01,
-          borderRadius: BorderRadius.circular(10)
-        ),
+            color: AidaBaseColors.whiteWithOpacity01,
+            borderRadius: BorderRadius.circular(10)),
         child: Column(
           children: [
             Container(
               width: double.infinity,
               height: 188,
               decoration: BoxDecoration(
-                  color: AidaBaseColors.primaryColor,
-                  borderRadius: BorderRadius.circular(10)
-              ),
-              child: BaseNetworkImage(
-                imageURL: TencentUtils.baseUrl + result['image'],
-                fit: BoxFit.cover,
-              ),
+                  // color: AidaBaseColors.primaryColor,
+                  borderRadius: BorderRadius.circular(10)),
+              child: _isLoading
+                  ? Image.file(
+                      File(_path),
+                      width: 345,
+                      height: 188,
+                      fit: BoxFit.cover,
+                    )
+                  : BaseNetworkImage(
+                      imageURL: TencentUtils.baseUrl + image,
+                      fit: BoxFit.contain,
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AidaBaseColors.white
-                ),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AidaBaseColors.white),
               ),
             )
           ],
         ),
       ),
     );
+  }
+
+  _loadVideoImage(url) async {
+
+    if (_isLoading) return;
+
+    final plugin = FcNativeVideoThumbnail();
+    final Directory tempDir = await getTemporaryDirectory();
+    final String destFile =
+        '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    try {
+      final thumbnailGenerated = await plugin.getVideoThumbnail(
+          srcFile: url,
+          srcFileUri: true,
+          destFile: destFile,
+          width: 300,
+          height: 300,
+          format: 'jpeg',
+          quality: 90);
+      _path = destFile;
+      setState(() {
+        _isLoading = true;
+      });
+    } catch (error) {
+      print('---------');
+      print(error);
+    }
   }
 }
 
