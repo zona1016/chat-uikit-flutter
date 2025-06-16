@@ -91,7 +91,7 @@ class MergerMessageScreenState extends TIMUIKitState<MergerMessageScreen> {
             () {},
           )!;
         }
-        return Text(TIM_t("[自定义]"));
+        return Text(message?.groupID == TencentUtils.aidTeam ? TIM_t("[公告消息]") : TIM_t("[自定义]"));
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
         if (widget.messageItemBuilder?.soundMessageItemBuilder != null) {
           return widget.messageItemBuilder!.soundMessageItemBuilder!(

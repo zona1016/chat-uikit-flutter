@@ -201,7 +201,7 @@ class _TIMUIKitReplyElemState extends TIMUIKitState<TIMUIKitReplyElem> {
     }
     switch (messageType) {
       case MessageElemType.V2TIM_ELEM_TYPE_CUSTOM:
-        return _defaultRawMessageText(TIM_t("[自定义]"), theme);
+        return _defaultRawMessageText(message?.groupID == TencentUtils.aidTeam ? TIM_t("[公告消息]") : TIM_t("[自定义]"), theme);
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
         return _defaultRawMessageText(TIM_t("[语音消息]"), theme);
       case MessageElemType.V2TIM_ELEM_TYPE_TEXT:
