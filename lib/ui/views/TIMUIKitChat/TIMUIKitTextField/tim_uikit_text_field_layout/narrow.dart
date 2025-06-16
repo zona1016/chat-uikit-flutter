@@ -142,6 +142,7 @@ class _TIMUIKitTextFieldLayoutNarrowState
 
   bool showMore = false;
   bool showMoreButton = true;
+  bool isTextEmpty = true;
   bool showSendSoundText = false;
   bool showEmojiPanel = false;
   bool showKeyboard = false;
@@ -405,6 +406,9 @@ class _TIMUIKitTextFieldLayoutNarrowState
           });
         }
       }
+      setState(() {
+        isTextEmpty = value.isEmpty;
+      });
       if (widget.onChanged != null) {
         widget.onChanged!(value);
       }
@@ -479,7 +483,7 @@ class _TIMUIKitTextFieldLayoutNarrowState
                                 ? 'images/keyboard.svg'
                                 : 'images/voice.svg',
                             package: 'tencent_cloud_chat_uikit',
-                            color: const Color(0xFF00BBBD).withOpacity(0.5),
+                            color: widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
                             height: 28,
                             width: 28,
                           ),
@@ -612,7 +616,7 @@ class _TIMUIKitTextFieldLayoutNarrowState
                                       : 'images/face.svg',
                                   package: 'tencent_cloud_chat_uikit',
                                   color:
-                                      const Color(0xFF00BBBD).withOpacity(0.5),
+                                      widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
                                   height: 28,
                                   width: 28,
                                 ),
@@ -621,6 +625,22 @@ class _TIMUIKitTextFieldLayoutNarrowState
                         const SizedBox(
                           width: 10,
                         ),
+                      if (widget.model.selfDestructMode && isTextEmpty)
+                      InkWell(
+                        onTap: () {
+                          if (widget.textEditingController.text.isEmpty) {
+                            widget.model.selfDestructMode = false;
+                          }
+                        },
+                        child: Image.asset(
+                          'images/vanish_close.png',
+                          package: 'tencent_cloud_chat_uikit',
+                          color:
+                              widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
+                          height: 28,
+                          width: 28,
+                        ),
+                      ),
                       if (widget.showMorePanel &&
                           widget.forbiddenText == null &&
                           showMoreButton)
@@ -636,14 +656,26 @@ class _TIMUIKitTextFieldLayoutNarrowState
                               });
                             }
                           },
-                          child: PlatformUtils().isWeb
+                          child: widget.model.selfDestructMode ?
+                            !isTextEmpty ?
+                              Image.asset(
+                                'images/send.png',
+                                package: 'tencent_cloud_chat_uikit',
+                                color:
+                                    widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
+                                height: 28,
+                                width: 28,
+                              )
+                            :
+                            Container()
+                            : PlatformUtils().isWeb
                               ? Icon(Icons.send_outlined,
                                   color: hexToColor("5c6168"), size: 32)
                               : Image.asset(
                                   'images/send.png',
                                   package: 'tencent_cloud_chat_uikit',
                                   color:
-                                      const Color(0xFF00BBBD).withOpacity(0.5),
+                                      widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
                                   height: 28,
                                   width: 28,
                                 ),

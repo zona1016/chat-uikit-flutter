@@ -7,6 +7,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -30,6 +31,7 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/permission.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/TIMUIKitMessageReaction/tim_uikit_message_reaction_wrapper.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/image_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
@@ -39,6 +41,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class TIMUIKitImageElem extends StatefulWidget {
   final V2TimMessage message;
+  final bool isFromSelf;
   final bool isShowJump;
   final VoidCallback? clearJump;
   final String? isFrom;
@@ -49,6 +52,7 @@ class TIMUIKitImageElem extends StatefulWidget {
       {required this.message,
       this.isShowJump = false,
       required this.chatModel,
+      this.isFromSelf = false,
       this.clearJump,
       this.isFrom,
       Key? key,
@@ -63,8 +67,15 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
   final TUIChatGlobalModel globalModel = serviceLocator<TUIChatGlobalModel>();
   final TUIChatGlobalModel model = serviceLocator<TUIChatGlobalModel>();
   final MessageService _messageService = serviceLocator<MessageService>();
+
+  final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
+  bool _isViewed = false;
+  int _remainingSeconds = SelfDestructQueue.burnSeconds;
+
   Widget? imageItem;
   bool isSent = false;
+  bool isSelfDestruct = false;
+  bool isOpen = false;
 
   @override
   didUpdateWidget(oldWidget) {
@@ -173,7 +184,8 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
       if (model.getMessageProgress(widget.message.msgID) == 100) {
         String savePath;
         if (widget.message.imageElem!.path != null &&
-            widget.message.imageElem!.path != '' && File(widget.message.imageElem!.path!).existsSync()) {
+            widget.message.imageElem!.path != '' &&
+            File(widget.message.imageElem!.path!).existsSync()) {
           savePath = widget.message.imageElem!.path!;
         } else {
           savePath = model.getFileMessageLocation(widget.message.msgID);
@@ -589,7 +601,48 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
   @override
   void initState() {
     super.initState();
+    _selfDestructQueue.chatModel = widget.chatModel;
+    _setupCallbacks();
     initImages();
+
+    debugPrint(
+        'CUSTOM DATA IMG ' + (widget.message.cloudCustomData ?? 'NOTHING'));
+    final customData = jsonDecode(widget.message.cloudCustomData ?? "{}");
+    setState(() {
+      isSelfDestruct = customData['isSelfDestruct'];
+    });
+  }
+
+  _openMessage() {
+    _viewMessage();
+    setState(() {
+      isOpen = true;
+    });
+  }
+
+  void _setupCallbacks() {
+    _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
+      if (msgID == widget.message.msgID && mounted) {
+        setState(() {
+          _remainingSeconds = remaining;
+        });
+      }
+    };
+
+    _selfDestructQueue.onMessageDeleted = (msgID) {
+      if (msgID == widget.message.msgID) {
+        //widget.onDeleted?.call();
+      }
+    };
+  }
+
+  void _viewMessage() {
+    if (!_isViewed) {
+      setState(() {
+        _isViewed = true;
+      });
+      _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
+    }
   }
 
   bool isNeedShowLocalPath() {
@@ -601,7 +654,6 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
 
   Widget? _renderImage(dynamic heroTag, TUITheme theme,
       {V2TimImage? originalImg, V2TimImage? smallImg}) {
-
     double positionRadio = 1.0;
     if (smallImg?.width != null &&
         smallImg?.height != null &&
@@ -690,25 +742,110 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
 
     V2TimImage? originalImg = getImageFromList(V2TimImageTypesEnum.original);
     V2TimImage? smallImg = getImageFromList(V2TimImageTypesEnum.small);
-    return TIMUIKitMessageReactionWrapper(
-        chatModel: widget.chatModel,
-        isShowJump: widget.isShowJump,
-        clearJump: widget.clearJump,
-        isFromSelf: widget.message.isSelf ?? true,
-        isShowMessageReaction: widget.isShowMessageReaction ?? true,
-        message: widget.message,
-        child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-          return ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: constraints.maxWidth * (isDesktopScreen ? 0.4 : 0.5),
-              minWidth: 64,
-              maxHeight: 256,
+
+    final backgroundColor = isDesktopScreen
+        ? widget.isFromSelf
+            ? theme.lightPrimaryMaterialColor.shade50
+            : theme.weakBackgroundColor
+        : widget.isFromSelf
+            ? AidaBaseColors.primaryColor
+            : AidaBaseColors.whiteWithOpacity01;
+
+    final borderRadius = widget.isFromSelf
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(2),
+            bottomLeft: Radius.circular(10),
+            bottomRight: Radius.circular(10))
+        : const BorderRadius.only(
+            topLeft: Radius.circular(2),
+            topRight: Radius.circular(10),
+            bottomLeft: Radius.circular(10),
+            bottomRight: Radius.circular(10));
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (isOpen || widget.message.isSelf! || !isSelfDestruct)
+          TIMUIKitMessageReactionWrapper(
+              chatModel: widget.chatModel,
+              isShowJump: widget.isShowJump,
+              clearJump: widget.clearJump,
+              isFromSelf: widget.message.isSelf ?? true,
+              isShowMessageReaction: widget.isShowMessageReaction ?? true,
+              message: widget.message,
+              child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                return ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth:
+                        constraints.maxWidth * (isDesktopScreen ? 0.4 : 0.5),
+                    minWidth: 64,
+                    maxHeight: 256,
+                  ),
+                  child: _renderImage(heroTag, theme,
+                      originalImg: originalImg, smallImg: smallImg),
+                );
+              })),
+        if (!isOpen && !widget.message.isSelf! && isSelfDestruct)
+          GestureDetector(
+            onTap: () {
+              _openMessage();
+            },
+            child: Container(
+              padding: EdgeInsets.all(isDesktopScreen ? 12 : 10),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: borderRadius,
+              ),
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.6),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TIM_t("点击查看"),
+                        style: TextStyle(
+                            color: isDesktopScreen
+                                ? Colors.black
+                                : AidaBaseColors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Image.asset(
+                        'images/vanish_img.png',
+                        package: 'tencent_cloud_chat_uikit',
+                        width: 17,
+                        height: 15,
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  )
+                ],
+              ),
             ),
-            child: _renderImage(heroTag, theme,
-                originalImg: originalImg, smallImg: smallImg),
-          );
-        }));
+          ),
+        if (isSelfDestruct)
+          Positioned(
+              top: 0,
+              left: widget.message.isSelf! ? -6.5 : null,
+              right: !widget.message.isSelf! ? -6.5 : null,
+              child: Image.asset(
+                'images/vanish_icon.png',
+                package: 'tencent_cloud_chat_uikit',
+                height: 13,
+                width: 13,
+              )),
+        if (isOpen && isSelfDestruct && !widget.message.isSelf!)
+          Positioned(
+              bottom: 0,
+              right: -25,
+              child: Text('${_remainingSeconds}s',
+                  style:
+                      const TextStyle(color: AidaBaseColors.selfDestructMode))),
+      ],
+    );
   }
 }
 

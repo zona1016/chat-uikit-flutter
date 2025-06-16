@@ -37,5 +37,7 @@ class AidaBaseColors {
   static const rejectedStatus = Color(0xFFFF4104);
   static const approvedStatus = Color.fromARGB(255, 0, 255, 110);
 
+  static const selfDestructMode = Color(0xFFFD8E39);
+
   static const baseBackgroundImage = 'images/background.png';
 }

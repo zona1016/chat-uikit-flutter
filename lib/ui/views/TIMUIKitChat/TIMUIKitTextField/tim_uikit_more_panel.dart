@@ -104,6 +104,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
   final ScrollController _scrollController = ScrollController();
   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
   @override
   void initState() {
     super.initState();
@@ -164,34 +167,34 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               width: 64,
             )),
       // if (PlatformUtils().isMobile && widget.conversationType == ConvType.c2c)
-        // MorePanelItem(
-        //     id: "yhjf",
-        //     title: TIM_t("阅后即焚"),
-        //     onTap: (c) {},
-        //     icon: Image.asset(
-        //       "images/more_yhjf.png",
-        //       package: 'tencent_cloud_chat_uikit',
-        //       height: 64,
-        //       width: 64,
-        //     )),
-        if (PlatformUtils().isMobile)
-          MorePanelItem(
-              id: "red_packet",
-              title: tr('wallet.red_packet'),
-              onTap: (c) {
-                _onFeatureTap(
-                  "red_packet",
-                  c,
-                  model,
-                  theme,
-                );
-              },
-              icon: Image.asset(
-                "images/more_hb.png",
-                package: 'tencent_cloud_chat_uikit',
-                height: 64,
-                width: 64,
-              )),
+      // MorePanelItem(
+      //     id: "yhjf",
+      //     title: TIM_t("阅后即焚"),
+      //     onTap: (c) {},
+      //     icon: Image.asset(
+      //       "images/more_yhjf.png",
+      //       package: 'tencent_cloud_chat_uikit',
+      //       height: 64,
+      //       width: 64,
+      //     )),
+      if (PlatformUtils().isMobile && !model.selfDestructMode)
+        MorePanelItem(
+            id: "red_packet",
+            title: tr('wallet.red_packet'),
+            onTap: (c) {
+              _onFeatureTap(
+                "red_packet",
+                c,
+                model,
+                theme,
+              );
+            },
+            icon: Image.asset(
+              "images/more_hb.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
       if (PlatformUtils().isWeb)
         MorePanelItem(
             id: "image",
@@ -224,7 +227,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             },
             icon:
                 Icon(Icons.video_file, color: hexToColor("5c6168"), size: 26)),
-      if (isInstallCallkit && PlatformUtils().isMobile)
+      if (isInstallCallkit &&
+          PlatformUtils().isMobile &&
+          !model.selfDestructMode)
         MorePanelItem(
             id: "videoCall",
             title: TIM_t("视频通话"),
@@ -242,7 +247,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      if (isInstallCallkit && PlatformUtils().isMobile)
+      if (isInstallCallkit &&
+          PlatformUtils().isMobile &&
+          !model.selfDestructMode)
         MorePanelItem(
             id: "voiceCall",
             title: TIM_t("语音通话"),
@@ -260,40 +267,60 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      MorePanelItem(
-          id: "file",
-          title: TIM_t("文件"),
-          onTap: (c) {
-            _onFeatureTap(
-              "file",
-              c,
-              model,
-              theme,
-            );
-          },
-          icon: Image.asset(
-            "images/more_wj.png",
-            package: 'tencent_cloud_chat_uikit',
-            height: 64,
-            width: 64,
-          )),
-      MorePanelItem(
-          id: "card",
-          title: TIM_t("分享名片"),
-          onTap: (c) {
-            _onFeatureTap(
-              "card",
-              c,
-              model,
-              theme,
-            );
-          },
-          icon: Image.asset(
-            "images/more_card.png",
-            package: 'tencent_cloud_chat_uikit',
-            height: 64,
-            width: 64,
-          )),
+      if (!model.selfDestructMode)
+        MorePanelItem(
+            id: "file",
+            title: TIM_t("文件"),
+            onTap: (c) {
+              _onFeatureTap(
+                "file",
+                c,
+                model,
+                theme,
+              );
+            },
+            icon: Image.asset(
+              "images/more_wj.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
+      if (!model.selfDestructMode)
+        MorePanelItem(
+            id: "card",
+            title: TIM_t("分享名片"),
+            onTap: (c) {
+              _onFeatureTap(
+                "card",
+                c,
+                model,
+                theme,
+              );
+            },
+            icon: Image.asset(
+              "images/more_card.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
+      if (widget.conversationType != ConvType.group && !model.selfDestructMode)
+        MorePanelItem(
+            id: "vanish",
+            title: TIM_t("阅后即焚"),
+            onTap: (c) {
+              _onFeatureTap(
+                "vanish",
+                c,
+                model,
+                theme,
+              );
+            },
+            icon: Image.asset(
+              "images/more_self_destruct.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
       if (config.extraAction != null) ...?config.extraAction,
     ].where((element) {
       if (element.id == "screen") {
@@ -360,7 +387,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             duration: duration,
             snapshotPath: tempPath,
             convID: convID,
-            convType: convType),
+            convType: convType,
+            isSelfDestruct: model.selfDestructMode),
         context);
   }
 
@@ -427,7 +455,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                     model.sendImageMessage(
                         imagePath: filePath,
                         convID: convID,
-                        convType: convType),
+                        convType: convType,
+                        isSelfDestruct: model.selfDestructMode),
                     context);
               }
 
@@ -450,12 +479,18 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
           if (type == "image") {
             MessageUtils.handleMessageError(
                 model.sendImageMessage(
-                    imagePath: savePath, convID: convID, convType: convType),
+                    imagePath: savePath,
+                    convID: convID,
+                    convType: convType,
+                    isSelfDestruct: model.selfDestructMode),
                 context);
           } else if (type == "video") {
             MessageUtils.handleMessageError(
                 model.sendVideoMessage(
-                    videoPath: savePath, convID: convID, convType: convType),
+                    videoPath: savePath,
+                    convID: convID,
+                    convType: convType,
+                    isSelfDestruct: model.selfDestructMode),
                 context);
           }
         } else {
@@ -498,7 +533,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               model.sendImageMessage(
                   imagePath: originFile.path,
                   convID: convID,
-                  convType: convType),
+                  convType: convType,
+                  isSelfDestruct: model.selfDestructMode),
               context);
         }
         if (type == AssetType.video) {
@@ -531,7 +567,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               inputElement: inputElem,
               imagePath: tempFile?.path,
               convID: convID,
-              convType: convType),
+              convType: convType,
+              isSelfDestruct: model.selfDestructMode),
           context);
     } catch (e) {
       outputLogger.i("_sendFileErr: ${e.toString()}");
@@ -565,7 +602,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               inputElement: inputElem,
               videoPath: tempFile?.path,
               convID: convID,
-              convType: convType),
+              convType: convType,
+              isSelfDestruct: model.selfDestructMode),
           context);
     } catch (e) {
       outputLogger.i("_sendFileErr: ${e.toString()}");
@@ -661,6 +699,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
         break;
       case "card":
         _shareCard(model);
+        break;
+      case "vanish":
+        model.selfDestructMode = !model.selfDestructMode;
         break;
     }
   }
@@ -759,50 +800,99 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
       ),
       padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
       width: screenWidth,
-      child: Scrollbar(
-        controller: _scrollController,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          child: Wrap(
-            spacing: (screenWidth - (23 * 2) - 64 * 4) / 3,
-            runSpacing: 20,
-            children: itemList(model, theme)
-                .map((item) => InkWell(
-                    onTap: () {
-                      if (item.onTap != null) {
-                        item.onTap!(context);
-                      }
-                    },
-                    child: widget.morePanelConfig?.actionBuilder != null
-                        ? widget.morePanelConfig?.actionBuilder!(item)
-                        : SizedBox(
-                            height: 94,
-                            width: 64,
-                            child: Column(
-                              children: [
-                                Container(
-                                  height: 64,
-                                  width: 64,
-                                  margin: const EdgeInsets.only(bottom: 4),
-                                  decoration: const BoxDecoration(
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(5))),
-                                  child: item.icon,
-                                ),
-                                Text(
-                                  item.title,
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: PlatformUtils().isWeb
-                                          ? theme.darkTextColor
-                                          : Colors.white),
-                                )
-                              ],
+      child: Column(
+        children: [
+          SizedBox(
+            height: 248 - 35, // minus top padding
+            child: PageView.builder(
+              controller: PageController(
+                viewportFraction: 1,
+              ),
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              itemBuilder: (context, pageIndex) {
+                final items = itemList(model, theme);
+                const int itemsPerPage = 8;
+                final int start = pageIndex * itemsPerPage;
+                final int end = (start + itemsPerPage) > items.length
+                    ? items.length
+                    : (start + itemsPerPage);
+                if (start >= items.length) return const SizedBox.shrink();
+                final pageItems = items.sublist(start, end);
+          
+                return GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 0,
+                    mainAxisExtent: 94,
+                  ),
+                  itemCount: pageItems.length,
+                  itemBuilder: (context, index) {
+                    final item = pageItems[index];
+                    return InkWell(
+                      onTap: () {
+                        if (item.onTap != null) {
+                          item.onTap!(context);
+                        }
+                      },
+                      child: widget.morePanelConfig?.actionBuilder != null
+                          ? widget.morePanelConfig!.actionBuilder!(item)
+                          : SizedBox(
+                              height: 94,
+                              width: 64,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    height: 64,
+                                    width: 64,
+                                    margin: const EdgeInsets.only(bottom: 4),
+                                    decoration: const BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.all(Radius.circular(5))),
+                                    child: item.icon,
+                                  ),
+                                  Text(
+                                    item.title,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: PlatformUtils().isWeb
+                                            ? theme.darkTextColor
+                                            : Colors.white),
+                                  )
+                                ],
+                              ),
                             ),
-                          )))
-                .toList(),
+                    );
+                  },
+                );
+              },
+              itemCount: ((itemList(model, theme).length + 7) ~/ 8),
+            ),
           ),
-        ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              (itemList(model, theme).length / 8).ceil(),
+              (index) => AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: _currentPage == index ? 10 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: _currentPage == index ? Colors.white : Colors.white24,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            )),
+        ],
       ),
     );
   }

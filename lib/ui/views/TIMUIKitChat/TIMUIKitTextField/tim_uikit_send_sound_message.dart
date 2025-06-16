@@ -1,6 +1,7 @@
 // ignore_for_file:  avoid_print, unused_import
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -228,7 +229,8 @@ class _SendSoundMessageState extends TIMUIKitState<SendSoundMessage> with Single
                 soundPath: path,
                 duration: duration,
                 convID: convID,
-                convType: convType),
+                convType: convType,
+                isSelfDestruct: model.selfDestructMode),
             context);
         widget.onDownBottom();
       } else {

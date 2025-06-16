@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:diff_match_patch/diff_match_patch.dart';
@@ -294,6 +295,7 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
               text: text,
               convID: widget.conversationID,
               convType: convType,
+              isSelfDestruct: widget.model.selfDestructMode
             ),
             context);
       }
@@ -319,7 +321,7 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
     if (widget.model.repliedMessage != null) {
       MessageUtils.handleMessageError(widget.model.sendFaceMessage(index: index, data: data, convID: widget.conversationID, convType: convType), context);
     } else {
-      MessageUtils.handleMessageError(widget.model.sendFaceMessage(index: index, data: data, convID: widget.conversationID, convType: convType), context);
+      MessageUtils.handleMessageError(widget.model.sendFaceMessage(index: index, data: data, convID: widget.conversationID, convType: convType, isSelfDestruct: widget.model.selfDestructMode), context);
     }
   }
 
@@ -343,7 +345,7 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
       } else if (mentionedMembersMap.isNotEmpty) {
         widget.model.sendTextAtMessage(text: text, convType: widget.conversationType, convID: widget.conversationID, atUserList: getUserIdFromMemberInfoMap());
       } else {
-        MessageUtils.handleMessageError(widget.model.sendTextMessage(text: text, convID: widget.conversationID, convType: convType), context);
+        MessageUtils.handleMessageError(widget.model.sendTextMessage(text: text, convID: widget.conversationID, convType: convType, isSelfDestruct: widget.model.selfDestructMode), context);
       }
       textEditingController.clear();
       currentCursor = null;

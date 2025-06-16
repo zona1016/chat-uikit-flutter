@@ -9,6 +9,7 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField/special_text/DefaultSpecialTextSpanBuilder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/link_preview/link_preview_entry.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/link_preview/widgets/link_preview.dart';
@@ -49,6 +50,12 @@ class TIMUIKitTextElem extends StatefulWidget {
 }
 
 class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
+  final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
+  bool _isViewed = false;
+  int _remainingSeconds = SelfDestructQueue.burnSeconds;
+
+  bool isSelfDestruct = false;
+  bool isOpen = false;
   bool isShowJumpState = false;
   bool isShining = false;
 
@@ -56,7 +63,18 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   void initState() {
     super.initState();
     // get the link preview info
+    _selfDestructQueue.chatModel = widget.chatModel;
+    _setupCallbacks();
     _getLinkPreview();
+
+    debugPrint('CUSTOM DATA ' + (widget.message.cloudCustomData ?? 'NOTHING'));
+    final customData = jsonDecode(widget.message.cloudCustomData ?? "{}");
+    setState(() {
+      isSelfDestruct = customData['isSelfDestruct'];
+      _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
+      _remainingSeconds =
+          _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+    });
   }
 
   @override
@@ -64,6 +82,38 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.message.msgID == null && widget.message.msgID != null) {
       _getLinkPreview();
+    }
+  }
+
+  _openMessage() {
+    _viewMessage();
+    setState(() {
+      isOpen = true;
+    });
+  }
+
+  void _setupCallbacks() {
+    _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
+      if (msgID == widget.message.msgID && mounted) {
+        setState(() {
+          _remainingSeconds = remaining;
+        });
+      }
+    };
+
+    _selfDestructQueue.onMessageDeleted = (msgID) {
+      if (msgID == widget.message.msgID) {
+        //widget.onDeleted?.call();
+      }
+    };
+  }
+
+  void _viewMessage() {
+    if (!_isViewed) {
+      setState(() {
+        _isViewed = true;
+      });
+      _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
     }
   }
 
@@ -203,65 +253,144 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
       }
     }
     final defaultStyle = widget.isFromSelf
-        ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01;
+        ? AidaBaseColors.primaryColor
+        : AidaBaseColors.whiteWithOpacity01;
 
     final backgroundColor = isShowJumpState
         ? const Color.fromRGBO(245, 166, 35, 1)
         : (defaultStyle ?? widget.backgroundColor);
 
-    return Container(
-      padding: widget.textPadding ?? EdgeInsets.all(isDesktopScreen ? 12 : 10),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: widget.borderRadius ?? borderRadius,
-      ),
-      constraints:
-          BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // If the [elemType] is text message, it will not be null here.
-          // You can render the widget from extension directly, with a [TextStyle] optionally.
-          widget.chatModel.chatConfig.urlPreviewType != UrlPreviewType.none
-              ? textWithLink!(
-                  style: widget.fontStyle ??
-                      TextStyle(
-                        color: isDesktopScreen ? Colors.black : AidaBaseColors.white,
-                          fontSize: isDesktopScreen ? 14 : 16,
-                          textBaseline: TextBaseline.ideographic,
-                          height: widget.chatModel.chatConfig.textHeight))
-              : ExtendedText(widget.message.textElem?.text ?? "",
-                  softWrap: true,
-                  style: widget.fontStyle ??
-                      TextStyle(
-                          fontSize: isDesktopScreen ? 14 : 16,
-                          height: widget.chatModel.chatConfig.textHeight),
-                  specialTextSpanBuilder: DefaultSpecialTextSpanBuilder(
-                    isUseQQPackage: (widget
-                                .chatModel
-                                .chatConfig
-                                .stickerPanelConfig
-                                ?.useTencentCloudChatStickerPackage ??
-                            true) ||
-                        widget.isUseDefaultEmoji,
-                    isUseTencentCloudChatPackage: widget
-                            .chatModel
-                            .chatConfig
-                            .stickerPanelConfig
-                            ?.useTencentCloudChatStickerPackage ??
-                        true,
-                    customEmojiStickerList: widget.customEmojiStickerList,
-                    showAtBackground: true,
-                  )),
-          // If the link preview info is available, render the preview card.
-          if (_renderPreviewWidget() != null &&
-              widget.chatModel.chatConfig.urlPreviewType ==
-                  UrlPreviewType.previewCardAndHyperlink)
-            _renderPreviewWidget()!,
-          if (widget.isShowMessageReaction ?? true)
-            TIMUIKitMessageReactionShowPanel(message: widget.message)
-        ],
-      ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (isOpen || widget.message.isSelf! || !isSelfDestruct)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: widget.textPadding ??
+                    EdgeInsets.all(isDesktopScreen ? 12 : 10),
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: widget.borderRadius ?? borderRadius,
+                ),
+                constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // If the [elemType] is text message, it will not be null here.
+                    // You can render the widget from extension directly, with a [TextStyle] optionally.
+                    widget.chatModel.chatConfig.urlPreviewType !=
+                            UrlPreviewType.none
+                        ? textWithLink!(
+                            style: widget.fontStyle ??
+                                TextStyle(
+                                    color: isDesktopScreen
+                                        ? Colors.black
+                                        : AidaBaseColors.white,
+                                    fontSize: isDesktopScreen ? 14 : 16,
+                                    textBaseline: TextBaseline.ideographic,
+                                    height:
+                                        widget.chatModel.chatConfig.textHeight))
+                        : ExtendedText(widget.message.textElem?.text ?? "",
+                            softWrap: true,
+                            style: widget.fontStyle ??
+                                TextStyle(
+                                    fontSize: isDesktopScreen ? 14 : 16,
+                                    height:
+                                        widget.chatModel.chatConfig.textHeight),
+                            specialTextSpanBuilder:
+                                DefaultSpecialTextSpanBuilder(
+                              isUseQQPackage: (widget
+                                          .chatModel
+                                          .chatConfig
+                                          .stickerPanelConfig
+                                          ?.useTencentCloudChatStickerPackage ??
+                                      true) ||
+                                  widget.isUseDefaultEmoji,
+                              isUseTencentCloudChatPackage: widget
+                                      .chatModel
+                                      .chatConfig
+                                      .stickerPanelConfig
+                                      ?.useTencentCloudChatStickerPackage ??
+                                  true,
+                              customEmojiStickerList:
+                                  widget.customEmojiStickerList,
+                              showAtBackground: true,
+                            )),
+                    // If the link preview info is available, render the preview card.
+                    if (_renderPreviewWidget() != null &&
+                        widget.chatModel.chatConfig.urlPreviewType ==
+                            UrlPreviewType.previewCardAndHyperlink)
+                      _renderPreviewWidget()!,
+                    if (widget.isShowMessageReaction ?? true)
+                      TIMUIKitMessageReactionShowPanel(message: widget.message)
+                  ],
+                ),
+              ),
+            ],
+          ),
+        if (!isOpen && !widget.message.isSelf! && isSelfDestruct)
+          GestureDetector(
+            onTap: () {
+              _openMessage();
+            },
+            child: Container(
+              padding: widget.textPadding ??
+                  EdgeInsets.all(isDesktopScreen ? 12 : 10),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: widget.borderRadius ?? borderRadius,
+              ),
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.6),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TIM_t("点击查看"),
+                        style: TextStyle(
+                            color: isDesktopScreen
+                                ? Colors.black
+                                : AidaBaseColors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Image.asset(
+                        'images/vanish_text.png',
+                        package: 'tencent_cloud_chat_uikit',
+                        width: 17,
+                        height: 15,
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        if (isSelfDestruct)
+          Positioned(
+              top: 0,
+              left: widget.message.isSelf! ? -6.5 : null,
+              right: !widget.message.isSelf! ? -6.5 : null,
+              child: Image.asset(
+                'images/vanish_icon.png',
+                package: 'tencent_cloud_chat_uikit',
+                height: 13,
+                width: 13,
+              )),
+        if (isOpen && isSelfDestruct && !widget.message.isSelf!)
+          Positioned(
+              bottom: 0,
+              right: -25,
+              child: Text('${_remainingSeconds}s',
+                  style:
+                      const TextStyle(color: AidaBaseColors.selfDestructMode))),
+      ],
     );
   }
 }
