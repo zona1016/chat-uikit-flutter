@@ -327,16 +327,12 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
     String image = result['image'] ?? '';
     String url = result['video'] ?? '';
     if (titleMap.isNotEmpty) {
-      final locale = GetStorage().read(TencentUtils.currentLocale);
-      title = titleMap[locale] ?? '';
       if (title.isEmpty) {
         title = titleMap.values.first;
       }
     }
 
     if (contentMap.isNotEmpty) {
-      final locale = GetStorage().read(TencentUtils.currentLocale);
-      content = titleMap[locale] ?? '';
       if (content.isEmpty) {
         content = contentMap.values.first;
       }

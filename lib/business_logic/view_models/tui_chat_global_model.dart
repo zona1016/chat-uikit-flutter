@@ -5,7 +5,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_class.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/chat_life_cycle.dart';
@@ -993,8 +995,12 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
         listWithTimestamp.add(V2TimMessage.fromJson(item.toJson()));
       }
     }
-    final cutoffMillis = DateTime(2025, 6, 11, 13).millisecondsSinceEpoch;
+    final cutoffMillis = DateTime(2025, 6, 15, 13).millisecondsSinceEpoch;
 
+    String key = GetStorage().read(TencentUtils.currentLocale);
+    if (key == 'zh-cn') {
+      key = 'zh';
+    }
     final filteredMessages = listWithTimestamp.reversed
         .toList()
         .where((msg) =>
@@ -1003,9 +1009,38 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
             (msg.elemType == 2 &&
                 msg.customElem!.data != null &&
                 msg.customElem!.data!.contains('aid_team_notice')) &&
-                msg.status != 6))
+                msg.status != 6 && ((getMap(msg.customElem?.data ?? '')['title'] as Map?)?.keys
+                .any((k) => k is String && k.contains(key)) == true)))
         .toList();
-    return conversationID == TencentUtils.aidTeam ? filteredMessages : listWithTimestamp.reversed.toList();
+
+    final finalMessages = filteredMessages.where((msg) {
+      if (msg.elemType != 11) return true; // 保留非 11 类型的消息
+
+      // 是 type 11，检查是否存在对应的 type 2 消息，时间戳相同
+      return filteredMessages.any((other) =>
+      other != msg &&
+          other.elemType == 2 &&
+          other.timestamp == msg.timestamp);
+    }).toList();
+
+    return conversationID == TencentUtils.aidTeam ? finalMessages : listWithTimestamp.reversed.toList();
+  }
+
+  Map<String, dynamic> getMap(String data) {
+    Map<String, dynamic>? map;
+
+    try {
+      final decoded = json.decode(data);
+      if (decoded is Map<String, dynamic>) {
+        map = decoded;
+      } else {
+        return {}; // 解析后不是Map
+      }
+    } catch (e) {
+      return {}; // 解析异常
+    }
+
+    return map;
   }
 
   HistoryMessagePosition getMessageListPosition(String? conversationID) {
