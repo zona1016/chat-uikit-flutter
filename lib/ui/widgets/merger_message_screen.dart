@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -91,7 +92,7 @@ class MergerMessageScreenState extends TIMUIKitState<MergerMessageScreen> {
             () {},
           )!;
         }
-        return Text(message?.groupID == TencentUtils.aidTeam ? TIM_t("[公告消息]") : TIM_t("[自定义]"));
+        return Text(message?.groupID == TencentUtils.aidTeam ? '[${tr('chat.announcement_message')}]' : TIM_t("[自定义]"));
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
         if (widget.messageItemBuilder?.soundMessageItemBuilder != null) {
           return widget.messageItemBuilder!.soundMessageItemBuilder!(

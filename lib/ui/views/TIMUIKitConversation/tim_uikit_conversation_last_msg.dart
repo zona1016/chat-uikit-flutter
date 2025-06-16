@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -83,7 +84,7 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
     final msgType = message!.elemType;
     switch (msgType) {
       case MessageElemType.V2TIM_ELEM_TYPE_CUSTOM:
-        return message?.groupID == TencentUtils.aidTeam ? TIM_t("[公告消息]") :  TIM_t("[自定义]");
+        return message?.groupID == TencentUtils.aidTeam ? '[${tr('chat.announcement_message')}]' :  TIM_t("[自定义]");
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
         return TIM_t("[语音]");
       case MessageElemType.V2TIM_ELEM_TYPE_TEXT:

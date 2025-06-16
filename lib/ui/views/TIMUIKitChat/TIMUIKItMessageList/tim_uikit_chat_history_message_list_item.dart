@@ -1147,7 +1147,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
     return LayoutBuilder(
       builder: (context, constraints) => Container(
         padding: model.chatConfig.isAidTeam ? const EdgeInsets.symmetric(horizontal: 16).copyWith(
-          bottom: 16
+          bottom: 16 * 2
         ) : EdgeInsets.only(left: isSelf ? 0 : 16, right: isSelf ? 16 : 0),
         margin: widget.padding ?? const EdgeInsets.only(bottom: 20),
         child: Row(
