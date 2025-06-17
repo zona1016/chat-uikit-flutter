@@ -995,7 +995,7 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
         listWithTimestamp.add(V2TimMessage.fromJson(item.toJson()));
       }
     }
-    final cutoffMillis = DateTime(2025, 6, 15, 13).millisecondsSinceEpoch;
+    final cutoffMillis = DateTime(2025, 6, 17, 1).millisecondsSinceEpoch;
 
     String key = GetStorage().read(TencentUtils.currentLocale);
     if (key == 'zh-cn') {
