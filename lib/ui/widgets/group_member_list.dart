@@ -9,6 +9,7 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/extensions/chat_string_extension.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/optimize_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
@@ -106,6 +107,7 @@ class _GroupProfileMemberListState extends TIMUIKitState<GroupProfileMemberList>
     final theme = Provider.of<TUIThemeViewModel>(context).theme;
     final isDesktopScreen = TUIKitScreenUtils.getFormFactor() == DeviceType.Desktop;
     final isGroupMember = memberInfo.role == GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_MEMBER;
+    memberInfo.faceUrl = memberInfo.faceUrl?.normalizeFaceUrl();
     return Container(
         color: Colors.transparent,
         child: Slidable(

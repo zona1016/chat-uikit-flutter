@@ -8,6 +8,7 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/extensions/chat_string_extension.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/group_member/tui_add_group_member.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/group_member/tui_delete_group_member.dart';
@@ -42,7 +43,9 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor() == DeviceType.Desktop;
     return _getMemberList(memberList, showRange).map((element) {
+      element?.faceUrl = element.faceUrl?.normalizeFaceUrl();
       final faceUrl = element?.faceUrl ?? "";
+
       final showName = _getShowName(element);
       return InkWell(
         onTapDown: (details) {
