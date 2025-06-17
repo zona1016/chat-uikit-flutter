@@ -1119,6 +1119,18 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
           infoCode: 6660417));
       return null;
     }
+
+    final file = File(filePath ?? "");
+    if (await file.exists()) {
+      final fileSize = await file.length(); // 单位：字节
+      const maxSize = 100 * 1024 * 1024; // 100MB = 100 * 1024 * 1024 bytes
+
+      if (fileSize > maxSize) {
+        TUIToast.show(content: '文件大小不能超过 100MB', duration: TUIDuration.long, gravity: TUIGravity.top);
+        return null;
+      }
+    }
+
     final fileMessageInfo = await _messageService.createFileMessage(
         inputElement: inputElement,
         fileName: fileName ?? filePath?.split('/').last ?? "",
