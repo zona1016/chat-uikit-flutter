@@ -133,9 +133,11 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
     _setupCallbacks();
 
     debugPrint('CUSTOM DATA ' + (widget.message.cloudCustomData ?? 'NOTHING'));
-    final customData = jsonDecode(widget.message.cloudCustomData ?? "{}");
+    final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
+        ? jsonDecode(widget.message.cloudCustomData!)
+        : {};
     setState(() {
-      isSelfDestruct = customData['isSelfDestruct'];
+      isSelfDestruct = customData['isSelfDestruct'] ?? false;
     });
     subscription = SoundPlayer.playStateListener(listener: (PlayerState state) {
       if (state.processingState == ProcessingState.completed) {

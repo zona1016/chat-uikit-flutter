@@ -68,12 +68,16 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     _getLinkPreview();
 
     debugPrint('CUSTOM DATA ' + (widget.message.cloudCustomData ?? 'NOTHING'));
-    final customData = jsonDecode(widget.message.cloudCustomData ?? "{}");
+    final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
+        ? jsonDecode(widget.message.cloudCustomData!)
+        : {};
     setState(() {
-      isSelfDestruct = customData['isSelfDestruct'];
-      _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
-      _remainingSeconds =
-          _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+      isSelfDestruct = customData['isSelfDestruct'] ?? false;
+      if (widget.message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC) {
+        _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
+        _remainingSeconds =
+            _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+      }
     });
   }
 

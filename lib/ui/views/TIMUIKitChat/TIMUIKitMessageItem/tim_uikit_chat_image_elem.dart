@@ -607,9 +607,11 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
 
     debugPrint(
         'CUSTOM DATA IMG ' + (widget.message.cloudCustomData ?? 'NOTHING'));
-    final customData = jsonDecode(widget.message.cloudCustomData ?? "{}");
+    final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
+        ? jsonDecode(widget.message.cloudCustomData!)
+        : {};
     setState(() {
-      isSelfDestruct = customData['isSelfDestruct'];
+      isSelfDestruct = customData['isSelfDestruct'] ?? false;
     });
   }
 

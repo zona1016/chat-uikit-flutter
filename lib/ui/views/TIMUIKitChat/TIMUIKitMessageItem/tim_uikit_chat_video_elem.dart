@@ -182,9 +182,11 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
 
     debugPrint(
         'CUSTOM DATA VIDEO ' + (widget.message.cloudCustomData ?? 'NOTHING'));
-    final customData = jsonDecode(widget.message.cloudCustomData ?? "{}");
+    final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
+        ? jsonDecode(widget.message.cloudCustomData!)
+        : {};
     setState(() {
-      isSelfDestruct = customData['isSelfDestruct'];
+      isSelfDestruct = customData['isSelfDestruct'] ?? false;
     });
   }
 
