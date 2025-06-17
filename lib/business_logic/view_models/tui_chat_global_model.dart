@@ -1023,7 +1023,31 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
           other.timestamp == msg.timestamp);
     }).toList();
 
-    return conversationID == TencentUtils.aidTeam ? finalMessages : listWithTimestamp.reversed.toList();
+    // 过滤频道消息
+    bool isChannel = false;
+    final channelMessages = listWithTimestamp.reversed
+        .toList()
+        .where((msg) => msg.elemType != 9)
+        .toList();
+
+    final finalChannelMessages = channelMessages.where((msg) {
+      if (msg.elemType != 11) return true; // 保留非 11 类型的消息
+
+      // 是 type 11，检查是否存在对应的 type 2 消息，时间戳相同
+      return filteredMessages.any((other) =>
+      other != msg &&
+          other.elemType == 2 &&
+          other.timestamp == msg.timestamp);
+    }).toList();
+    if (TencentUtils.india == conversationID ||
+        TencentUtils.korea == conversationID ||
+        TencentUtils.english == conversationID ||
+        TencentUtils.chinese == conversationID ||
+        TencentUtils.french == conversationID||
+        TencentUtils.german == conversationID) {
+      isChannel = true;
+    }
+    return conversationID == TencentUtils.aidTeam ? finalMessages : isChannel ? finalChannelMessages : listWithTimestamp.reversed.toList();
   }
 
   Map<String, dynamic> getMap(String data) {

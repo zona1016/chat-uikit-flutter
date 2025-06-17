@@ -1,6 +1,25 @@
-class TencentUtils{
+class TencentUtils {
 
+  /// aid team
   static String aidTeam = '@TGS#_@TGS#cUALV6JM62CG';
+  /// 印度频道
+  static const String india = "@TGS#_@TGS#c7AGVBKM62CP";
+
+  /// 韩国频道
+  static const String korea = "@TGS#_@TGS#c7AGVBKM62CP";
+
+  /// 法语频道
+  static const String french = "@TGS#_@TGS#cVHGVBKM62CW";
+
+  /// 德语频道
+  static const String german = "@TGS#_@TGS#cHLGVBKM62CM";
+
+  /// 英文频道
+  static const String english = "@TGS#_@TGS#c3UFVBKM62C6";
+
+  /// 中文频道
+  static const String chinese = "@TGS#_@TGS#cF4FVBKM62CQ";
+
   static String baseUrl = 'https://api.aitm-data.com/';
   static const currentLocale = "current_locale";
 
