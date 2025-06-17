@@ -175,6 +175,25 @@ class TUIGroupProfileModel extends ChangeNotifier {
     }
   }
 
+  Future<V2TimCallback?> setGroupFaceUrl(String faceUrl) async {
+    if (_groupInfo != null) {
+      String? originalGroupFaceUrl= _groupInfo?.faceUrl;
+      _groupInfo?.faceUrl = faceUrl;
+      final response = await _groupServices.setGroupInfo(
+          info: V2TimGroupInfo.fromJson({
+            "groupID": _groupID,
+            "groupType": _groupInfo!.groupType,
+            "faceUrl": faceUrl
+          }));
+      if (response.code != 0) {
+        _groupInfo?.faceUrl = originalGroupFaceUrl;
+      }
+      notifyListeners();
+      return response;
+    }
+    return null;
+  }
+
   Future<V2TimCallback?> setGroupName(String groupName) async {
     if (_groupInfo != null) {
       String? originalGroupName = _groupInfo?.groupName;

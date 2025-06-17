@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 
@@ -71,6 +72,13 @@ class AidTeamTipNotice {
   final V2TimMessage message;
 
   AidTeamTipNotice({required this.message});
+}
+
+class ChangeGroupImageNotice {
+
+  final TUIGroupProfileModel model;
+
+  ChangeGroupImageNotice({required this.model});
 }
 
 // 快捷访问
