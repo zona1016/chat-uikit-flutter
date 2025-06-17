@@ -433,7 +433,7 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
                             ? widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01
                             : AidaBaseColors.weakTextColor,
                         valueColor: AlwaysStoppedAnimation(
-                            widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.black),
+                            widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.primaryColor.withValues(alpha: 0.5)),
                       ),
                     ),
                     Padding(
