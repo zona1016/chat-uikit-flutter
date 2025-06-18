@@ -995,50 +995,38 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
         listWithTimestamp.add(V2TimMessage.fromJson(item.toJson()));
       }
     }
-    final cutoffMillis = DateTime(2025, 6, 17, 1).millisecondsSinceEpoch;
 
-    String key = GetStorage().read(TencentUtils.currentLocale);
-    if (key == 'zh-cn') {
-      key = 'zh';
+    List<V2TimMessage> finalMessages = [];
+    if (conversationID == TencentUtils.aidTeam) {
+      final cutoffMillis = DateTime(2025, 6, 17, 1).millisecondsSinceEpoch;
+
+      String key = GetStorage().read(TencentUtils.currentLocale);
+      if (key == 'zh-cn') {
+        key = 'zh';
+      }
+      final filteredMessages = listWithTimestamp.reversed
+          .toList()
+          .where((msg) =>
+      (((msg.timestamp ?? 0) * 1000) > cutoffMillis) &&
+          (msg.elemType == 11 ||
+              (msg.elemType == 2 &&
+                  msg.customElem!.data != null &&
+                  msg.customElem!.data!.contains('aid_team_notice')) &&
+                  msg.status != 6 && ((getMap(msg.customElem?.data ?? '')['title'] as Map?)?.keys
+                  .any((k) => k is String && k.contains(key)) == true)))
+          .toList();
+
+      finalMessages = filteredMessages.where((msg) {
+        if (msg.elemType != 11) return true; // 保留非 11 类型的消息
+
+        // 是 type 11，检查是否存在对应的 type 2 消息，时间戳相同
+        return filteredMessages.any((other) =>
+        other != msg && (((other.timestamp ?? 0) - (msg.timestamp ?? 0)).abs() <= 600));
+      }).toList();
     }
-    final filteredMessages = listWithTimestamp.reversed
-        .toList()
-        .where((msg) =>
-    (((msg.timestamp ?? 0) * 1000) > cutoffMillis) &&
-        (msg.elemType == 11 ||
-            (msg.elemType == 2 &&
-                msg.customElem!.data != null &&
-                msg.customElem!.data!.contains('aid_team_notice')) &&
-                msg.status != 6 && ((getMap(msg.customElem?.data ?? '')['title'] as Map?)?.keys
-                .any((k) => k is String && k.contains(key)) == true)))
-        .toList();
-
-    final finalMessages = filteredMessages.where((msg) {
-      if (msg.elemType != 11) return true; // 保留非 11 类型的消息
-
-      // 是 type 11，检查是否存在对应的 type 2 消息，时间戳相同
-      return filteredMessages.any((other) =>
-      other != msg &&
-          other.elemType == 2 &&
-          other.timestamp == msg.timestamp);
-    }).toList();
 
     // 过滤频道消息
     bool isChannel = false;
-    final channelMessages = listWithTimestamp.reversed
-        .toList()
-        .where((msg) => msg.elemType != 9)
-        .toList();
-
-    final finalChannelMessages = channelMessages.where((msg) {
-      if (msg.elemType != 11) return true; // 保留非 11 类型的消息
-
-      // 是 type 11，检查是否存在对应的 type 2 消息，时间戳相同
-      return filteredMessages.any((other) =>
-      other != msg &&
-          other.elemType == 2 &&
-          other.timestamp == msg.timestamp);
-    }).toList();
     if (TencentUtils.india == conversationID ||
         TencentUtils.korea == conversationID ||
         TencentUtils.english == conversationID ||
@@ -1047,7 +1035,29 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
         TencentUtils.german == conversationID) {
       isChannel = true;
     }
-    return conversationID == TencentUtils.aidTeam ? finalMessages : isChannel ? finalChannelMessages : listWithTimestamp.reversed.toList();
+
+    List<V2TimMessage> finalChannelMessages = [];
+    if (isChannel) {
+       final channelMessages = listWithTimestamp.reversed
+          .toList()
+          .where((msg) => msg.elemType != MessageElemType.V2TIM_ELEM_TYPE_GROUP_TIPS)
+          .toList();
+       for (var msg in channelMessages) {
+         print(msg.toJson());
+       }
+       finalChannelMessages = channelMessages.where((msg) {
+         if (msg.elemType != 11) return true; // 保留所有非 type 2 的消息
+
+         // 是 type 2，只有在有其它消息时间接近时才保留
+         return channelMessages.any((other) =>
+         other != msg && (((other.timestamp ?? 0) - (msg.timestamp ?? 0)).abs() <= 600));
+       }).toList();
+    }
+
+
+
+
+    return conversationID == TencentUtils.aidTeam ? finalMessages: isChannel ? finalChannelMessages : listWithTimestamp.reversed.toList();
   }
 
   Map<String, dynamic> getMap(String data) {
