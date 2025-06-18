@@ -512,8 +512,6 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
                           )),
                           widget.inputTopBuilder ?? Container(),
                           if (widget.showInput == true)
-                            SafeArea(child: Container()),
-                          if (widget.showInput == true)
                             Selector<TUIChatSeparateViewModel, bool>(
                             builder: (context, value, child) {
                               return value

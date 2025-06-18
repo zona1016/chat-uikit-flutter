@@ -1016,6 +1016,7 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
                   .any((k) => k is String && k.contains(key)) == true)))
           .toList();
 
+      // 11为时间消息
       finalMessages = filteredMessages.where((msg) {
         if (msg.elemType != 11) return true; // 保留非 11 类型的消息
 
@@ -1042,9 +1043,6 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
           .toList()
           .where((msg) => msg.elemType != MessageElemType.V2TIM_ELEM_TYPE_GROUP_TIPS)
           .toList();
-       for (var msg in channelMessages) {
-         print(msg.toJson());
-       }
        finalChannelMessages = channelMessages.where((msg) {
          if (msg.elemType != 11) return true; // 保留所有非 type 2 的消息
 
@@ -1053,9 +1051,6 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
          other != msg && (((other.timestamp ?? 0) - (msg.timestamp ?? 0)).abs() <= 600));
        }).toList();
     }
-
-
-
 
     return conversationID == TencentUtils.aidTeam ? finalMessages: isChannel ? finalChannelMessages : listWithTimestamp.reversed.toList();
   }
