@@ -29,12 +29,15 @@ class TIMUIKitAddFriend extends StatefulWidget {
   /// The callback function to close the widget upon completion by the parent component.
   final VoidCallback? closeFunc;
 
+  final VoidCallback? qrCodeTap;
+
   const TIMUIKitAddFriend(
       {Key? key,
       this.isShowDefaultGroup = false,
       this.lifeCycle,
       required this.onTapAlreadyFriendsItem,
-      this.closeFunc})
+      this.closeFunc,
+      this.qrCodeTap})
       : super(key: key);
 
   @override
@@ -284,10 +287,13 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                     const SizedBox(
                       width: 8,
                     ),
-                    const Icon(
-                      Icons.qr_code,
-                      color: AidaBaseColors.primaryColor,
-                      size: 18,
+                    GestureDetector(
+                      onTap: widget.qrCodeTap,
+                      child: const Icon(
+                        Icons.qr_code,
+                        color: AidaBaseColors.primaryColor,
+                        size: 18,
+                      ),
                     ),
                     const Spacer(),
                   ],
