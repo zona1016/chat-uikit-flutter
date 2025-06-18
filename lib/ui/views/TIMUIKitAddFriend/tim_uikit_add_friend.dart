@@ -280,7 +280,7 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                   children: [
                     const Spacer(),
                     Text(
-                      '我的账号：${_selfInfoViewModel.loginInfo?.userID}',
+                      'AIDSocialFi ID: ${_selfInfoViewModel.loginInfo?.userID}',
                       style: const TextStyle(
                           color: AidaBaseColors.white, fontSize: 12),
                     ),
