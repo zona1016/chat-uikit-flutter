@@ -17,11 +17,12 @@ class TIMUIKitLastMsg extends StatefulWidget {
   final BuildContext context;
   final double fontSize;
 
-  const TIMUIKitLastMsg({Key? key,
-    this.lastMsg,
-    required this.groupAtInfoList,
-    required this.context,
-    this.fontSize = 14.0})
+  const TIMUIKitLastMsg(
+      {Key? key,
+      this.lastMsg,
+      required this.groupAtInfoList,
+      required this.context,
+      this.fontSize = 14.0})
       : super(key: key);
 
   @override
@@ -70,12 +71,13 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
     final isRevokedMessage = revokeStatus.$1;
     final isAdminRevoke = revokeStatus.$2;
 
-    if (TencentUtils.india == widget.lastMsg?.groupID ||
-        TencentUtils.korea == widget.lastMsg?.groupID ||
-        TencentUtils.english == widget.lastMsg?.groupID ||
-        TencentUtils.chinese == widget.lastMsg?.groupID ||
-        TencentUtils.french == widget.lastMsg?.groupID ||
-        TencentUtils.german == widget.lastMsg?.groupID) {
+    if (widget.lastMsg?.elemType == 2 &&
+        (TencentUtils.india == widget.lastMsg?.groupID ||
+            TencentUtils.korea == widget.lastMsg?.groupID ||
+            TencentUtils.english == widget.lastMsg?.groupID ||
+            TencentUtils.chinese == widget.lastMsg?.groupID ||
+            TencentUtils.french == widget.lastMsg?.groupID ||
+            TencentUtils.german == widget.lastMsg?.groupID)) {
       setState(() {
         groupTipsAbstractText = TIM_t('收到一条消息');
       });
@@ -87,13 +89,12 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
       final option1 = isAdminRevoke
           ? TIM_t("管理员")
           : (isSelf
-          ? TIM_t("您")
-          : widget.lastMsg!.nickName ?? widget.lastMsg?.sender);
+              ? TIM_t("您")
+              : widget.lastMsg!.nickName ?? widget.lastMsg?.sender);
       if (mounted) {
         setState(() {
           groupTipsAbstractText = TIM_t_para(
-              "{{option1}}撤回了一条消息", "$option1撤回了一条消息")(
-              option1: option1);
+              "{{option1}}撤回了一条消息", "$option1撤回了一条消息")(option1: option1);
         });
       }
     } else {
@@ -107,12 +108,12 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
     }
   }
 
-  Future<String?> _getLastMsgShowText(V2TimMessage? message,
-      BuildContext context) async {
+  Future<String?> _getLastMsgShowText(
+      V2TimMessage? message, BuildContext context) async {
     final msgType = message!.elemType;
     switch (msgType) {
       case MessageElemType.V2TIM_ELEM_TYPE_CUSTOM:
-        return message?.groupID == TencentUtils.aidTeam
+        return message.groupID == TencentUtils.aidTeam
             ? '[${tr('chat.announcement_message')}]'
             : TIM_t("[自定义]");
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
@@ -143,9 +144,7 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
 
   Icon? _getIconByMsgStatus(BuildContext context) {
     final msgStatus = widget.lastMsg!.status;
-    final theme = Provider
-        .of<TUIThemeViewModel>(context)
-        .theme;
+    final theme = Provider.of<TUIThemeViewModel>(context).theme;
     if (msgStatus == MessageStatus.V2TIM_MSG_STATUS_SEND_FAIL) {
       return Icon(Icons.error, color: theme.cautionColor, size: 16);
     }
@@ -184,15 +183,13 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
       if (TencentUtils.checkString(groupTipsAbstractText) != null)
         Expanded(
             child: Text(
-              groupTipsAbstractText,
-              softWrap: true,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  height: 1,
-                  color: theme.weakTextColor,
-                  fontSize: widget.fontSize),
-            )),
+          groupTipsAbstractText,
+          softWrap: true,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+              height: 1, color: theme.weakTextColor, fontSize: widget.fontSize),
+        )),
     ]);
   }
 }

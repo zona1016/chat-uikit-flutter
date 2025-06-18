@@ -316,7 +316,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
               conversationID: 'group_${TencentUtils.aidTeam}',
               groupID: TencentUtils.aidTeam,
               showName: tr('wallet.aid_team'),
-              faceUrl: 'https://example.com/aid_team_avatar.png', // 替换为你自己的头像链接
+              faceUrl: '',
               lastMessage: null,
               draftText: '',
             );
@@ -386,6 +386,15 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                         );
                       }
 
+                      final isChannelOrTeam = (
+                          TencentUtils.india == conversationItem.groupID ||
+                          TencentUtils.korea == conversationItem.groupID ||
+                          TencentUtils.english == conversationItem.groupID ||
+                          TencentUtils.chinese == conversationItem.groupID ||
+                          TencentUtils.french == conversationItem.groupID ||
+                          TencentUtils.german == conversationItem.groupID ||
+                          TencentUtils.aidTeam == conversationItem.groupID);
+
                       return TUIKitScreenUtils.getDeviceWidget(
                           context: context,
                           desktopWidget: AutoScrollTag(
@@ -409,7 +418,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                             key: ValueKey(conversationItem.conversationID),
                             controller: _autoScrollController,
                             index: index,
-                            child: Slidable(enabled: TencentUtils.aidTeam != conversationItem.groupID, groupTag: 'conversation-list', child: conversationLineItem(), endActionPane: ActionPane(extentRatio: slideChildren.length > 2 ? 0.77 : 0.5, motion: const DrawerMotion(), children: slideChildren)),
+                            child: Slidable(enabled: !isChannelOrTeam, groupTag: 'conversation-list', child: conversationLineItem(), endActionPane: ActionPane(extentRatio: slideChildren.length > 2 ? 0.77 : 0.5, motion: const DrawerMotion(), children: slideChildren)),
                           ));
                     })
                 : (widget.emptyBuilder != null ? widget.emptyBuilder!() : Container());
