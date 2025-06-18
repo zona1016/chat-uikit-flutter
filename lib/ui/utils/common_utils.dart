@@ -2,11 +2,11 @@ class TencentUtils {
 
   /// aid team
   static String aidTeam = '@TGS#_@TGS#cUALV6JM62CG';
-  /// 印度频道
-  static const String india = "@TGS#_@TGS#c7AGVBKM62CP";
-
   /// 韩国频道
   static const String korea = "@TGS#_@TGS#c7AGVBKM62CP";
+
+  /// 印度频道
+  static const String india = "@TGS#_@TGS#cM2CVBKM62CS";
 
   /// 法语频道
   static const String french = "@TGS#_@TGS#cVHGVBKM62CW";
@@ -19,6 +19,13 @@ class TencentUtils {
 
   /// 中文频道
   static const String chinese = "@TGS#_@TGS#cF4FVBKM62CQ";
+
+  static const String englishFaceUrl = 'https://api.aitm-data.com/uploads/20250617/a761ad515fbd94023a2e554dd2a24a5c.png';
+  static const String germanFaceUrl = 'https://api.aitm-data.com/uploads/20250617/d8b7ba5bb9bd6e66b5ac8e9cf165dcea.png';
+  static const String frenchFaceUrl = 'https://api.aitm-data.com/uploads/20250617/733da732c81e234a515b89efe298a110.png';
+  static const String koreaFaceUrl = 'https://api.aitm-data.com/uploads/20250617/7fae69b37be158472ab57e4dbbf8d775.png';
+  static const String chineseFaceUrl = 'https://api.aitm-data.com/uploads/20250617/42d04edb82f89acf41d8dcbee7b38f55.png';
+  static const String indiaFaceUrl = 'https://api.aitm-data.com/uploads/20250617/a011483086648e57a3cd742d6c0169c5.png';
 
   static String baseUrl = 'https://api.aitm-data.com/';
   static const currentLocale = "current_locale";

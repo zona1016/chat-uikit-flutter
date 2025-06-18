@@ -290,6 +290,46 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final theme = value.theme;
     final isDesktopScreen = TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+
+    List<V2TimConversation> updateAidTeamConversation(
+        List<V2TimConversation?> conversationList,
+        String aidTeamId, {
+          int insertIndex = 0,
+          String? showName,
+          String? faceUrl,
+        }) {
+      final filteredList = List<V2TimConversation>.from(conversationList.whereType<V2TimConversation>());
+
+      V2TimConversation? aidTeamConversation = filteredList.firstWhereOrNull(
+            (conversation) => conversation.groupID == aidTeamId,
+      );
+
+      if (aidTeamConversation != null) {
+        aidTeamConversation.isPinned = true;
+        aidTeamConversation.recvOpt = 0;
+        aidTeamConversation.unreadCount = 0;
+
+        filteredList.remove(aidTeamConversation);
+        filteredList.insert(insertIndex, aidTeamConversation);
+      } else {
+        aidTeamConversation = V2TimConversation(
+          conversationID: 'group_$aidTeamId',
+          groupID: aidTeamId,
+          showName: showName ?? tr('wallet.aid_team'),
+          faceUrl: faceUrl ?? '',
+          lastMessage: null,
+          draftText: '',
+        );
+        aidTeamConversation.isPinned = true;
+        aidTeamConversation.recvOpt = 0;
+        aidTeamConversation.unreadCount = 0;
+
+        filteredList.insert(insertIndex, aidTeamConversation);
+      }
+
+      return filteredList;
+    }
+
     return MultiProvider(
         providers: [ChangeNotifierProvider.value(value: model), ChangeNotifierProvider.value(value: friendShipViewModel)],
         builder: (BuildContext context, Widget? w) {
@@ -300,31 +340,60 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
           List<V2TimConversation?> filteredConversationList = getFilteredConversation();
 
-          // TencentUtils.aidTeam 是否加了好友 是否有来聊天消息
-          V2TimConversation? aidTeamConversation = filteredConversationList.firstWhereOrNull(
-                (conversation) => conversation?.groupID == TencentUtils.aidTeam,
+          filteredConversationList = updateAidTeamConversation(
+            filteredConversationList,
+            TencentUtils.aidTeam,
+            insertIndex: 0,
+            showName: tr('wallet.aid_team'),
           );
 
-          if (aidTeamConversation != null) {
-            aidTeamConversation.isPinned = true;
-            aidTeamConversation.recvOpt = 0;
-            aidTeamConversation.unreadCount = 0;
-            filteredConversationList.remove(aidTeamConversation);
-            filteredConversationList.insert(0, aidTeamConversation);
-          } else {
-            aidTeamConversation = V2TimConversation(
-              conversationID: 'group_${TencentUtils.aidTeam}',
-              groupID: TencentUtils.aidTeam,
-              showName: tr('wallet.aid_team'),
-              faceUrl: '',
-              lastMessage: null,
-              draftText: '',
-            );
-            aidTeamConversation.isPinned = true;
-            aidTeamConversation.recvOpt = 0;
-            aidTeamConversation.unreadCount = 0;
-            filteredConversationList.insert(0, aidTeamConversation);
-          }
+          filteredConversationList = updateAidTeamConversation(
+            filteredConversationList,
+            TencentUtils.english,
+            insertIndex: 1,
+            showName: tr('general.english_channel'),
+            faceUrl: TencentUtils.englishFaceUrl,
+          );
+
+          filteredConversationList = updateAidTeamConversation(
+            filteredConversationList,
+            TencentUtils.german,
+            insertIndex: 2,
+            showName: tr('general.german_channel'),
+            faceUrl: TencentUtils.germanFaceUrl,
+          );
+
+          filteredConversationList = updateAidTeamConversation(
+            filteredConversationList,
+            TencentUtils.french,
+            insertIndex: 3,
+            showName: tr('general.french_channel'),
+            faceUrl: TencentUtils.frenchFaceUrl,
+          );
+
+          filteredConversationList = updateAidTeamConversation(
+            filteredConversationList,
+            TencentUtils.korea,
+            insertIndex: 4,
+            showName: tr('general.korean_channel'),
+            faceUrl: TencentUtils.koreaFaceUrl,
+          );
+
+          filteredConversationList = updateAidTeamConversation(
+            filteredConversationList,
+            TencentUtils.chinese,
+            insertIndex: 5,
+            showName: tr('general.chinese_channel'),
+            faceUrl: TencentUtils.chineseFaceUrl,
+          );
+
+          filteredConversationList = updateAidTeamConversation(
+            filteredConversationList,
+            TencentUtils.india,
+            insertIndex: 6,
+            showName: tr('general.indian_channel'),
+            faceUrl: TencentUtils.indiaFaceUrl,
+          );
 
           if (TencentUtils.checkString(_model.scrollToConversation) != null) {
             _onScrollToConversation(_model.scrollToConversation!);
@@ -437,5 +506,6 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
               ),
               desktopWidget: Scrollbar(controller: _autoScrollController, child: conversationList()));
         });
+
   }
 }
