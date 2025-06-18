@@ -1043,12 +1043,24 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
           .toList()
           .where((msg) => msg.elemType != MessageElemType.V2TIM_ELEM_TYPE_GROUP_TIPS)
           .toList();
-       finalChannelMessages = channelMessages.where((msg) {
-         if (msg.elemType != 11) return true; // 保留所有非 type 2 的消息
 
-         // 是 type 2，只有在有其它消息时间接近时才保留
-         return channelMessages.any((other) =>
-         other != msg && (((other.timestamp ?? 0) - (msg.timestamp ?? 0)).abs() <= 600));
+       finalChannelMessages = channelMessages.where((msg) {
+         if (msg.elemType != 11) return true; // 非11都保留
+
+         // 对于elemType==11的消息，找到它在列表中的索引
+         final index = channelMessages.indexOf(msg);
+
+         // 如果是第0个，前面没消息，不保留
+         if (index == 0) return false;
+
+         final prevMsg = channelMessages[index - 1];
+
+         // 只有当前消息的前一条不是11，且是非11时，保留
+         if (prevMsg.elemType != 11) {
+           return true;
+         }
+
+         return false;
        }).toList();
     }
 
