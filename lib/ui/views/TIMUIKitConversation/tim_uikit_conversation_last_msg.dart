@@ -71,7 +71,7 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
     final isRevokedMessage = revokeStatus.$1;
     final isAdminRevoke = revokeStatus.$2;
 
-    if (widget.lastMsg?.elemType == 2 &&
+    if (widget.lastMsg?.elemType == MessageElemType.V2TIM_ELEM_TYPE_GROUP_TIPS &&
         (TencentUtils.india == widget.lastMsg?.groupID ||
             TencentUtils.korea == widget.lastMsg?.groupID ||
             TencentUtils.english == widget.lastMsg?.groupID ||
