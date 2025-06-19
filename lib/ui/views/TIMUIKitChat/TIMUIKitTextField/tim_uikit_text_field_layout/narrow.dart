@@ -166,7 +166,8 @@ class _TIMUIKitTextFieldLayoutNarrowState
 
   void setSendButton() {
     final value = widget.textEditingController.text;
-    if (isWebDevice() || isAndroidDevice()) {
+    if (isWebDevice()) {
+      // if (isWebDevice() || isAndroidDevice()) {
       if (value.isEmpty && showMoreButton != true) {
         setState(() {
           showMoreButton = true;
@@ -395,7 +396,8 @@ class _TIMUIKitTextFieldLayoutNarrowState
     }, const Duration(seconds: 1));
 
     final debounceFunc = _debounce((value) {
-      if (isWebDevice() || isAndroidDevice()) {
+      if (isWebDevice()) {
+        // if (isWebDevice() || isAndroidDevice()) {
         if (value.isEmpty && showMoreButton != true) {
           setState(() {
             showMoreButton = true;
@@ -483,7 +485,10 @@ class _TIMUIKitTextFieldLayoutNarrowState
                                 ? 'images/keyboard.svg'
                                 : 'images/voice.svg',
                             package: 'tencent_cloud_chat_uikit',
-                            color: widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
+                            color: widget.model.selfDestructMode
+                                ? AidaBaseColors.selfDestructMode
+                                    .withOpacity(0.5)
+                                : AidaBaseColors.primaryColor.withOpacity(0.5),
                             height: 28,
                             width: 28,
                           ),
@@ -615,8 +620,11 @@ class _TIMUIKitTextFieldLayoutNarrowState
                                       ? 'images/keyboard.svg'
                                       : 'images/face.svg',
                                   package: 'tencent_cloud_chat_uikit',
-                                  color:
-                                      widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
+                                  color: widget.model.selfDestructMode
+                                      ? AidaBaseColors.selfDestructMode
+                                          .withOpacity(0.5)
+                                      : AidaBaseColors.primaryColor
+                                          .withOpacity(0.5),
                                   height: 28,
                                   width: 28,
                                 ),
@@ -626,21 +634,23 @@ class _TIMUIKitTextFieldLayoutNarrowState
                           width: 10,
                         ),
                       if (widget.model.selfDestructMode && isTextEmpty)
-                      InkWell(
-                        onTap: () {
-                          if (widget.textEditingController.text.isEmpty) {
-                            widget.model.selfDestructMode = false;
-                          }
-                        },
-                        child: Image.asset(
-                          'images/vanish_close.png',
-                          package: 'tencent_cloud_chat_uikit',
-                          color:
-                              widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
-                          height: 28,
-                          width: 28,
+                        InkWell(
+                          onTap: () {
+                            if (widget.textEditingController.text.isEmpty) {
+                              widget.model.selfDestructMode = false;
+                            }
+                          },
+                          child: Image.asset(
+                            'images/vanish_close.png',
+                            package: 'tencent_cloud_chat_uikit',
+                            color: widget.model.selfDestructMode
+                                ? AidaBaseColors.selfDestructMode
+                                    .withOpacity(0.5)
+                                : AidaBaseColors.primaryColor.withOpacity(0.5),
+                            height: 28,
+                            width: 28,
+                          ),
                         ),
-                      ),
                       if (widget.showMorePanel &&
                           widget.forbiddenText == null &&
                           showMoreButton)
@@ -656,29 +666,34 @@ class _TIMUIKitTextFieldLayoutNarrowState
                               });
                             }
                           },
-                          child: widget.model.selfDestructMode ?
-                            !isTextEmpty ?
-                              Image.asset(
-                                'images/send.png',
-                                package: 'tencent_cloud_chat_uikit',
-                                color:
-                                    widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
-                                height: 28,
-                                width: 28,
-                              )
-                            :
-                            Container()
-                            : PlatformUtils().isWeb
-                              ? Icon(Icons.send_outlined,
-                                  color: hexToColor("5c6168"), size: 32)
-                              : Image.asset(
-                                  'images/send.png',
-                                  package: 'tencent_cloud_chat_uikit',
-                                  color:
-                                      widget.model.selfDestructMode ? AidaBaseColors.selfDestructMode.withOpacity(0.5) : AidaBaseColors.primaryColor.withOpacity(0.5),
-                                  height: 28,
-                                  width: 28,
-                                ),
+                          child: widget.model.selfDestructMode
+                              ? !isTextEmpty
+                                  ? Image.asset(
+                                      'images/send.png',
+                                      package: 'tencent_cloud_chat_uikit',
+                                      color: widget.model.selfDestructMode
+                                          ? AidaBaseColors.selfDestructMode
+                                              .withOpacity(0.5)
+                                          : AidaBaseColors.primaryColor
+                                              .withOpacity(0.5),
+                                      height: 28,
+                                      width: 28,
+                                    )
+                                  : Container()
+                              : PlatformUtils().isWeb
+                                  ? Icon(Icons.send_outlined,
+                                      color: hexToColor("5c6168"), size: 32)
+                                  : Image.asset(
+                                      'images/send.png',
+                                      package: 'tencent_cloud_chat_uikit',
+                                      color: widget.model.selfDestructMode
+                                          ? AidaBaseColors.selfDestructMode
+                                              .withOpacity(0.5)
+                                          : AidaBaseColors.primaryColor
+                                              .withOpacity(0.5),
+                                      height: 28,
+                                      width: 28,
+                                    ),
                         ),
                       // if ((isAndroidDevice() || isWebDevice()) && !showMoreButton)
                       //   SizedBox(

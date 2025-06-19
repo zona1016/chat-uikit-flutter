@@ -340,7 +340,7 @@ class Permissions {
                     child: TextButton(
                       child: Text(TIM_t("以后再说"),
                           style: TextStyle(
-                            color: theme?.black ?? Colors.black,
+                            color: theme?.white ?? Colors.white,
                           )),
                       onPressed: closeDialog, // 关闭对话框
                     ),
@@ -350,7 +350,7 @@ class Permissions {
                     child: TextButton(
                       child: Text(TIM_t("去开启"),
                           style: TextStyle(
-                            color: theme?.black ?? Colors.black,
+                            color: theme?.white ?? Colors.white,
                           )),
                       onPressed: getPermission,
                     ),
