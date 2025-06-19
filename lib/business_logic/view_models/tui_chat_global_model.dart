@@ -1004,7 +1004,7 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
       if (key == 'zh-cn') {
         key = 'zh';
       }
-      final filteredMessages = listWithTimestamp.reversed
+      finalMessages = listWithTimestamp.reversed
           .toList()
           .where((msg) =>
       (((msg.timestamp ?? 0) * 1000) > cutoffMillis) &&
@@ -1017,12 +1017,23 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
           .toList();
 
       // 11为时间消息
-      finalMessages = filteredMessages.where((msg) {
-        if (msg.elemType != 11) return true; // 保留非 11 类型的消息
+      finalMessages = finalMessages.where((msg) {
+        if (msg.elemType != 11) return true; // 非11都保留
 
-        // 是 type 11，检查是否存在对应的 type 2 消息，时间戳相同
-        return filteredMessages.any((other) =>
-        other != msg && (((other.timestamp ?? 0) - (msg.timestamp ?? 0)).abs() <= 600));
+        // 对于elemType==11的消息，找到它在列表中的索引
+        final index = finalMessages.indexOf(msg);
+
+        // 如果是第0个，前面没消息，不保留
+        if (index == 0) return false;
+
+        final prevMsg = finalMessages[index - 1];
+
+        // 只有当前消息的前一条不是11，且是非11时，保留
+        if (prevMsg.elemType != 11) {
+          return true;
+        }
+
+        return false;
       }).toList();
     }
 
@@ -1063,7 +1074,6 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
          return false;
        }).toList();
     }
-
     return conversationID == TencentUtils.aidTeam ? finalMessages: isChannel ? finalChannelMessages : listWithTimestamp.reversed.toList();
   }
 

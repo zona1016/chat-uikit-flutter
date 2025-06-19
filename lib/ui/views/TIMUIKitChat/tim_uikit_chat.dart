@@ -652,8 +652,15 @@ class TIMUIKitChatProviderScope extends StatelessWidget {
   }
 
   loadData() {
-    // if (model!.haveMoreData) {
-    model!.loadChatRecord(count: kIsWeb ? 15 : HistoryMessageDartConstant.getCount);
+    final isChannel = (
+        TencentUtils.india == conversationID ||
+        TencentUtils.korea == conversationID ||
+        TencentUtils.english == conversationID ||
+        TencentUtils.chinese == conversationID ||
+        TencentUtils.french == conversationID ||
+        TencentUtils.german == conversationID || TencentUtils.aidTeam == conversationID);
+    print(kIsWeb ? 15 : isChannel ? 100000 : HistoryMessageDartConstant.getCount);
+    model!.loadChatRecord(count: kIsWeb ? 15 : isChannel ? 100000 : HistoryMessageDartConstant.getCount);
     // }
   }
 

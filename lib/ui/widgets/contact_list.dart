@@ -85,7 +85,12 @@ class _ContactListState extends TIMUIKitState<ContactList> {
       final item = memberList[i];
       final showName = _getShowName(item);
       String pinyin = PinyinHelper.getPinyinE(showName);
-      String tag = pinyin.substring(0, 1).toUpperCase();
+      String tag;
+      if (pinyin.isNotEmpty) {
+        tag = pinyin.substring(0, 1).toUpperCase();
+      } else {
+        tag = '#'; // 默认标签
+      }
       if (RegExp("[A-Z]").hasMatch(tag)) {
         showList.add(ISuspensionBeanImpl(memberInfo: item, tagIndex: tag));
       } else {
