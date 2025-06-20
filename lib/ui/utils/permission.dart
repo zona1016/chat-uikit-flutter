@@ -91,14 +91,14 @@ class _PermissionRequestInfo extends TIMUIKitState<PermissionRequestInfo>
             child: Opacity(
               opacity: 0.7,
               child: Container(
+                height: double.infinity,
                 color: theme.black,
                 padding: const EdgeInsets.symmetric(horizontal: 40),
+                alignment: Alignment.center,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(
-                      height: 50,
-                    ),
+                    const SizedBox(height: 50,),
                     SizedBox(
                       height: 50,
                       width: 50,
@@ -107,9 +107,7 @@ class _PermissionRequestInfo extends TIMUIKitState<PermissionRequestInfo>
                         package: "tencent_cloud_chat_uikit",
                       ),
                     ),
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const Spacer(),
                     Text(
                       TIM_t(widget.appName) +
                           TIM_t_para(" 申请获取{{option2}}", " 申请获取$option2")(
@@ -123,7 +121,8 @@ class _PermissionRequestInfo extends TIMUIKitState<PermissionRequestInfo>
                     Text(
                       permission?["text"] ?? "",
                       style: TextStyle(color: theme.white, fontSize: 16),
-                    )
+                    ),
+                    const Spacer(flex: 3,),
                   ],
                 ),
               ),
