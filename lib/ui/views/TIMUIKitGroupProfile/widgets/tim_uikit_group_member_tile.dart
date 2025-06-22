@@ -38,11 +38,25 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
     return friendRemark != "" ? friendRemark : showName;
   }
 
-  List<Widget> _groupMemberListBuilder(List memberList, TUITheme theme,
-      TUIGroupProfileModel model, int showRange) {
+  List<Widget> _groupMemberListBuilder(
+      List<V2TimGroupMemberFullInfo?> memberList,
+      List<V2TimGroupMemberFullInfo?> commonMemberList,
+      List<V2TimGroupMemberFullInfo?> ownerMemberList,
+      List<V2TimGroupMemberFullInfo?> adminMemberList,
+      TUITheme theme,
+      TUIGroupProfileModel model,
+      int showRange) {
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor() == DeviceType.Desktop;
-    return _getMemberList(memberList, showRange).map((element) {
+
+    // 最终结果列表
+    List<V2TimGroupMemberFullInfo?> finalList = [];
+
+    finalList.addAll(ownerMemberList);
+    finalList.addAll(adminMemberList);
+    finalList.addAll(commonMemberList);
+
+    return _getMemberList(finalList, showRange).map((element) {
       element?.faceUrl = element.faceUrl?.normalizeFaceUrl();
       final faceUrl = element?.faceUrl ?? "";
 
@@ -63,8 +77,9 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
                 width: isDesktopScreen ? 36 : 50,
                 height: isDesktopScreen ? 36 : 50,
                 child: Avatar(
-                  borderRadius:
-                      isDesktopScreen ? BorderRadius.circular(18) : BorderRadius.circular(isDesktopScreen ? 18 : 25),
+                  borderRadius: isDesktopScreen
+                      ? BorderRadius.circular(18)
+                      : BorderRadius.circular(isDesktopScreen ? 18 : 25),
                   faceUrl: faceUrl,
                   showName: showName,
                   type: 1,
@@ -129,6 +144,9 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
     final memberAmount = model.groupInfo?.memberCount ?? 0;
     final option1 = memberAmount.toString();
     final memberList = model.groupMemberList;
+    final ownerMemberList = model.groupOwnerList;
+    final adminMemberList = model.groupAdminMemberList;
+    final commonMemberList = model.groupCommonMemberList;
     final isCanInviteMember = model.canInviteMember();
     final isCanKickOffMember = model.canKickOffMember();
 
@@ -151,7 +169,7 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
             decoration: isDesktopScreen
                 ? null
                 : BoxDecoration(
-              color: Colors.transparent,
+                    color: Colors.transparent,
                     border: Border(
                         bottom: BorderSide(
                             color: theme.weakDividerColor ??
@@ -232,7 +250,7 @@ class GroupMemberTile extends TIMUIKitStatelessWidget {
               runSpacing: 10,
               alignment: WrapAlignment.start,
               children: [
-                ..._groupMemberListBuilder(memberList, theme, model, showRange),
+                ..._groupMemberListBuilder(memberList, commonMemberList, ownerMemberList, adminMemberList, theme, model, showRange),
                 if (isCanInviteMember)
                   DottedBorder(
                       borderType: BorderType.RRect,

@@ -171,6 +171,10 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
           final isAdmin = groupInfo.role ==
               GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_ADMIN;
 
+          /// 公开群（Public）和会议群（Meeting）：只有群主才能对群成员进行普通成员和管理员之间的角色切换。
+          /// 其他群不支持设置群成员角色。
+          final isManager = groupInfo.groupType == GroupType.Public || groupInfo.groupType == GroupType.Meeting;
+
           Widget groupProfilePage({required Widget child}) {
             return SingleChildScrollView(
               child: Container(
@@ -227,7 +231,7 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                       : TIMUIKitGroupProfileWidget.groupNotification(
                           isHavePermission: isAdmin || isGroupOwner))!;
                 case GroupProfileWidgetEnum.groupManage:
-                  if (isAdmin || isGroupOwner) {
+                  if ((isAdmin || isGroupOwner ) && isManager) {
                     return (customBuilder?.groupManage != null
                         ? customBuilder?.groupManage!(toDefaultManagePage)
                         : TIMUIKitGroupProfileWidget.groupManage())!;

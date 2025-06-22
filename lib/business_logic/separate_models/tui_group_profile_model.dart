@@ -25,6 +25,9 @@ class TUIGroupProfileModel extends ChangeNotifier {
   String _groupID = "";
   List<V2TimFriendInfo>? _contactList;
   List<V2TimGroupMemberFullInfo?>? _groupMemberList;
+  List<V2TimGroupMemberFullInfo?>? _groupOwnerList;
+  List<V2TimGroupMemberFullInfo?>? _groupAdminMemberList;
+  List<V2TimGroupMemberFullInfo?>? _groupCommonMemberList;
   String _groupMemberListSeq = "0";
   V2TimGroupInfo? _groupInfo;
   Function(String userID, TapDownDetails? tapDetails)? onClickUser;
@@ -54,6 +57,9 @@ class TUIGroupProfileModel extends ChangeNotifier {
   }
 
   List<V2TimGroupMemberFullInfo?> get groupMemberList => _groupMemberList ?? [];
+  List<V2TimGroupMemberFullInfo?> get groupOwnerList => _groupOwnerList ?? [];
+  List<V2TimGroupMemberFullInfo?> get groupAdminMemberList => _groupAdminMemberList ?? [];
+  List<V2TimGroupMemberFullInfo?> get groupCommonMemberList => _groupCommonMemberList ?? [];
 
   set groupMemberList(List<V2TimGroupMemberFullInfo?> value) {
     _groupMemberList = value;
@@ -69,6 +75,9 @@ class TUIGroupProfileModel extends ChangeNotifier {
     _groupID = groupID;
     loadGroupInfo(groupID);
     loadGroupMemberList(groupID: groupID);
+    _loadGroupOwnerMemberList(groupID: groupID);
+    _loadGroupAdminMemberList(groupID: groupID);
+    _loadGroupCommonMemberList(groupID: groupID);
     _loadConversation();
     _loadContactList();
   }
@@ -117,6 +126,46 @@ class TUIGroupProfileModel extends ChangeNotifier {
       _groupMemberListSeq = groupMemberListRes.nextSeq ?? "0";
     }
     return groupMemberListRes?.nextSeq;
+  }
+
+  Future<void> _loadGroupOwnerMemberList(
+      {required String groupID}) async {
+    final res = await _groupServices.getGroupMemberList(
+        groupID: groupID,
+        filter: GroupMemberFilterTypeEnum.V2TIM_GROUP_MEMBER_FILTER_OWNER,
+        count: 1,
+        nextSeq: '0');
+    final groupMemberListRes = res.data;
+    if (res.code == 0 && groupMemberListRes != null) {
+      _groupOwnerList = groupMemberListRes.memberInfoList ?? [];
+    }
+  }
+
+  Future<void> _loadGroupAdminMemberList(
+      {required String groupID}) async {
+    final res = await _groupServices.getGroupMemberList(
+        groupID: groupID,
+        filter: GroupMemberFilterTypeEnum.V2TIM_GROUP_MEMBER_FILTER_ADMIN,
+        count: 10,
+        nextSeq: '0');
+    final groupMemberListRes = res.data;
+    if (res.code == 0 && groupMemberListRes != null) {
+      _groupAdminMemberList = groupMemberListRes.memberInfoList ?? [];
+    }
+  }
+
+  Future<void> _loadGroupCommonMemberList(
+      {required String groupID}) async {
+    final res = await _groupServices.getGroupMemberList(
+        groupID: groupID,
+        filter: GroupMemberFilterTypeEnum.V2TIM_GROUP_MEMBER_FILTER_COMMON,
+        count: 10,
+        nextSeq: '0');
+    final groupMemberListRes = res.data;
+    if (res.code == 0 && groupMemberListRes != null) {
+      _groupCommonMemberList = groupMemberListRes.memberInfoList ?? [];
+    }
+
   }
 
   _loadConversation() async {
