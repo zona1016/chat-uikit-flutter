@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
@@ -19,7 +20,7 @@ class GroupAllowAddingFriends extends TIMUIKitStatelessWidget {
     }
     return TIMUIKitOperationItem(
       isEmpty: false,
-      operationName: TIM_t("允许添加好友"),
+      operationName: tr('aid.allow_add_friends'),
       type: "switch",
       isUseCheckedBoxOnWide: true,
       operationValue: isAllow,
