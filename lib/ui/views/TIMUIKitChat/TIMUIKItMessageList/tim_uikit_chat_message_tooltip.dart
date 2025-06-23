@@ -254,11 +254,11 @@ class TIMUIKitMessageTooltipState
           id: "multiSelect",
           iconImageAsset: "images/multi_message.png",
           onClick: () => _onTap("multiSelect", model)),
-      MessageToolTipItem(
-          label: TIM_t("翻译"),
-          id: "translate",
-          iconImageAsset: "images/translate.png",
-          onClick: () => _onTap("translate", model)),
+      // MessageToolTipItem(
+      //     label: TIM_t("翻译"),
+      //     id: "translate",
+      //     iconImageAsset: "images/translate.png",
+      //     onClick: () => _onTap("translate", model)),
       MessageToolTipItem(
           label: TIM_t("删除"),
           id: "delete",

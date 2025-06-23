@@ -269,7 +269,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
               aidTeamConversation.unreadCount = filtered.length;
             }
           } else {
-            
+
             await TencentImSDKPlugin.v2TIMManager
                 .getConversationManager()
                 .cleanConversationUnreadMessageCount(
@@ -279,6 +279,8 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
             );
             aidTeamConversation.unreadCount = 0;
           }
+        } else {
+          aidTeamConversation.unreadCount = 0;
         }
       }
 
@@ -457,6 +459,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
+    print('-------------');
     return MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: model),
@@ -535,7 +538,10 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                                     : null,
                                 draftTimestamp: conversationItem.draftTimestamp,
                                 convType: conversationItem.type),
-                            onTap: () => onTapConvItem(conversationItem),
+                            onTap: () {
+                              conversationItem.unreadCount = 0;
+                              onTapConvItem(conversationItem);
+                            },
                           ),
                         );
                       }
