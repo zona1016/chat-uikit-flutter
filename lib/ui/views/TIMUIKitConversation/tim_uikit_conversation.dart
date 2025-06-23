@@ -234,8 +234,6 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     String? showName,
     String? faceUrl,
   }) async {
-
-    print('##############4444');
     final filteredList = List<V2TimConversation>.from(
         conversationList.whereType<V2TimConversation>());
 
@@ -267,13 +265,11 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
               cleanSequence: 0,
             );
 
-            print('##############');
-            print(cleanRes.code);
             if (cleanRes.code == 0) {
               aidTeamConversation.unreadCount = filtered.length;
             }
           } else {
-            print('##############111');
+            
             await TencentImSDKPlugin.v2TIMManager
                 .getConversationManager()
                 .cleanConversationUnreadMessageCount(
