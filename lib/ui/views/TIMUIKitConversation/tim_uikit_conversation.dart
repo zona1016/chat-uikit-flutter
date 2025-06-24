@@ -152,7 +152,8 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   final TUIFriendShipViewModel friendShipViewModel =
       serviceLocator<TUIFriendShipViewModel>();
   late AutoScrollController _autoScrollController;
-  List<V2TimConversation?> filteredConversationList = [];
+
+  bool handleData = false;
 
   @override
   void initState() {
@@ -161,37 +162,33 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     _timuiKitConversationController = controller;
     _timuiKitConversationController.model = model;
     _autoScrollController = AutoScrollController();
-    filteredConversationList = getFilteredConversation();
-    channelData();
-    TencentImSDKPlugin.v2TIMManager
-        .getMessageManager()
-        .addAdvancedMsgListener(
-      listener: V2TimAdvancedMsgListener(
-        onRecvNewMessage: (msg) {
-          for (var result in filteredConversationList) {
-            if (msg.groupID != null && result?.groupID == msg.groupID) {
-              result?.lastMessage = msg;
-            }
+  }
 
-            if (msg.userID != null && result?.userID == msg.userID) {
-              result?.lastMessage = msg;
-            }
-          }
-        },
-      ),
-    );
+  List<V2TimConversation?> getFilteredConversation() {
+    List<V2TimConversation?> filteredConversationList = model.conversationList
+        .where(
+            (element) => (element?.groupID != null || element?.userID != null))
+        .toList();
+    if (widget.conversationCollector != null) {
+      filteredConversationList = filteredConversationList
+          .where(widget.conversationCollector!)
+          .toList();
+    }
+
+    channelData(filteredConversationList);
+    return filteredConversationList;
   }
 
   // 处理数据
-  channelData() async {
-    filteredConversationList = await updateAidTeamConversation(
+  channelData(List<V2TimConversation?> filteredConversationList) async {
+    filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.aidTeam,
       insertIndex: 0,
       showName: tr('wallet.aid_team'),
     );
 
-    filteredConversationList = await updateAidTeamConversation(
+    filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.english,
       insertIndex: 1,
@@ -199,7 +196,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.englishFaceUrl,
     );
 
-    filteredConversationList = await updateAidTeamConversation(
+    filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.german,
       insertIndex: 2,
@@ -207,7 +204,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.germanFaceUrl,
     );
 
-    filteredConversationList = await updateAidTeamConversation(
+    filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.french,
       insertIndex: 3,
@@ -215,7 +212,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.frenchFaceUrl,
     );
 
-    filteredConversationList = await updateAidTeamConversation(
+    filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.korea,
       insertIndex: 4,
@@ -223,7 +220,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.koreaFaceUrl,
     );
 
-    filteredConversationList = await updateAidTeamConversation(
+    filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.chinese,
       insertIndex: 5,
@@ -231,7 +228,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.chineseFaceUrl,
     );
 
-    filteredConversationList = await updateAidTeamConversation(
+    filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.india,
       insertIndex: 6,
@@ -239,70 +236,24 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.indiaFaceUrl,
     );
 
-    setState(() {
-      filteredConversationList = filteredConversationList;
-    });
   }
 
-  Future<List<V2TimConversation>> updateAidTeamConversation(
+  List<V2TimConversation?> updateAidTeamConversation(
     List<V2TimConversation?> conversationList,
     String aidTeamId, {
     int insertIndex = 0,
     String? showName,
     String? faceUrl,
-  }) async {
-    final filteredList = List<V2TimConversation>.from(
-        conversationList.whereType<V2TimConversation>());
-
-    V2TimConversation? aidTeamConversation = filteredList.firstWhereOrNull(
-      (conversation) => conversation.groupID == aidTeamId,
+  })  {
+    V2TimConversation? aidTeamConversation = conversationList.firstWhereOrNull(
+      (conversation) => conversation?.groupID == aidTeamId,
     );
 
     if (aidTeamConversation != null) {
       aidTeamConversation.isPinned = true;
-      if ((aidTeamConversation.unreadCount ?? 0) > 0) {
-        final result = await TencentImSDKPlugin.v2TIMManager
-            .getMessageManager()
-            .getHistoryMessageList(
-          groupID: aidTeamConversation.groupID,
-          count: aidTeamConversation.unreadCount!,
-        );
-        if (result.code == 0 && result.data != null) {
-          final filtered = result.data!
-              .where((msg) => msg.elemType != 9 && msg.elemType != 11)
-              .toList();
-          V2TimMessage message = result.data!.last;
-          if (filtered.isNotEmpty && filtered.length < result.data!.length) {
-            message = result.data![filtered.length];
-            final cleanRes = await TencentImSDKPlugin.v2TIMManager
-                .getConversationManager()
-                .cleanConversationUnreadMessageCount(
-              conversationID: 'group_' + aidTeamId,
-              cleanTimestamp: message.timestamp ?? 0,
-              cleanSequence: 0,
-            );
-
-            if (cleanRes.code == 0) {
-              aidTeamConversation.unreadCount = filtered.length;
-            }
-          } else {
-
-            await TencentImSDKPlugin.v2TIMManager
-                .getConversationManager()
-                .cleanConversationUnreadMessageCount(
-              conversationID: 'group_' + aidTeamId,
-              cleanTimestamp: (message.timestamp ?? 0) + 100000, // 稍微靠未来一点
-              cleanSequence: 999999999,     // 一般不会到这个值
-            );
-            aidTeamConversation.unreadCount = 0;
-          }
-        } else {
-          aidTeamConversation.unreadCount = 0;
-        }
-      }
-
-      filteredList.remove(aidTeamConversation);
-      filteredList.insert(insertIndex, aidTeamConversation);
+      aidTeamConversation.unreadCount = 0;
+      conversationList.remove(aidTeamConversation);
+      conversationList.insert(insertIndex, aidTeamConversation);
     } else {
       aidTeamConversation = V2TimConversation(
         conversationID: 'group_$aidTeamId',
@@ -316,10 +267,10 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       aidTeamConversation.recvOpt = 0;
       aidTeamConversation.unreadCount = 0;
 
-      filteredList.insert(insertIndex, aidTeamConversation);
+      conversationList.insert(insertIndex, aidTeamConversation);
     }
 
-    return filteredList;
+    return conversationList;
   }
 
   TIMUIKitConversationController getController() {
@@ -347,19 +298,6 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   _deleteConversation(V2TimConversation conversation) {
     _timuiKitConversationController.deleteConversation(
         conversationID: conversation.conversationID);
-  }
-
-  List<V2TimConversation?> getFilteredConversation() {
-    List<V2TimConversation?> filteredConversationList = model.conversationList
-        .where(
-            (element) => (element?.groupID != null || element?.userID != null))
-        .toList();
-    if (widget.conversationCollector != null) {
-      filteredConversationList = filteredConversationList
-          .where(widget.conversationCollector!)
-          .toList();
-    }
-    return filteredConversationList;
   }
 
   _onScrollToConversation(String conversationID) {
@@ -465,6 +403,69 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     return widget.itemSlideBuilder ?? _defaultSlideBuilder;
   }
 
+  handleUnReadData(List<V2TimConversation?> filteredConversationList) async {
+
+    for (var aidTeamConversation in filteredConversationList) {
+
+      if (aidTeamConversation != null) {
+        final isChannelOrTeam = (TencentUtils.india ==
+            aidTeamConversation.groupID ||
+            TencentUtils.korea == aidTeamConversation.groupID ||
+            TencentUtils.english == aidTeamConversation.groupID ||
+            TencentUtils.chinese == aidTeamConversation.groupID ||
+            TencentUtils.french == aidTeamConversation.groupID ||
+            TencentUtils.german == aidTeamConversation.groupID ||
+            TencentUtils.aidTeam == aidTeamConversation.groupID);
+        if (!isChannelOrTeam) return;
+
+        if ((aidTeamConversation.unreadCount ?? 0) > 0) {
+          final result = await TencentImSDKPlugin.v2TIMManager
+              .getMessageManager()
+              .getHistoryMessageList(
+            groupID: aidTeamConversation.groupID,
+            count: aidTeamConversation.unreadCount!,
+          );
+          if (result.code == 0 && result.data != null) {
+            final filtered = result.data!
+                .where((msg) => msg.elemType != 9 && msg.elemType != 11)
+                .toList();
+            V2TimMessage message = result.data!.last;
+            if (filtered.isNotEmpty && filtered.length < result.data!.length) {
+              message = result.data![filtered.length];
+              final cleanRes = await TencentImSDKPlugin.v2TIMManager
+                  .getConversationManager()
+                  .cleanConversationUnreadMessageCount(
+                conversationID: 'group_' + aidTeamConversation.groupID.toString(),
+                cleanTimestamp: message.timestamp ?? 0,
+                cleanSequence: 0,
+              );
+
+              if (cleanRes.code == 0) {
+                aidTeamConversation.unreadCount = filtered.length;
+              }
+            } else {
+
+              await TencentImSDKPlugin.v2TIMManager
+                  .getConversationManager()
+                  .cleanConversationUnreadMessageCount(
+                conversationID: 'group_' + aidTeamConversation.groupID.toString(),
+                cleanTimestamp: (message.timestamp ?? 0) + 100000, // 稍微靠未来一点
+                cleanSequence: 999999999,     // 一般不会到这个值
+              );
+              aidTeamConversation.unreadCount = 0;
+            }
+          } else {
+            aidTeamConversation.unreadCount = 0;
+          }
+        }
+      }
+    }
+
+    setState(() {
+
+    });
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -481,6 +482,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           ChangeNotifierProvider.value(value: friendShipViewModel)
         ],
         builder: (BuildContext context, Widget? w) {
+
           final _model = Provider.of<TUIConversationViewModel>(context);
           bool haveMoreData = _model.haveMoreData;
           final _friendShipViewModel =
@@ -491,7 +493,12 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
             _onScrollToConversation(_model.scrollToConversation!);
             _model.clearScrollToConversation();
           }
+          List<V2TimConversation?> filteredConversationList = getFilteredConversation();
 
+          // 处理数据
+          if (!handleData) {
+            handleUnReadData(filteredConversationList);
+          }
           Widget conversationList() {
             return filteredConversationList.isNotEmpty
                 ? ListView.builder(
