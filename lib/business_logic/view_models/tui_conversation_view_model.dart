@@ -156,6 +156,8 @@ class TUIConversationViewModel extends ChangeNotifier {
       }
       final List<V2TimConversation?> finalConversationList = await _lifeCycle?.conversationListWillMount(combinedConversationList) ?? combinedConversationList;
       _conversationList = removeDuplicates<V2TimConversation?>(finalConversationList, (item1, item2) => item1?.conversationID == item2?.conversationID);
+
+      // 处理数据
       notifyListeners();
     }
     _totalUnReadCount = await _conversationService.getTotalUnreadCount();
