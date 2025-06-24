@@ -53,6 +53,8 @@ class TIMUIKitGroupProfile extends StatefulWidget {
   /// You have better to implement the `didLeaveGroup` in it.
   final GroupProfileLifeCycle? lifeCycle;
 
+  final void Function(String groupName)? updateGroupName;
+  final void Function(String newGroupName)? onGroupNameChanged;
   /// The callback after user clicking a user,
   /// you may navigating to the specific profile page, or anywhere you want.
   final Function(String userID, TapDownDetails? tapDetails)? onClickUser;
@@ -60,11 +62,15 @@ class TIMUIKitGroupProfile extends StatefulWidget {
   const TIMUIKitGroupProfile(
       {Key? key,
       required this.groupID,
+        this.onGroupNameChanged,
       this.backGroundColor,
-      @Deprecated("[operationListBuilder] and [bottomOperationBuilder] merged into [builder], please use it instead")
-          this.bottomOperationBuilder,
-      @Deprecated("[operationListBuilder] and [bottomOperationBuilder] merged into [builder], please use it instead")
-          this.operationListBuilder,
+      this.updateGroupName,
+      @Deprecated(
+          "[operationListBuilder] and [bottomOperationBuilder] merged into [builder], please use it instead")
+      this.bottomOperationBuilder,
+      @Deprecated(
+          "[operationListBuilder] and [bottomOperationBuilder] merged into [builder], please use it instead")
+      this.operationListBuilder,
       this.builder,
       this.profileWidgetBuilder,
       this.onClickUser,
@@ -173,7 +179,8 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
 
           /// 公开群（Public）和会议群（Meeting）：只有群主才能对群成员进行普通成员和管理员之间的角色切换。
           /// 其他群不支持设置群成员角色。
-          final isManager = groupInfo.groupType == GroupType.Public || groupInfo.groupType == GroupType.Meeting;
+          final isManager = groupInfo.groupType == GroupType.Public ||
+              groupInfo.groupType == GroupType.Meeting;
 
           Widget groupProfilePage({required Widget child}) {
             return SingleChildScrollView(
@@ -217,7 +224,9 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                           groupInfo, model.setGroupName)
                       : TIMUIKitGroupProfileWidget.detailCard(
                           isHavePermission: isAdmin || isGroupOwner,
-                          groupInfo: groupInfo))!;
+                          groupInfo: groupInfo,
+                          onGroupNameChanged: widget.onGroupNameChanged,
+                          updateGroupName: widget.updateGroupName))!;
                 case GroupProfileWidgetEnum.memberListTile:
                   return (customBuilder?.memberListTile != null
                       ? customBuilder?.memberListTile!(memberList)
@@ -231,7 +240,7 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                       : TIMUIKitGroupProfileWidget.groupNotification(
                           isHavePermission: isAdmin || isGroupOwner))!;
                 case GroupProfileWidgetEnum.groupManage:
-                  if ((isAdmin || isGroupOwner ) && isManager) {
+                  if ((isAdmin || isGroupOwner) && isManager) {
                     return (customBuilder?.groupManage != null
                         ? customBuilder?.groupManage!(toDefaultManagePage)
                         : TIMUIKitGroupProfileWidget.groupManage())!;
@@ -286,7 +295,8 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                 case GroupProfileWidgetEnum.customBuilderOne:
                   if (isAdmin || isGroupOwner) {
                     return (customBuilder?.customBuilderOne != null
-                        ? customBuilder?.customBuilderOne!(groupInfo, memberList)
+                        ? customBuilder?.customBuilderOne!(
+                            groupInfo, memberList)
                         : TIMUIKitGroupProfileWidget.allowAddingFriends())!;
                   } else {
                     return Container();

@@ -19,13 +19,14 @@ class TIMUIKitGroupProfileWidget {
   static Widget detailCard(
       {required V2TimGroupInfo groupInfo,
       bool isHavePermission = false,
-
+  final void Function(String newGroupName)? onGroupNameChanged,
       /// You can deal with updating group name manually, or UIKIt do it automatically.
       Function(String updateGroupName)? updateGroupName}) {
     return GroupProfileDetailCard(
       groupInfo: groupInfo,
       isHavePermission: isHavePermission,
       updateGroupName: updateGroupName,
+      onGroupNameChanged: onGroupNameChanged,
     );
   }
 

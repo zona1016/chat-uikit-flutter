@@ -11,6 +11,8 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/conversation_life_cycle.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_profile_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_conversation_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_friendship_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
@@ -147,6 +149,8 @@ class ConversationItemSlidePanel extends TIMUIKitStatelessWidget {
 class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   final TUIConversationViewModel model =
       serviceLocator<TUIConversationViewModel>();
+  final TUIGroupProfileModel groupProfileModel = TUIGroupProfileModel();
+  final TUIProfileViewModel profileViewModel = TUIProfileViewModel();
   late TIMUIKitConversationController _timuiKitConversationController;
   final TUIThemeViewModel themeViewModel = serviceLocator<TUIThemeViewModel>();
   final TUIFriendShipViewModel friendShipViewModel =
@@ -479,7 +483,9 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     return MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: model),
-          ChangeNotifierProvider.value(value: friendShipViewModel)
+          ChangeNotifierProvider.value(value: friendShipViewModel),
+          ChangeNotifierProvider.value(value: groupProfileModel),
+          ChangeNotifierProvider.value(value: profileViewModel)
         ],
         builder: (BuildContext context, Widget? w) {
 

@@ -23,11 +23,13 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
   final void Function(String groupName)? updateGroupName;
   final TextEditingController controller = TextEditingController();
   final bool isHavePermission;
+  final void Function(String newGroupName)? onGroupNameChanged;
 
   GroupProfileDetailCard(
       {Key? key,
       required this.groupInfo,
       this.isHavePermission = false,
+      this.onGroupNameChanged,
       this.updateGroupName})
       : super(key: key);
 
@@ -104,19 +106,19 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                                             borderRadius: BorderRadius.only(
                                                 topLeft: Radius.circular(10.0),
                                                 topRight:
-                                                Radius.circular(10.0))),
+                                                    Radius.circular(10.0))),
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Container(
                                               padding:
-                                              const EdgeInsets.symmetric(
-                                                  vertical: 20),
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 20),
                                               child: Text(
                                                 TIM_t("修改群名称"),
                                                 style: const TextStyle(
                                                     color:
-                                                    AidaBaseColors.white),
+                                                        AidaBaseColors.white),
                                               ),
                                             ),
                                             const Divider(
@@ -126,7 +128,7 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                                               padding: const EdgeInsets.all(20),
                                               child: Column(
                                                 crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Container(
                                                     height: 50,
@@ -134,24 +136,22 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                                                         color: AidaBaseColors
                                                             .inputFillColor,
                                                         borderRadius:
-                                                        BorderRadius
-                                                            .circular(15)),
+                                                            BorderRadius
+                                                                .circular(15)),
                                                     child: Center(
                                                       child: TextField(
                                                         style: const TextStyle(
                                                             color:
-                                                            AidaBaseColors
-                                                                .white),
-                                                        controller:
-                                                        controller,
+                                                                AidaBaseColors
+                                                                    .white),
+                                                        controller: controller,
                                                         decoration:
-                                                        const InputDecoration(
+                                                            const InputDecoration(
                                                           border:
-                                                          InputBorder
-                                                              .none,
+                                                              InputBorder.none,
                                                           fillColor:
-                                                          AidaBaseColors
-                                                              .inputFillColor,
+                                                              AidaBaseColors
+                                                                  .inputFillColor,
                                                           filled: true,
                                                           isDense: true,
                                                           hintText: '',
@@ -178,8 +178,8 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                                                       child: ElevatedButton(
                                                         onPressed: () {
                                                           final text =
-                                                          controller.text
-                                                              .trim();
+                                                              controller.text
+                                                                  .trim();
                                                           if (updateGroupName !=
                                                               null) {
                                                             updateGroupName!(
@@ -188,6 +188,7 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                                                             model.setGroupName(
                                                                 text);
                                                           }
+                                                          onGroupNameChanged?.call(text);
                                                           Navigator.pop(
                                                               context);
                                                           Navigator.pop(
@@ -206,7 +207,7 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                                                   Padding(
                                                     padding: EdgeInsets.only(
                                                         bottom: MediaQuery.of(
-                                                            context)
+                                                                context)
                                                             .viewInsets
                                                             .bottom),
                                                   )
@@ -230,7 +231,8 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                             color: AidaBaseColors.black.withOpacity(0.8),
                             child: CupertinoActionSheetAction(
                               onPressed: () {
-                                eventCenter.post(ChangeGroupImageNotice(model: model));
+                                eventCenter
+                                    .post(ChangeGroupImageNotice(model: model));
                               },
                               child: Text(
                                 tr('chat.avatar_selection'),
