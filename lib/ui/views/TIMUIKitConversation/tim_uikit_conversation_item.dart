@@ -17,6 +17,7 @@ typedef LastMessageBuilder = Widget? Function(
     V2TimMessage? lastMsg, List<V2TimGroupAtInfo?> groupAtInfoList);
 
 class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
+  final String convID;// 添加字段 用于处理aid team 未读数量展示
   final String faceUrl;
   final String nickName;
   final V2TimMessage? lastMsg;
@@ -38,6 +39,7 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
 
   TIMUIKitConversationItem({
     Key? key,
+    required this.convID,
     required this.isShowDraft,
     required this.faceUrl,
     required this.nickName,
@@ -143,6 +145,7 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
                       right: isDisturb ? -2.5 : -4.5,
                       child: UnconstrainedBox(
                         child: UnreadMessage(
+                          convID: convID,
                             width: isDisturb ? 10 : 18,
                             height: isDisturb ? 10 : 18,
                             unreadCount: isDisturb ? 0 : unreadCount),

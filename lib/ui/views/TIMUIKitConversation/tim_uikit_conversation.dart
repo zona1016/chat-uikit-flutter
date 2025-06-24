@@ -519,6 +519,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                                   : Colors.transparent,
                           child: GestureDetector(
                             child: TIMUIKitConversationItem(
+                              convID: conversationItem.groupID ?? '',
                                 isCurrent: isCurrent,
                                 isShowDraft: widget.isShowDraft,
                                 lastMessageBuilder: widget.lastMessageBuilder,
