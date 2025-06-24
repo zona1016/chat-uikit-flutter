@@ -408,9 +408,9 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   }
 
   handleUnReadData(List<V2TimConversation?> filteredConversationList) async {
-
+    if (handleData) return;
+    handleData = true;
     for (var aidTeamConversation in filteredConversationList) {
-
       if (aidTeamConversation != null) {
         final isChannelOrTeam = (TencentUtils.india ==
             aidTeamConversation.groupID ||
@@ -421,7 +421,6 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
             TencentUtils.german == aidTeamConversation.groupID ||
             TencentUtils.aidTeam == aidTeamConversation.groupID);
         if (!isChannelOrTeam) return;
-
         if ((aidTeamConversation.unreadCount ?? 0) > 0) {
           final result = await TencentImSDKPlugin.v2TIMManager
               .getMessageManager()
@@ -448,7 +447,6 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                 aidTeamConversation.unreadCount = filtered.length;
               }
             } else {
-
               await TencentImSDKPlugin.v2TIMManager
                   .getConversationManager()
                   .cleanConversationUnreadMessageCount(
@@ -461,13 +459,17 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           } else {
             aidTeamConversation.unreadCount = 0;
           }
+        } else {
+          await TencentImSDKPlugin.v2TIMManager
+              .getConversationManager()
+              .cleanConversationUnreadMessageCount(
+            conversationID: 'group_' + aidTeamConversation.groupID.toString(),
+            cleanTimestamp: DateTime.now().millisecondsSinceEpoch + 100000, // 稍微靠未来一点
+            cleanSequence: 999999999,     // 一般不会到这个值
+          );
         }
       }
     }
-
-    setState(() {
-
-    });
   }
 
   @override
@@ -501,10 +503,8 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           }
           List<V2TimConversation?> filteredConversationList = getFilteredConversation();
 
-          // 处理数据
-          if (!handleData) {
-            handleUnReadData(filteredConversationList);
-          }
+          handleUnReadData(filteredConversationList);
+
           Widget conversationList() {
             return filteredConversationList.isNotEmpty
                 ? ListView.builder(
