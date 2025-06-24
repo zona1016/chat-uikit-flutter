@@ -163,6 +163,23 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     _autoScrollController = AutoScrollController();
     filteredConversationList = getFilteredConversation();
     channelData();
+    TencentImSDKPlugin.v2TIMManager
+        .getMessageManager()
+        .addAdvancedMsgListener(
+      listener: V2TimAdvancedMsgListener(
+        onRecvNewMessage: (msg) {
+          for (var result in filteredConversationList) {
+            if (msg.groupID != null && result?.groupID == msg.groupID) {
+              result?.lastMessage = msg;
+            }
+
+            if (msg.userID != null && result?.userID == msg.userID) {
+              result?.lastMessage = msg;
+            }
+          }
+        },
+      ),
+    );
   }
 
   // 处理数据
@@ -458,8 +475,6 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     final theme = value.theme;
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
-
-    print('-------------');
     return MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: model),
