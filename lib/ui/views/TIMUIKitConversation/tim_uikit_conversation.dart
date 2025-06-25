@@ -407,7 +407,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     return widget.itemSlideBuilder ?? _defaultSlideBuilder;
   }
 
-  handleUnReadData(List<V2TimConversation?> filteredConversationList) async {
+  handleUnReadData(List<V2TimConversation?> filteredConversationList, TUIConversationViewModel model) async {
     if (handleData) return;
     handleData = true;
     for (var aidTeamConversation in filteredConversationList) {
@@ -469,47 +469,9 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           );
         }
       }
-      await findFirstNonGroupTipsMessage(aidTeamConversation);
-      // 处理lastMsg
     }
   }
 
-  Future<void> findFirstNonGroupTipsMessage(V2TimConversation? aidTeamConversation) async {
-    const int pageSize = 20;
-
-    if (aidTeamConversation == null) return;
-
-    V2TimMessage? lastMsg = aidTeamConversation.lastMessage;
-
-    while (true) {
-      final res = await V2TIMMessageManager().getGroupHistoryMessageList(
-        groupID: aidTeamConversation!.groupID ?? '',
-        count: pageSize,
-        lastMsgID: lastMsg?.id.toString()
-      );
-
-      final fetched = res.data ?? [];
-
-      if (fetched.isEmpty) {
-        // 没有更多消息了
-        return;
-      }
-
-      // 查找这一页中第一条非 GroupTips 消息
-      final nonTipsMsg = fetched.firstWhere(
-            (msg) => msg.elemType != MessageElemType.V2TIM_ELEM_TYPE_GROUP_TIPS
-      );
-      print('------');
-      if (nonTipsMsg != null) {
-        aidTeamConversation.lastMessage = nonTipsMsg;
-        print('------');
-        print(nonTipsMsg.nickName);
-        print(nonTipsMsg.elemType);
-        return;
-      }
-      lastMsg = fetched.last;
-    }
-  }
 
   @override
   void dispose() {
@@ -542,7 +504,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           }
           List<V2TimConversation?> filteredConversationList = getFilteredConversation();
 
-          handleUnReadData(filteredConversationList);
+          handleUnReadData(filteredConversationList, _model);
 
           Widget conversationList() {
             return filteredConversationList.isNotEmpty

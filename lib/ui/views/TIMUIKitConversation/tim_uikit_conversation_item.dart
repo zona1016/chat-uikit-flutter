@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitConversation/tim_uikit_conversation_last_time.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
 
@@ -180,7 +181,7 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     )),
-                    _getTimeStringForChatWidget(context, theme),
+                    TIMUIKitLastTime(lastMsg: lastMsg, draftTimestamp: draftTimestamp,),
                   ],
                 ),
                 if (isHaveSecondLine())
