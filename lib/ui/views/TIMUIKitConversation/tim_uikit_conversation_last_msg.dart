@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
@@ -182,8 +183,8 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
           var key = match.group(0)!.substring(1, match.group(0)!.length - 1);
           if (TUIKitStickerConstData.emojiMapList.containsKey(key)) {
             key = TUIKitStickerConstData.emojiMapList[key]!;
-          } else if (TUIKitStickerConstData.emojiMapListTCC1.containsKey(key)) {
-            key = TUIKitStickerConstData.emojiMapListTCC1[key]!;
+          } else if (CustomTUIKitStickerConstData.emojiMapListTCC1.containsKey(key)) {
+            key = CustomTUIKitStickerConstData.emojiMapListTCC1[key]!;
           }
           return TIM_t("[$key]");
         });
