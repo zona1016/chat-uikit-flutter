@@ -255,9 +255,12 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
     if (aidTeamConversation != null) {
       aidTeamConversation.isPinned = true;
-      aidTeamConversation.unreadCount = 0;
-      conversationList.remove(aidTeamConversation);
-      conversationList.insert(insertIndex, aidTeamConversation);
+      if ((aidTeamConversation.unreadCount ?? 0) > 0) {
+        handleUnReadData(conversationList, insertIndex, aidTeamConversation);
+      } else {
+        conversationList.remove(aidTeamConversation);
+        conversationList.insert(insertIndex, aidTeamConversation);
+      }
     } else {
       aidTeamConversation = V2TimConversation(
         conversationID: 'group_$aidTeamId',
@@ -407,68 +410,50 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     return widget.itemSlideBuilder ?? _defaultSlideBuilder;
   }
 
-  handleUnReadData(List<V2TimConversation?> filteredConversationList, TUIConversationViewModel model) async {
-    if (handleData) return;
-    handleData = true;
-    for (var aidTeamConversation in filteredConversationList) {
-      if (aidTeamConversation != null) {
-        final isChannelOrTeam = (TencentUtils.india ==
-            aidTeamConversation.groupID ||
-            TencentUtils.korea == aidTeamConversation.groupID ||
-            TencentUtils.english == aidTeamConversation.groupID ||
-            TencentUtils.chinese == aidTeamConversation.groupID ||
-            TencentUtils.french == aidTeamConversation.groupID ||
-            TencentUtils.german == aidTeamConversation.groupID ||
-            TencentUtils.aidTeam == aidTeamConversation.groupID);
-        if (!isChannelOrTeam) return;
-        if ((aidTeamConversation.unreadCount ?? 0) > 0) {
-          final result = await TencentImSDKPlugin.v2TIMManager
-              .getMessageManager()
-              .getHistoryMessageList(
-            groupID: aidTeamConversation.groupID,
-            count: aidTeamConversation.unreadCount!,
-          );
-          if (result.code == 0 && result.data != null) {
-            final filtered = result.data!
-                .where((msg) => msg.elemType != 9 && msg.elemType != 11)
-                .toList();
-            V2TimMessage message = result.data!.last;
-            if (filtered.isNotEmpty && filtered.length < result.data!.length) {
-              message = result.data![filtered.length];
-              final cleanRes = await TencentImSDKPlugin.v2TIMManager
-                  .getConversationManager()
-                  .cleanConversationUnreadMessageCount(
-                conversationID: 'group_' + aidTeamConversation.groupID.toString(),
-                cleanTimestamp: message.timestamp ?? 0,
-                cleanSequence: 0,
-              );
+  handleUnReadData(List<V2TimConversation?> conversationList, int insertIndex, V2TimConversation aidTeamConversation) async {
 
-              if (cleanRes.code == 0) {
-                aidTeamConversation.unreadCount = filtered.length;
-              }
-            } else {
-              await TencentImSDKPlugin.v2TIMManager
-                  .getConversationManager()
-                  .cleanConversationUnreadMessageCount(
-                conversationID: 'group_' + aidTeamConversation.groupID.toString(),
-                cleanTimestamp: (message.timestamp ?? 0) + 100000, // 稍微靠未来一点
-                cleanSequence: 999999999,     // 一般不会到这个值
-              );
-              aidTeamConversation.unreadCount = 0;
-            }
-          } else {
-            aidTeamConversation.unreadCount = 0;
-          }
-        } else {
-          await TencentImSDKPlugin.v2TIMManager
+    if ((aidTeamConversation.unreadCount ?? 0) > 0) {
+      final result = await TencentImSDKPlugin.v2TIMManager
+          .getMessageManager()
+          .getHistoryMessageList(
+        groupID: aidTeamConversation.groupID,
+        count: aidTeamConversation.unreadCount!,
+      );
+      if (result.code == 0 && result.data != null) {
+        final filtered = result.data!
+            .where((msg) => msg.elemType != 9 && msg.elemType != 11)
+            .toList();
+        V2TimMessage message = result.data!.last;
+        if (filtered.isNotEmpty && filtered.length < result.data!.length) {
+          message = result.data![filtered.length];
+          final cleanRes = await TencentImSDKPlugin.v2TIMManager
               .getConversationManager()
               .cleanConversationUnreadMessageCount(
             conversationID: 'group_' + aidTeamConversation.groupID.toString(),
-            cleanTimestamp: DateTime.now().millisecondsSinceEpoch + 100000, // 稍微靠未来一点
-            cleanSequence: 999999999,     // 一般不会到这个值
+            cleanTimestamp: (message.timestamp ?? 0) + 1,
+            cleanSequence: 0,
           );
+          if (cleanRes.code == 0) {
+            aidTeamConversation.unreadCount = filtered.length;
+          }
+        } else {
+          aidTeamConversation.unreadCount = 0;
         }
+      } else {
+        aidTeamConversation.unreadCount = 0;
       }
+      conversationList.remove(aidTeamConversation);
+      conversationList.insert(insertIndex, aidTeamConversation);
+    } else {
+      await TencentImSDKPlugin.v2TIMManager
+          .getConversationManager()
+          .cleanConversationUnreadMessageCount(
+        conversationID: 'group_' + aidTeamConversation.groupID.toString(),
+        cleanTimestamp: DateTime.now().millisecondsSinceEpoch + 100000, // 稍微靠未来一点
+        cleanSequence: 999999999,     // 一般不会到这个值
+      );
+      conversationList.remove(aidTeamConversation);
+      conversationList.insert(insertIndex, aidTeamConversation);
     }
   }
 
@@ -502,9 +487,8 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
             _onScrollToConversation(_model.scrollToConversation!);
             _model.clearScrollToConversation();
           }
-          List<V2TimConversation?> filteredConversationList = getFilteredConversation();
 
-          handleUnReadData(filteredConversationList, _model);
+          List<V2TimConversation?> filteredConversationList = getFilteredConversation();
 
           Widget conversationList() {
             return filteredConversationList.isNotEmpty
