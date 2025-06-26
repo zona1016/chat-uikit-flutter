@@ -715,8 +715,10 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
     if (widget.controller != null) {
       widget.controller?.addListener(controllerHandler);
     }
-    final AppLocale appLocale = I18nUtils.findDeviceLocale(null);
-    languageType = (appLocale == AppLocale.zhHans || appLocale == AppLocale.zhHant) ? 'zh' : 'en';
+    // final AppLocale appLocale = I18nUtils.findDeviceLocale(null);
+    // languageType = (appLocale == AppLocale.zhHans || appLocale == AppLocale.zhHant) ? 'zh' : 'en';
+    //默认英文 然后显示根据当前语言
+    languageType = 'en';
     textEditingController.addListener(() {
       _isComposingText = textEditingController.value.composing.start != -1;
     });

@@ -65,7 +65,7 @@ class _AddGroupMemberPageState extends TIMUIKitState<AddGroupMemberPage> {
                   child: Text(
                     TIM_t("确定"),
                     style: TextStyle(
-                      color: theme.appbarTextColor,
+                      color: theme.white,
                       fontSize: 16,
                     ),
                   ),

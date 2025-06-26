@@ -7,9 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
+import 'package:tim_ui_kit_sticker_plugin/constant/emoji.dart';
 
 class TIMUIKitLastMsg extends StatefulWidget {
   final V2TimMessage? lastMsg;
@@ -142,9 +145,9 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
         // 分页的页号：用于分页展示查找结果，从零开始起步。
         pageSize: 1000000);
     V2TimValueCallback<V2TimMessageSearchResult> searchLocalMessagesRes =
-    await TencentImSDKPlugin.v2TIMManager
-        .getMessageManager()
-        .searchLocalMessages(searchParam: searchParam);
+        await TencentImSDKPlugin.v2TIMManager
+            .getMessageManager()
+            .searchLocalMessages(searchParam: searchParam);
     final items = searchLocalMessagesRes.data?.messageSearchResultItems;
     final hasMessages = items != null &&
         items.isNotEmpty &&
@@ -161,13 +164,30 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
     final msgType = message!.elemType;
     switch (msgType) {
       case MessageElemType.V2TIM_ELEM_TYPE_CUSTOM:
+        final isCallType = message.customElem?.data != null &&
+            message.customElem!.data!.contains('call_type');
+        if (isCallType) {
+          final callingMessageDataProvider =
+              CallingMessageDataProvider(message);
+          return callingMessageDataProvider.content;
+        }
         return message.groupID == TencentUtils.aidTeam
             ? '[${tr('chat.announcement_message')}]'
             : TIM_t("[自定义]");
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
         return TIM_t("[语音]");
       case MessageElemType.V2TIM_ELEM_TYPE_TEXT:
-        return (message.textElem?.text)?.trim() ?? "";
+        final text = (message.textElem?.text)?.trim() ?? "";
+        final emojiPattern = RegExp(r'\[.*?\]');
+        return text.replaceAllMapped(emojiPattern, (match) {
+          var key = match.group(0)!.substring(1, match.group(0)!.length - 1);
+          if (TUIKitStickerConstData.emojiMapList.containsKey(key)) {
+            key = TUIKitStickerConstData.emojiMapList[key]!;
+          } else if (CustomTUIKitStickerConstData.emojiMapListTCC1.containsKey(key)) {
+            key = CustomTUIKitStickerConstData.emojiMapListTCC1[key]!;
+          }
+          return TIM_t("[$key]");
+        });
       case MessageElemType.V2TIM_ELEM_TYPE_FACE:
         return TIM_t("[表情]");
       case MessageElemType.V2TIM_ELEM_TYPE_FILE:
