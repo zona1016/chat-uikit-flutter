@@ -89,7 +89,10 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
             await _getLastMsgShowText(message, widget.context) ?? "";
         if (mounted) {
           setState(() {
-            groupTipsAbstractText = newText;
+            groupTipsAbstractText =
+                (message.nickName ?? message.sender ?? '') +
+                    '：' +
+                    newText;
           });
         }
       } else {

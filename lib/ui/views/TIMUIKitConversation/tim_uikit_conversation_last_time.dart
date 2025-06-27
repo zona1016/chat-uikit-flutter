@@ -89,7 +89,7 @@ class _TIMUIKitLastTimeState extends TIMUIKitState<TIMUIKitLastTime> {
         items.first.messageList != null &&
         items.first.messageList!.isNotEmpty;
     if (hasMessages) {
-      return items.first.messageList!.last;
+      return items.first.messageList!.first;
     }
     return null;
   }
