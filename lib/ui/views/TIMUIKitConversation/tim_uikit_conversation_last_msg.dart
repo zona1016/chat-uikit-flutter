@@ -156,10 +156,22 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
         items.isNotEmpty &&
         items.first.messageList != null &&
         items.first.messageList!.isNotEmpty;
+    V2TimMessage? message;
     if (hasMessages) {
-      return items.first.messageList!.first;
+      message = items.first.messageList!.first;
     }
-    return null;
+
+    if (message?.nickName == null && message?.sender != null) {
+      V2TimValueCallback<List<V2TimUserFullInfo>> result =
+      await TencentImSDKPlugin.v2TIMManager
+          .getUsersInfo(userIDList: [message!.sender!]);
+
+      if (result.code == 0 && result.data != null && result.data!.isNotEmpty) {
+        message.nickName = result.data!.first.nickName;
+      }
+    }
+    // 获取用户的昵称
+    return message;
   }
 
   Future<String?> _getLastMsgShowText(
