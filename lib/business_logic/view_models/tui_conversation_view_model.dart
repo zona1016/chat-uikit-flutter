@@ -113,8 +113,8 @@ class TUIConversationViewModel extends ChangeNotifier {
   }
 
   TUIConversationViewModel() {
-    _conversationListener = V2TimConversationListener(onConversationChanged: (conversationList) async {
-      await _onConversationListChanged(conversationList);
+    _conversationListener = V2TimConversationListener(onConversationChanged: (conversationList) {
+      _onConversationListChanged(conversationList);
     }, onNewConversation: (conversationList) {
       _addNewConversation(conversationList);
     }, onTotalUnreadMessageCountChanged: (totalUnread) {
@@ -160,11 +160,7 @@ class TUIConversationViewModel extends ChangeNotifier {
       }
       final List<V2TimConversation?> finalConversationList = await _lifeCycle?.conversationListWillMount(combinedConversationList) ?? combinedConversationList;
       _conversationList = removeDuplicates<V2TimConversation?>(finalConversationList, (item1, item2) => item1?.conversationID == item2?.conversationID);
-      for (V2TimConversation? result in _conversationList) {
-        if (result != null) {
-          await handleUnReadData(result);
-        }
-      }
+
       // 处理数据
       notifyListeners();
     }
@@ -219,7 +215,6 @@ class TUIConversationViewModel extends ChangeNotifier {
   _onConversationListChanged(List<V2TimConversation> list) async {
     for (int element = 0; element < list.length; element++) {
       V2TimConversation conversation = list[element];
-      await handleUnReadData(conversation);
       int index = _conversationList.indexWhere((item) => item!.conversationID == list[element].conversationID);
       if (index > -1) {
         _conversationList.setAll(index, [list[element]] as List<V2TimConversation?>);
@@ -229,66 +224,6 @@ class TUIConversationViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
-  }
-
-  handleUnReadData(V2TimConversation conversation) async {
-    final isChannelOrTeam = (TencentUtils.india ==
-        conversation.groupID ||
-        TencentUtils.korea == conversation.groupID ||
-        TencentUtils.english == conversation.groupID ||
-        TencentUtils.chinese == conversation.groupID ||
-        TencentUtils.french == conversation.groupID ||
-        TencentUtils.german == conversation.groupID ||
-        TencentUtils.aidTeam == conversation.groupID);
-    if (!isChannelOrTeam) return;
-    if ((conversation.unreadCount ?? 0) > 0) {
-      final result = await TencentImSDKPlugin.v2TIMManager
-          .getMessageManager()
-          .getHistoryMessageList(
-        groupID: conversation.groupID,
-        count: conversation.unreadCount!,
-      );
-      if (result.code == 0 && result.data != null) {
-        final filtered = result.data!
-            .where((msg) => msg.elemType != 9 && msg.elemType != 11)
-            .toList();
-        V2TimMessage message = result.data!.last;
-        if (filtered.isNotEmpty) {
-          if (filtered.length < result.data!.length) {
-            message = result.data![filtered.length];
-            final cleanRes = await TencentImSDKPlugin.v2TIMManager
-                .getConversationManager()
-                .cleanConversationUnreadMessageCount(
-              conversationID: 'group_' + conversation.groupID.toString(),
-              cleanTimestamp: 0,
-              cleanSequence: message.timestamp ?? 0,
-            );
-            if (cleanRes.code == 0) {
-              conversation.unreadCount = filtered.length;
-            }
-          }
-        } else {
-          await TencentImSDKPlugin.v2TIMManager
-              .getConversationManager()
-              .cleanConversationUnreadMessageCount(
-            conversationID: 'group_' + conversation.groupID.toString(),
-            cleanTimestamp: (message.timestamp ?? 0) + 100000, // 稍微靠未来一点
-            cleanSequence: 999999999,     // 一般不会到这个值
-          );
-          conversation.unreadCount = 0;
-        }
-      } else {
-        conversation.unreadCount = 0;
-      }
-    } else {
-      await TencentImSDKPlugin.v2TIMManager
-          .getConversationManager()
-          .cleanConversationUnreadMessageCount(
-        conversationID: 'group_' + conversation.groupID.toString(),
-        cleanTimestamp: DateTime.now().millisecondsSinceEpoch + 100000, // 稍微靠未来一点
-        cleanSequence: 999999999,     // 一般不会到这个值
-      );
-    }
   }
 
   _addNewConversation(List<V2TimConversation> list) {
