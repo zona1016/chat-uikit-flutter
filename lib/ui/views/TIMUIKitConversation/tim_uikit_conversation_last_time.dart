@@ -40,8 +40,13 @@ class _TIMUIKitLastTimeState extends TIMUIKitState<TIMUIKitLastTime> {
             TencentUtils.german == widget.lastMsg?.groupID)) {
       final message = await pressedFunction();
       setState(() {
-        groupTipsAbstractText = TimeAgo().getTimeStringForChat(message?.timestamp as int) ??
-            "";
+        if (message?.timestamp != null) {
+          groupTipsAbstractText = TimeAgo().getTimeStringForChat(message?.timestamp as int) ??
+              "";
+        } else {
+          groupTipsAbstractText = '';
+        }
+
       });
       return;
     }

@@ -1,7 +1,7 @@
 class TencentUtils {
 
   /// aid team
-  static String aidTeam = '@TGS#_@TGS#cUALV6JM62CG';
+  static const String aidTeam = '@TGS#_@TGS#cUALV6JM62CG';
   /// 韩国频道
   static const String korea = "@TGS#_@TGS#c7AGVBKM62CP";
 
@@ -29,6 +29,7 @@ class TencentUtils {
 
   static String baseUrl = 'https://api.aitm-data.com/';
   static const currentLocale = "current_locale";
+  static const String unreadMark = 'unread_mark';
 
   static bool isTextNotEmpty(String? text){
     return text != null && text.isNotEmpty;

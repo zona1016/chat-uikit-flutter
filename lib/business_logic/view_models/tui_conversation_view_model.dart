@@ -44,6 +44,8 @@ class TUIConversationViewModel extends ChangeNotifier {
   String? _scrollToConversation;
   final TUIChatGlobalModel globalChatModel = serviceLocator<TUIChatGlobalModel>();
 
+  List<String> needUpdateGroup = [];
+
   String _nextSeq = "0";
   ConversationLifeCycle? _lifeCycle;
 
@@ -215,6 +217,23 @@ class TUIConversationViewModel extends ChangeNotifier {
   _onConversationListChanged(List<V2TimConversation> list) async {
     for (int element = 0; element < list.length; element++) {
       V2TimConversation conversation = list[element];
+      // 处理是否要刷新
+      final isChannelOrTeam = (TencentUtils.india ==
+          conversation.groupID ||
+          TencentUtils.korea == conversation.groupID ||
+          TencentUtils.english == conversation.groupID ||
+          TencentUtils.chinese == conversation.groupID ||
+          TencentUtils.french == conversation.groupID ||
+          TencentUtils.german == conversation.groupID ||
+          TencentUtils.aidTeam == conversation.groupID);
+      if (isChannelOrTeam) {
+        if (conversation.lastMessage?.elemType != 9 && conversation.lastMessage?.elemType != 11) {
+          if (conversation.groupID != null && !needUpdateGroup.contains(conversation.groupID)) {
+            needUpdateGroup.add(conversation.groupID!);
+          }
+        }
+      }
+
       int index = _conversationList.indexWhere((item) => item!.conversationID == list[element].conversationID);
       if (index > -1) {
         _conversationList.setAll(index, [list[element]] as List<V2TimConversation?>);

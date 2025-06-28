@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -242,6 +243,32 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
   }
 
+  handleUnReadData(List<V2TimConversation?> filteredConversationList, TUIConversationViewModel model) async {
+    if (handleData) return;
+    handleData = true;
+    for (var aidTeamConversation in filteredConversationList) {
+      if (aidTeamConversation != null) {
+        final isChannelOrTeam = (TencentUtils.india ==
+            aidTeamConversation.groupID ||
+            TencentUtils.korea == aidTeamConversation.groupID ||
+            TencentUtils.english == aidTeamConversation.groupID ||
+            TencentUtils.chinese == aidTeamConversation.groupID ||
+            TencentUtils.french == aidTeamConversation.groupID ||
+            TencentUtils.german == aidTeamConversation.groupID ||
+            TencentUtils.aidTeam == aidTeamConversation.groupID);
+        if (!isChannelOrTeam) return;
+        // 全部设置为已读
+        await TencentImSDKPlugin.v2TIMManager
+            .getConversationManager()
+            .cleanConversationUnreadMessageCount(
+          conversationID: 'group_' + aidTeamConversation.groupID.toString(),
+          cleanTimestamp: DateTime.now().millisecondsSinceEpoch + 100000, // 稍微靠未来一点
+          cleanSequence: 999999999,     // 一般不会到这个值
+        );
+      }
+    }
+  }
+
   List<V2TimConversation?> updateAidTeamConversation(
       List<V2TimConversation?> conversationList,
       String aidTeamId, {
@@ -407,74 +434,6 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     return widget.itemSlideBuilder ?? _defaultSlideBuilder;
   }
 
-  handleUnReadData(List<V2TimConversation?> filteredConversationList, TUIConversationViewModel model) async {
-    if (handleData) return;
-    handleData = true;
-    for (var aidTeamConversation in filteredConversationList) {
-      if (aidTeamConversation != null) {
-        final isChannelOrTeam = (TencentUtils.india ==
-            aidTeamConversation.groupID ||
-            TencentUtils.korea == aidTeamConversation.groupID ||
-            TencentUtils.english == aidTeamConversation.groupID ||
-            TencentUtils.chinese == aidTeamConversation.groupID ||
-            TencentUtils.french == aidTeamConversation.groupID ||
-            TencentUtils.german == aidTeamConversation.groupID ||
-            TencentUtils.aidTeam == aidTeamConversation.groupID);
-        if (!isChannelOrTeam) return;
-        if ((aidTeamConversation.unreadCount ?? 0) > 0) {
-          final result = await TencentImSDKPlugin.v2TIMManager
-              .getMessageManager()
-              .getHistoryMessageList(
-            groupID: aidTeamConversation.groupID,
-            count: aidTeamConversation.unreadCount!,
-          );
-          if (result.code == 0 && result.data != null) {
-            final filtered = result.data!
-                .where((msg) => msg.elemType != 9 && msg.elemType != 11)
-                .toList();
-            V2TimMessage message = result.data!.last;
-            if (filtered.isNotEmpty) {
-              if (filtered.length < result.data!.length) {
-                message = result.data![filtered.length];
-                final cleanRes = await TencentImSDKPlugin.v2TIMManager
-                    .getConversationManager()
-                    .cleanConversationUnreadMessageCount(
-                  conversationID: 'group_' + aidTeamConversation.groupID.toString(),
-                  cleanTimestamp: 0,
-                  cleanSequence: int.parse(message.seq ?? '0'),
-                );
-
-                if (cleanRes.code == 0) {
-                  aidTeamConversation.unreadCount = filtered.length;
-                }
-              }
-            } else {
-              await TencentImSDKPlugin.v2TIMManager
-                  .getConversationManager()
-                  .cleanConversationUnreadMessageCount(
-                conversationID: 'group_' + aidTeamConversation.groupID.toString(),
-                cleanTimestamp: (message.timestamp ?? 0) + 100000, // 稍微靠未来一点
-                cleanSequence: 999999999,     // 一般不会到这个值
-              );
-              aidTeamConversation.unreadCount = 0;
-            }
-          } else {
-            aidTeamConversation.unreadCount = 0;
-          }
-        } else {
-          await TencentImSDKPlugin.v2TIMManager
-              .getConversationManager()
-              .cleanConversationUnreadMessageCount(
-            conversationID: 'group_' + aidTeamConversation.groupID.toString(),
-            cleanTimestamp: DateTime.now().millisecondsSinceEpoch + 100000, // 稍微靠未来一点
-            cleanSequence: 999999999,     // 一般不会到这个值
-          );
-        }
-      }
-    }
-  }
-
-
   @override
   void dispose() {
     super.dispose();
@@ -574,8 +533,13 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                                 : null,
                             draftTimestamp: conversationItem.draftTimestamp,
                             convType: conversationItem.type),
-                        onTap: () {
+                        onTap: () async {
                           conversationItem.unreadCount = 0;
+                          final res = await TencentImSDKPlugin.v2TIMManager.getLoginUser();
+                          if (res.code == 0) {
+                            final key = '${TencentUtils.unreadMark}_${res.data}_${conversationItem.groupID}';
+                            await GetStorage().write(key, DateTime.now().millisecondsSinceEpoch);
+                          }
                           onTapConvItem(conversationItem);
                         },
                       ),

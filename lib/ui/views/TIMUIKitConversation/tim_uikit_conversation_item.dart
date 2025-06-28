@@ -140,7 +140,7 @@ class TIMUIKitConversationItem extends TIMUIKitStatelessWidget {
                       faceUrl: faceUrl.contains('http') ? faceUrl : 'https://$faceUrl',
                       showName: nickName,
                       type: convType,),
-                  if (unreadCount != 0)
+                  // if (unreadCount != 0)
                     Positioned(
                       top: isDisturb ? -2.5 : -4.5,
                       right: isDisturb ? -2.5 : -4.5,
