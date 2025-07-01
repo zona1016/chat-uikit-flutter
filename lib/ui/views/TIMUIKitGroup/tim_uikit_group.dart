@@ -94,7 +94,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                 faceUrl: groupInfo.faceUrl,
               );
               final res = await TencentImSDKPlugin
-                  .v2TIMManager.v2ConversationManager
+                  .v2TIMManager.v2TIMConversationManager
                   .getConversation(
                       conversationID: "group_${groupInfo.groupID}");
               if (res.code == 0 && res.data != null) {

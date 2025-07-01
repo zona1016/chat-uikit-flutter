@@ -114,7 +114,7 @@ class ConversationServicesImpl extends ConversationService {
       {required String convID}) async {
     final result = await TencentImSDKPlugin.v2TIMManager
         .getConversationManager()
-        .getConversationListByConversaionIds(conversationIDList: [convID]);
+        .getConversationListByConversationIds(conversationIDList: [convID]);
     if (result.code != 0) {
       _coreService.callOnCallback(TIMCallback(
           type: TIMCallbackType.API_ERROR,
