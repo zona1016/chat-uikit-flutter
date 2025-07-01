@@ -303,24 +303,24 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      // if (widget.conversationType != ConvType.group && !model.selfDestructMode)
-      //   MorePanelItem(
-      //       id: "vanish",
-      //       title: TIM_t("阅后即焚"),
-      //       onTap: (c) {
-      //         _onFeatureTap(
-      //           "vanish",
-      //           c,
-      //           model,
-      //           theme,
-      //         );
-      //       },
-      //       icon: Image.asset(
-      //         "images/more_self_destruct.png",
-      //         package: 'tencent_cloud_chat_uikit',
-      //         height: 64,
-      //         width: 64,
-      //       )),
+      if (widget.conversationType != ConvType.group && !model.selfDestructMode)
+        MorePanelItem(
+            id: "vanish",
+            title: TIM_t("阅后即焚"),
+            onTap: (c) {
+              _onFeatureTap(
+                "vanish",
+                c,
+                model,
+                theme,
+              );
+            },
+            icon: Image.asset(
+              "images/more_self_destruct.png",
+              package: 'tencent_cloud_chat_uikit',
+              height: 64,
+              width: 64,
+            )),
       if (config.extraAction != null) ...?config.extraAction,
     ].where((element) {
       if (element.id == "screen") {
