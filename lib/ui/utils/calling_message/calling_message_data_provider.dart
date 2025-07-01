@@ -68,12 +68,33 @@ class CallingMessageDataProvider {
     _setContent();
   }
 
+  Map<String, dynamic> _convertToNewSignalingInfoFormat(Map<String, dynamic> oldJson) {
+    final isNewFormat = oldJson.containsKey('signaling_info_invite_id');
+    if (isNewFormat) {
+      // Assume already in correct format
+      return oldJson;
+    }
+    return {
+      'signaling_info_invite_id': oldJson['inviteID'] ?? '',
+      'signaling_info_group_id': oldJson['groupID'],
+      'signaling_info_inviter': oldJson['inviter'] ?? '',
+      'signaling_info_invitee_list': oldJson['inviteeList'] ?? [],
+      'signaling_info_data': oldJson['data'],
+      'signaling_info_timeout': oldJson['timeout'],
+      'signaling_info_action_type': oldJson['actionType'] ?? 0,
+      // keep old keys for iOS if needed
+      'businessID': oldJson['businessID'],
+      'isOnlineUserOnly': oldJson['isOnlineUserOnly'],
+      'offlinePushInfo': oldJson['offlinePushInfo'],
+    };
+  }
+
   _initInter(V2TimMessage message) async {
     _innerMessage = message;
     try {
       if (_innerMessage?.customElem?.data != null) {
         final signalingInfoData = jsonDecode(_innerMessage!.customElem!.data!);
-        _signalingInfo = V2TimSignalingInfo.fromJson(signalingInfoData);
+        _signalingInfo = V2TimSignalingInfo.fromJson(_convertToNewSignalingInfoFormat(signalingInfoData));
       } else {
         return;
       }
