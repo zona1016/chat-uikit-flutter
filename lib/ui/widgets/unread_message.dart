@@ -27,7 +27,7 @@ class UnreadMessage extends StatefulWidget {
 
 class _UnreadMessageState extends State<UnreadMessage> {
   final TUIConversationViewModel model =
-  serviceLocator<TUIConversationViewModel>();
+      serviceLocator<TUIConversationViewModel>();
 
   String generateUnreadText() =>
       widget.unreadCount > 99 ? '99+' : widget.unreadCount.toString();
@@ -40,7 +40,15 @@ class _UnreadMessageState extends State<UnreadMessage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    unreadText = TencentUtils.india == widget.convID ? '' : generateUnreadText();
+    unreadText = (TencentUtils.india == widget.convID ||
+            TencentUtils.korea == widget.convID ||
+            TencentUtils.english == widget.convID ||
+            TencentUtils.chinese == widget.convID ||
+            TencentUtils.french == widget.convID ||
+            TencentUtils.german == widget.convID ||
+            TencentUtils.aidTeam == widget.convID)
+        ? ''
+        : generateUnreadText();
     handleShowUnRead();
   }
 
@@ -54,10 +62,10 @@ class _UnreadMessageState extends State<UnreadMessage> {
         TencentUtils.aidTeam == widget.convID);
 
     if (isChannelOrTeam) {
-
       final res = await TencentImSDKPlugin.v2TIMManager.getLoginUser();
       if (res.code == 0) {
-        bool isToday = await isGroupCheckedToday(res.data!, widget.convID!, DateTime.now().millisecondsSinceEpoch);
+        bool isToday = await isGroupCheckedToday(
+            res.data!, widget.convID!, DateTime.now().millisecondsSinceEpoch);
         if (isToday) {
           setState(() {
             unreadText = '0';
@@ -66,7 +74,6 @@ class _UnreadMessageState extends State<UnreadMessage> {
           bool haveMessage = await pressedFunction();
           if (haveMessage) {
             setState(() {
-              print(widget.convID);
               unreadText = '';
             });
           } else {
@@ -80,28 +87,18 @@ class _UnreadMessageState extends State<UnreadMessage> {
           unreadText = '0';
         });
       }
-
-      // 获取触发时间是否是今天
-
-      // 是 不展示
-
-      // 不是 今天是否有有非群提示消息
-
-      // 没有 不展示
-      // 有 展示
-
-      // 点击消除
-
     }
   }
 
-  Future<bool> isGroupCheckedToday(String userID, String groupID, int currentServerTime) async {
+  Future<bool> isGroupCheckedToday(
+      String userID, String groupID, int currentServerTime) async {
     final key = '${TencentUtils.unreadMark}_${userID}_$groupID';
     final saved = await GetStorage().read(key);
 
     if (saved == null) return false;
 
-    final savedDate = DateTime.fromMillisecondsSinceEpoch(int.parse(saved.toString()));
+    final savedDate =
+        DateTime.fromMillisecondsSinceEpoch(int.parse(saved.toString()));
     final currentDate = DateTime.fromMillisecondsSinceEpoch(currentServerTime);
 
     return savedDate.year == currentDate.year &&
@@ -110,7 +107,6 @@ class _UnreadMessageState extends State<UnreadMessage> {
   }
 
   Future<bool> pressedFunction() async {
-
     final now = DateTime.now(); // 当前本地时间
     final todayZero = DateTime(now.year, now.month, now.day); // 今天 0 点
     final duration = now.difference(todayZero); // 当前时间 - 今天 0 点
@@ -135,9 +131,9 @@ class _UnreadMessageState extends State<UnreadMessage> {
         // 分页的页号：用于分页展示查找结果，从零开始起步。
         pageSize: 1000000);
     V2TimValueCallback<V2TimMessageSearchResult> searchLocalMessagesRes =
-    await TencentImSDKPlugin.v2TIMManager
-        .getMessageManager()
-        .searchLocalMessages(searchParam: searchParam);
+        await TencentImSDKPlugin.v2TIMManager
+            .getMessageManager()
+            .searchLocalMessages(searchParam: searchParam);
     final items = searchLocalMessagesRes.data?.messageSearchResultItems;
     final hasMessages = items != null &&
         items.isNotEmpty &&
@@ -148,21 +144,30 @@ class _UnreadMessageState extends State<UnreadMessage> {
 
   @override
   Widget build(BuildContext context) {
-
     final fontSize = generateFontSize(unreadText);
+    unreadText = (TencentUtils.india == widget.convID ||
+        TencentUtils.korea == widget.convID ||
+        TencentUtils.english == widget.convID ||
+        TencentUtils.chinese == widget.convID ||
+        TencentUtils.french == widget.convID ||
+        TencentUtils.german == widget.convID ||
+        TencentUtils.aidTeam == widget.convID)
+        ? ''
+        : generateUnreadText();
     if (model.needUpdateGroup.contains(widget.convID)) {
       model.needUpdateGroup.remove(widget.convID);
       handleShowUnRead();
     }
-    return unreadText != "0" ? Container(
-      width: widget.width,
-      height: widget.height,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Color(0xFF00BBBD),
-      ),
-      child: Center(
+    return unreadText != "0"
+        ? Container(
+            width: widget.width,
+            height: widget.height,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFF00BBBD),
+            ),
+            child: Center(
               child: Text(
                 unreadText,
                 style: TextStyle(
@@ -170,7 +175,7 @@ class _UnreadMessageState extends State<UnreadMessage> {
                   fontSize: fontSize,
                 ),
               ),
-            )
-    ) : Container();
+            ))
+        : Container();
   }
 }
