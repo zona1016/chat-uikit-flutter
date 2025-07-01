@@ -145,18 +145,19 @@ class _UnreadMessageState extends State<UnreadMessage> {
   @override
   Widget build(BuildContext context) {
     final fontSize = generateFontSize(unreadText);
-    unreadText = (TencentUtils.india == widget.convID ||
+    if (TencentUtils.india == widget.convID ||
         TencentUtils.korea == widget.convID ||
         TencentUtils.english == widget.convID ||
         TencentUtils.chinese == widget.convID ||
         TencentUtils.french == widget.convID ||
         TencentUtils.german == widget.convID ||
-        TencentUtils.aidTeam == widget.convID)
-        ? ''
-        : generateUnreadText();
-    if (model.needUpdateGroup.contains(widget.convID)) {
-      model.needUpdateGroup.remove(widget.convID);
+        TencentUtils.aidTeam == widget.convID) {
       handleShowUnRead();
+      if (model.needUpdateGroup.contains(widget.convID)) {
+        model.needUpdateGroup.remove(widget.convID);
+      }
+    } else {
+      unreadText = generateUnreadText();
     }
     return unreadText != "0"
         ? Container(
