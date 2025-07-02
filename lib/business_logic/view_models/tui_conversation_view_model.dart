@@ -275,7 +275,10 @@ class TUIConversationViewModel extends ChangeNotifier {
         final topicInfoList = await TencentImSDKPlugin.v2TIMManager.getGroupManager().getTopicInfoList(groupID: groupID!, topicIDList: [conversationID]);
         final topicInfo = topicInfoList.data?.first.topicInfo;
         topicInfo?.draftText = draftText;
-        final res = await TencentImSDKPlugin.v2TIMManager.getGroupManager().setTopicInfo(topicInfo: topicInfo!);
+        //tencent_chat 8.5
+        // final res = await TencentImSDKPlugin.v2TIMManager.getGroupManager().setTopicInfo(topicInfo: topicInfo!);
+        //tencent_chat 8.2 - 确定升级了才去掉
+        final res = await TencentImSDKPlugin.v2TIMManager.getGroupManager().setTopicInfo(groupID: groupID, topicInfo: topicInfo!);
         return res;
       } else {
         return _conversationService.setConversationDraft(conversationID: conversationID, draftText: draftText);

@@ -77,9 +77,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     return Container(
       margin: const EdgeInsets.only(bottom: 0.5),
-      decoration: const BoxDecoration(
-        color: Colors.transparent
-      ),
+      decoration: const BoxDecoration(color: Colors.transparent),
       child: Material(
         color: isDesktopScreen ? theme.wideBackgroundColor : Colors.transparent,
         child: InkWell(
@@ -93,8 +91,14 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                 groupType: groupInfo.groupType,
                 faceUrl: groupInfo.faceUrl,
               );
+              //tencent_chat 8.5
+              // final res = await TencentImSDKPlugin
+              //     .v2TIMManager.v2TIMConversationManager
+              //     .getConversation(
+              //         conversationID: "group_${groupInfo.groupID}");
+              //tencent_chat 8.2 - 确定升级了才去掉
               final res = await TencentImSDKPlugin
-                  .v2TIMManager.v2TIMConversationManager
+                  .v2TIMManager.v2ConversationManager
                   .getConversation(
                       conversationID: "group_${groupInfo.groupID}");
               if (res.code == 0 && res.data != null) {
@@ -115,7 +119,8 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                     height: isDesktopScreen ? 30 : 40,
                     width: isDesktopScreen ? 30 : 40,
                     child: Avatar(
-                      borderRadius: BorderRadius.circular((isDesktopScreen ? 30 : 40) / 2),
+                      borderRadius: BorderRadius.circular(
+                          (isDesktopScreen ? 30 : 40) / 2),
                       faceUrl: faceUrl,
                       showName: showName,
                       type: 2,
@@ -129,7 +134,8 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                   child: Text(
                     showName,
                     style: TextStyle(
-                        color: AidaBaseColors.white, fontSize: isDesktopScreen ? 14 : 18),
+                        color: AidaBaseColors.white,
+                        fontSize: isDesktopScreen ? 14 : 18),
                   ),
                 ))
               ],
@@ -182,7 +188,7 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
         }
 
         V2TimGroupInfo? group = groupList.firstWhereOrNull(
-              (conversation) => conversation.groupID == TencentUtils.aidTeam,
+          (conversation) => conversation.groupID == TencentUtils.aidTeam,
         );
         if (group != null) {
           groupList.remove(group);

@@ -94,7 +94,10 @@ class CallingMessageDataProvider {
     try {
       if (_innerMessage?.customElem?.data != null) {
         final signalingInfoData = jsonDecode(_innerMessage!.customElem!.data!);
-        _signalingInfo = V2TimSignalingInfo.fromJson(_convertToNewSignalingInfoFormat(signalingInfoData));
+        //tencent_chat 8.5
+        // _signalingInfo = V2TimSignalingInfo.fromJson(_convertToNewSignalingInfoFormat(signalingInfoData));
+        //tencent_chat 8.2 - 确定升级了才去掉
+        _signalingInfo = V2TimSignalingInfo.fromJson(signalingInfoData);
       } else {
         return;
       }

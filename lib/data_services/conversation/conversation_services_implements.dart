@@ -112,9 +112,15 @@ class ConversationServicesImpl extends ConversationService {
   @override
   Future<V2TimConversation?> getConversationListByConversationId(
       {required String convID}) async {
+    //tencent_chat 8.5
+    // final result = await TencentImSDKPlugin.v2TIMManager
+    //     .getConversationManager()
+    //     .getConversationListByConversationIds(conversationIDList: [convID]);
+    //tencent_chat 8.2 - 确定升级了才去掉
     final result = await TencentImSDKPlugin.v2TIMManager
         .getConversationManager()
-        .getConversationListByConversationIds(conversationIDList: [convID]);
+        .getConversationListByConversaionIds(conversationIDList: [convID]);
+
     if (result.code != 0) {
       _coreService.callOnCallback(TIMCallback(
           type: TIMCallbackType.API_ERROR,
