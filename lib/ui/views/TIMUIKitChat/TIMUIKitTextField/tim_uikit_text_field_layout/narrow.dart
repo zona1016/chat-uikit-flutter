@@ -23,6 +23,8 @@ import 'package:tencent_keyboard_visibility/tencent_keyboard_visibility.dart';
 GlobalKey<_TIMUIKitTextFieldLayoutNarrowState> narrowTextFieldKey = GlobalKey();
 
 class TIMUIKitTextFieldLayoutNarrow extends StatefulWidget {
+  final GestureTapCallback? onTap;
+
   /// sticker panel customization
   final CustomStickerPanel? customStickerPanel;
 
@@ -98,6 +100,7 @@ class TIMUIKitTextFieldLayoutNarrow extends StatefulWidget {
   const TIMUIKitTextFieldLayoutNarrow(
       {Key? key,
       this.customStickerPanel,
+      this.onTap,
       required this.onEmojiSubmitted,
       required this.onCustomEmojiFaceSubmitted,
       required this.backSpaceText,
@@ -445,17 +448,20 @@ class _TIMUIKitTextFieldLayoutNarrowState
                     children: [
                       if (widget.forbiddenText != null)
                         Expanded(
-                            child: Container(
-                          height: 35,
-                          color: Colors.transparent,
-                          alignment: Alignment.center,
-                          child: Text(
-                            TIM_t(widget.forbiddenText!),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: AidaBaseColors.white,
+                            child: GestureDetector(
+                          onTap: widget.onTap,
+                          child: Container(
+                            height: 35,
+                            color: Colors.transparent,
+                            alignment: Alignment.center,
+                            child: Text(
+                              TIM_t(widget.forbiddenText!),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AidaBaseColors.white,
+                              ),
                             ),
                           ),
                         )),

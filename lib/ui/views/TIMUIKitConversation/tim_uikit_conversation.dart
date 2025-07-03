@@ -159,6 +159,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   late AutoScrollController _autoScrollController;
 
   bool handleData = false;
+  int index = 0;
 
   @override
   void initState() {
@@ -186,17 +187,18 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
   // 处理数据
   channelData(List<V2TimConversation?> filteredConversationList) async {
+    index = 0;
     filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.aidTeam,
-      insertIndex: 0,
+      insertIndex: index,
       showName: tr('wallet.aid_team'),
     );
 
     filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.english,
-      insertIndex: 1,
+      insertIndex: index,
       showName: tr('general.english_channel'),
       faceUrl: TencentUtils.englishFaceUrl,
     );
@@ -204,7 +206,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.german,
-      insertIndex: 2,
+      insertIndex: index,
       showName: tr('general.german_channel'),
       faceUrl: TencentUtils.germanFaceUrl,
     );
@@ -212,7 +214,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.french,
-      insertIndex: 3,
+      insertIndex: index,
       showName: tr('general.french_channel'),
       faceUrl: TencentUtils.frenchFaceUrl,
     );
@@ -220,7 +222,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.korea,
-      insertIndex: 4,
+      insertIndex: index,
       showName: tr('general.korean_channel'),
       faceUrl: TencentUtils.koreaFaceUrl,
     );
@@ -228,7 +230,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.chinese,
-      insertIndex: 5,
+      insertIndex: index,
       showName: tr('general.chinese_channel'),
       faceUrl: TencentUtils.chineseFaceUrl,
     );
@@ -236,7 +238,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     filteredConversationList =  updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.india,
-      insertIndex: 6,
+      insertIndex: index,
       showName: tr('general.indian_channel'),
       faceUrl: TencentUtils.indiaFaceUrl,
     );
@@ -285,20 +287,23 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       aidTeamConversation.unreadCount = 0;
       conversationList.remove(aidTeamConversation);
       conversationList.insert(insertIndex, aidTeamConversation);
+      index++;
     } else {
-      aidTeamConversation = V2TimConversation(
-        conversationID: 'group_$aidTeamId',
-        groupID: aidTeamId,
-        showName: showName ?? tr('wallet.aid_team'),
-        faceUrl: faceUrl ?? '',
-        lastMessage: null,
-        draftText: '',
-      );
-      aidTeamConversation.isPinned = true;
-      aidTeamConversation.recvOpt = 0;
-      aidTeamConversation.unreadCount = 0;
+      if (index == 0) {
+        aidTeamConversation = V2TimConversation(
+          conversationID: 'group_$aidTeamId',
+          groupID: aidTeamId,
+          showName: showName ?? tr('wallet.aid_team'),
+          faceUrl: faceUrl ?? '',
+          lastMessage: null,
+          draftText: '',
+        );
+        aidTeamConversation.isPinned = true;
+        aidTeamConversation.recvOpt = 0;
+        aidTeamConversation.unreadCount = 0;
 
-      conversationList.insert(insertIndex, aidTeamConversation);
+        conversationList.insert(insertIndex, aidTeamConversation);
+      }
     }
 
     return conversationList;

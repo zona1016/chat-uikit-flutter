@@ -128,7 +128,9 @@ class TUIConversationViewModel extends ChangeNotifier {
       if (!PlatformUtils().isWeb) {
         loadInitConversation();
       }
-    });
+    }, onConversationDeleted: (conversationIDList) {
+      _onConversationListDelete(conversationIDList);
+    },);
   }
 
   loadInitConversation() async {
@@ -242,6 +244,16 @@ class TUIConversationViewModel extends ChangeNotifier {
       }
     }
 
+    notifyListeners();
+  }
+
+  _onConversationListDelete(List<String> list) async {
+    print('---------');
+    print(list);
+    print(_conversationList.length);
+    _conversationList.removeWhere((conversation) =>
+        list.contains('group_${conversation?.groupID}'));
+    print(_conversationList.length);
     notifyListeners();
   }
 
