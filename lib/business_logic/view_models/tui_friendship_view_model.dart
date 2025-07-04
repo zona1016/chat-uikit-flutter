@@ -166,6 +166,15 @@ class TUIFriendShipViewModel extends ChangeNotifier {
         await _friendshipServices.getFriendList() ?? [];
     final memberList =
         await _contactListLifeCycle?.friendListWillMount(res) ?? res;
+    for (var user in memberList) {
+      if (user.userProfile?.nickName == null && user.userProfile?.userID != null) {
+        final userInfoList =
+        await _friendshipServices.getFriendsInfo(userIDList: [user.userProfile!.userID!]);
+        if (userInfoList != null && userInfoList.isNotEmpty) {
+          user = userInfoList[0].friendInfo!;
+        }
+      }
+    }
     _friendList = memberList;
     notifyListeners();
     return;
