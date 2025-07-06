@@ -297,7 +297,7 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
                 child: Text(
               widget.message.customElem?.desc ??
                   'AID ${tr('wallet.red_packet')}',
-              maxLines: 3,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 14,

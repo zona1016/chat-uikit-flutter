@@ -248,12 +248,8 @@ class TUIConversationViewModel extends ChangeNotifier {
   }
 
   _onConversationListDelete(List<String> list) async {
-    print('---------');
-    print(list);
-    print(_conversationList.length);
     _conversationList.removeWhere((conversation) =>
         list.contains('group_${conversation?.groupID}'));
-    print(_conversationList.length);
     notifyListeners();
   }
 
