@@ -28,6 +28,16 @@ class _TIMUIKitLastTimeState extends TIMUIKitState<TIMUIKitLastTime> {
     _getTimeStringForChatWidget();
   }
 
+  @override
+  void didUpdateWidget(covariant TIMUIKitLastTime oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((oldWidget.lastMsg?.msgID != widget.lastMsg?.msgID) ||
+        (oldWidget.lastMsg?.id != widget.lastMsg?.id) ||
+        (oldWidget.lastMsg?.status != widget.lastMsg?.status)) {
+      _getTimeStringForChatWidget();
+    }
+  }
+
   _getTimeStringForChatWidget() async {
     if (widget.lastMsg?.elemType ==
         MessageElemType.V2TIM_ELEM_TYPE_GROUP_TIPS &&
