@@ -387,7 +387,7 @@ class TIMUIKitMessageTooltipState
                       style: const TextStyle(
                         decoration: TextDecoration.none,
                         color: AidaBaseColors.white,
-                        fontSize: 10,
+                        fontSize: 9,
                       ),
                     )
                   ],
@@ -623,10 +623,10 @@ class TIMUIKitMessageTooltipState
                             alignment:
                                 TUIKitScreenUtils.getFormFactor(context) ==
                                         DeviceType.Mobile
-                                    ? WrapAlignment.spaceBetween
+                                    ? WrapAlignment.start
                                     : WrapAlignment.start,
-                            spacing: 4,
-                            runSpacing: 8,
+                            spacing: 0,
+                            runSpacing: 20,
                             children: [
                               ..._buildLongPressTipItem(theme, model, message),
                               if (extraTipsActionItem != null)
@@ -637,7 +637,7 @@ class TIMUIKitMessageTooltipState
                           ConstrainedBox(
                             constraints: BoxConstraints(
                               maxWidth: min(
-                                  MediaQuery.of(context).size.width * 0.75,
+                                  MediaQuery.of(context).size.width * 0.6,
                                   350),
                             ),
                             child: Wrap(
@@ -645,10 +645,10 @@ class TIMUIKitMessageTooltipState
                               alignment:
                                   TUIKitScreenUtils.getFormFactor(context) ==
                                           DeviceType.Mobile
-                                      ? WrapAlignment.spaceBetween
+                                      ? WrapAlignment.start
                                       : WrapAlignment.start,
-                              spacing: 4,
-                              runSpacing: 8,
+                              spacing: 0,
+                              runSpacing: 20,
                               children: [
                                 ..._buildLongPressTipItem(
                                     theme, model, message),

@@ -40,7 +40,8 @@ class _SendApplicationState extends TIMUIKitState<SendApplication> {
     super.initState();
     final showName =
         widget.model.loginInfo?.nickName ?? widget.model.loginInfo?.userID;
-    _verficationController.text = "我是: $showName";
+    _verficationController.text =
+        TIM_t_para("我是: {{option1}}", "我是: $showName")(option1: showName);
   }
 
   @override

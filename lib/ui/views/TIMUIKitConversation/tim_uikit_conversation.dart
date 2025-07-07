@@ -303,6 +303,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
         aidTeamConversation.unreadCount = 0;
 
         conversationList.insert(insertIndex, aidTeamConversation);
+        index++;
       }
     }
 
