@@ -33,6 +33,7 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/TIMUIKitMessageReaction/tim_uikit_message_reaction_wrapper.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/multi_image_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/image_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -82,12 +83,12 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     super.didUpdateWidget(oldWidget);
   }
 
-  String getOriginImgURL() {
+  String getOriginImgURL(V2TimImageElem imageElem) {
     // 实际拿的是原图
     V2TimImage? img = MessageUtils.getImageFromImgList(
-        widget.message.imageElem!.imageList,
+        imageElem.imageList,
         HistoryMessageDartConstant.oriImgPrior);
-    return img == null ? widget.message.imageElem!.path! : img.url!;
+    return img == null ? imageElem.path! : img.url!;
   }
 
   Widget errorDisplay(BuildContext context, TUITheme? theme) {
@@ -130,6 +131,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     bool isLocalResource = true,
     TUITheme? theme,
   }) async {
+
     if (PlatformUtils().isWeb) {
       download(imageUrl) async {
         final http.Response r = await http.get(Uri.parse(imageUrl));
@@ -231,7 +233,6 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     }
 
     var result = await ImageGallerySaver.saveFile(imageUrl);
-
     if (PlatformUtils().isIOS) {
       if (result['isSuccess']) {
         onTIMCallback(TIMCallback(
@@ -260,14 +261,13 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     return;
   }
 
-  Future<void> _saveImg(TUITheme theme) async {
+  Future<void> _saveImg(TUITheme theme, V2TimImageElem? imageElem) async {
     try {
       String? imageUrl;
       bool isAssetBool = false;
-      final imageElem = widget.message.imageElem;
 
       if (imageElem != null) {
-        final originUrl = getOriginImgURL();
+        final originUrl = getOriginImgURL(imageElem);
         final localUrl = imageElem.imageList?.firstOrNull?.localUrl;
         final filePath = imageElem.path;
         final isWeb = PlatformUtils().isWeb;
@@ -302,9 +302,9 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     }
   }
 
-  V2TimImage? getImageFromList(V2TimImageTypesEnum imgType) {
+  V2TimImage? getImageFromList(V2TimImageTypesEnum imgType, List<V2TimImage?>? imageList) {
     V2TimImage? img = MessageUtils.getImageFromImgList(
-        widget.message.imageElem!.imageList,
+        imageList,
         HistoryMessageDartConstant.imgPriorMap[imgType] ??
             HistoryMessageDartConstant.oriImgPrior);
 
@@ -411,7 +411,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     required TUITheme theme,
     String? imgUrl,
     String? imgPath,
-  }) {
+  }) async {
     if (isNetworkImage) {
       if (PlatformUtils().isWeb) {
         TUIKitWidePopup.showMedia(
@@ -428,20 +428,22 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
           originImgUrl: imgUrl,
         );
       } else {
-        Navigator.of(context).push(
-          PageRouteBuilder(
-              opaque: false,
-              pageBuilder: (_, __, ___) => ImageScreen(
-                  imageProvider: CachedNetworkImageProvider(
-                    imgUrl ?? "",
-                    cacheKey: widget.message.msgID,
-                  ),
-                  heroTag: heroTag,
-                  messageID: widget.message.msgID,
-                  downloadFn: () async {
-                    return await _saveImg(theme);
-                  })),
-        );
+
+        await pressedFunction(theme);
+        // Navigator.of(context).push(
+        //   PageRouteBuilder(
+        //       opaque: false,
+        //       pageBuilder: (_, __, ___) => ImageScreen(
+        //           imageProvider: CachedNetworkImageProvider(
+        //             imgUrl ?? "",
+        //             cacheKey: widget.message.msgID,
+        //           ),
+        //           heroTag: heroTag,
+        //           messageID: widget.message.msgID,
+        //           downloadFn: () async {
+        //             return await _saveImg(theme,widget.message.imageElem);
+        //           })),
+        // );
       }
     } else {
       if (PlatformUtils().isDesktop) {
@@ -450,19 +452,71 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
             context: context,
             onClickOrigin: () => launchDesktopFile(imgPath ?? ""));
       } else {
-        Navigator.of(context).push(
-          PageRouteBuilder(
-            opaque: false, // set to false
-            pageBuilder: (_, __, ___) => ImageScreen(
-                imageProvider: FileImage(File(imgPath ?? "")),
-                heroTag: heroTag,
-                messageID: widget.message.msgID,
-                downloadFn: () async {
-                  return await _saveImg(theme);
-                }),
-          ),
-        );
+
+        await pressedFunction(theme);
+        // Navigator.of(context).push(
+        //   PageRouteBuilder(
+        //     opaque: false, // set to false
+        //     pageBuilder: (_, __, ___) => ImageScreen(
+        //         imageProvider: FileImage(File(imgPath ?? "")),
+        //         heroTag: heroTag,
+        //         messageID: widget.message.msgID,
+        //         downloadFn: () async {
+        //           return await _saveImg(theme, widget.message.imageElem);
+        //         }),
+        //   ),
+        // );
       }
+    }
+  }
+
+  Future<void> pressedFunction(TUITheme theme) async {
+    V2TimMessageSearchParam searchParam = V2TimMessageSearchParam(
+        conversationID: (widget.message.userID == null || widget.message.userID!.isEmpty)
+            ? "group_${widget.message.groupID}"
+            : "c2c_${widget.message.userID}" ,
+        // conversationID == null，代表搜索全部会话，conversationID != null，代表搜索指定会话。
+        keywordList: [],
+        // 关键字列表，最多支持5个。当消息发送者以及消息类型均未指定时，关键字列表必须非空；否则，关键字列表可以为空。
+        type: 3,
+        // 获取历史消息类型
+        userIDList: null,
+        // 指定 userID 发送的消息，最多支持5个。
+        messageTypeList: [MessageElemType.V2TIM_ELEM_TYPE_IMAGE],
+        // 消息类型过滤列表
+        searchTimePeriod: 0,
+        // 从起始时间点开始的过去时间范围，单位秒。默认为0即代表不限制时间范围，传24x60x60代表过去一天。
+        searchTimePosition: 0,
+        // 搜索的起始时间点。默认为0即代表从现在开始搜索。UTC 时间戳，单位：秒
+        pageIndex: 0,
+        // 分页的页号：用于分页展示查找结果，从零开始起步。
+        pageSize: 1000);
+    V2TimValueCallback<V2TimMessageSearchResult> searchLocalMessagesRes =
+    await TencentImSDKPlugin.v2TIMManager
+        .getMessageManager()
+        .searchLocalMessages(searchParam: searchParam);
+    final items = searchLocalMessagesRes.data?.messageSearchResultItems;
+    final hasMessages = items != null &&
+        items.isNotEmpty &&
+        items.first.messageList != null &&
+        items.first.messageList!.isNotEmpty;
+
+    if (hasMessages) {
+      final reversedList = items.first.messageList!.reversed.toList();
+      int index = reversedList
+          .indexWhere((msg) => msg.msgID == widget.message.msgID);
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          opaque: false,
+          pageBuilder: (_, __, ___) => MultiImageScreen(
+            images: reversedList,
+            initialIndex: index,
+            downloadFn: (message) async {
+              return await _saveImg(theme, message.imageElem);
+            }, // 自定义下载函数
+          ),
+        ),
+      );
     }
   }
 
@@ -742,8 +796,8 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     final heroTag =
         "${widget.message.msgID ?? widget.message.id ?? widget.message.timestamp ?? DateTime.now().millisecondsSinceEpoch}${widget.isFrom}";
 
-    V2TimImage? originalImg = getImageFromList(V2TimImageTypesEnum.original);
-    V2TimImage? smallImg = getImageFromList(V2TimImageTypesEnum.small);
+    V2TimImage? originalImg = getImageFromList(V2TimImageTypesEnum.original, widget.message.imageElem!.imageList);
+    V2TimImage? smallImg = getImageFromList(V2TimImageTypesEnum.small, widget.message.imageElem!.imageList);
 
     final backgroundColor = isDesktopScreen
         ? widget.isFromSelf
