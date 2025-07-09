@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
+import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
@@ -44,11 +45,12 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
   @override
   void didUpdateWidget(covariant TIMUIKitLastMsg oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if ((oldWidget.lastMsg?.msgID != widget.lastMsg?.msgID) ||
-        (oldWidget.lastMsg?.id != widget.lastMsg?.id) ||
-        (oldWidget.lastMsg?.status != widget.lastMsg?.status)) {
-      _getMsgElem();
-    }
+    // if ((oldWidget.lastMsg?.msgID != widget.lastMsg?.msgID) ||
+    //     (oldWidget.lastMsg?.id != widget.lastMsg?.id) ||
+    //     (oldWidget.lastMsg?.status != widget.lastMsg?.status)) {
+    //   _getMsgElem();
+    // }
+    _getMsgElem();
   }
 
   (bool isRevoke, bool isRevokeByAdmin) isRevokeMessage(V2TimMessage? message) {
@@ -118,6 +120,14 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
       final newText =
           await _getLastMsgShowText(widget.lastMsg, widget.context) ?? "";
       if (mounted) {
+        // 获取最新名称
+        V2TimValueCallback<List<V2TimUserFullInfo>> res =
+        await TIMUIKitCore.getInstance()
+            .getUsersInfo(userIDList: [widget.lastMsg?.sender ?? '']);
+
+        if (res.code == 0 && res.data != null) {
+          widget.lastMsg?.nickName = res.data!.first.nickName;
+        }
         setState(() {
           if (widget.lastMsg?.elemType == 9) {
             groupTipsAbstractText = newText;
