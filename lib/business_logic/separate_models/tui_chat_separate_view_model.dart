@@ -39,6 +39,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
   int _totalUnreadCount = 0;
   bool _isMultiSelect = false;
   bool _isInit = false;
+  bool isAdmin = false;
   String conversationID = "";
   ConvType? conversationType;
   bool _selfDestructMode = false;
@@ -213,6 +214,25 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
         if (data.isNotEmpty) {
           _notify();
         }
+      }
+    }
+  }
+
+  Future<void> getSelfGroupRole(String groupID) async {
+    final result = await V2TIMManager().getLoginUser();
+
+    final res = await TencentImSDKPlugin.v2TIMManager
+        .getGroupManager()
+        .getGroupMembersInfo(
+      groupID: groupID,
+      memberList: [result.data as String],
+    );
+
+    if (res.code == 0 && res.data != null && res.data!.isNotEmpty) {
+      final selfInfo = res.data!.first;
+      if (selfInfo.role == 400 || selfInfo.role == 300) {
+        isAdmin = true;
+        _notify();
       }
     }
   }

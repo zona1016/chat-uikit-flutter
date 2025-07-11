@@ -1005,10 +1005,15 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
                 TencentUtils.german == widget.conversationID);
 
             if (isChannel) {
-              if (model.isNotAMember) {
-                return ea.tr('button.join_channel');
+              model.getSelfGroupRole(widget.conversationID);
+              if (model.isAdmin) {
+                return null;
               } else {
-                return ea.tr('button.leave_channel');
+                if (model.isNotAMember) {
+                  return ea.tr('button.join_channel');
+                } else {
+                  return ea.tr('button.leave_channel');
+                }
               }
             }
 
