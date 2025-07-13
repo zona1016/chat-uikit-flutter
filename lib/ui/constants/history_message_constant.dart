@@ -33,7 +33,7 @@ class HistoryMessageDartConstant {
 
 class CustomTUIKitStickerConstData {
   static final emojiMapListTCC1 = {
-    "Like": "喜欢",
+    "Like": "赞",
     "OK": 'OK',
     "Smile": "微笑",
     "Expect": "期待",
