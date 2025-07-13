@@ -200,6 +200,12 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
               CallingMessageDataProvider(message);
           return callingMessageDataProvider.content;
         }
+
+        final isRed = message.customElem?.data != null &&
+            message.customElem!.data!.contains('Envelopes');
+        if (isRed) {
+          return '[${tr('wallet.red_packet')}]';
+        }
         return message.groupID == TencentUtils.aidTeam
             ? '[${tr('chat.announcement_message')}]'
             : TIM_t("[自定义]");
