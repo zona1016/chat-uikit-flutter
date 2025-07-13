@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/group/group_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
@@ -134,13 +137,12 @@ class _AtTextState extends TIMUIKitState<AtText> {
     return TUIKitScreenUtils.getDeviceWidget(
         context: context,
         desktopWidget: mentionedMembersBody(),
-        defaultWidget: Scaffold(
-            appBar: AppBar(
-              shadowColor: theme.weakBackgroundColor,
-              iconTheme: IconThemeData(
-                color: theme.appbarTextColor,
-              ),
-              backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
+        defaultWidget: ChatBaseScreen(
+            safeAreaTop: false,
+            safeAreaBottom: false,
+            backgroundColor: Colors.transparent,
+            backgroundImage: AidaBaseColors.baseBackgroundImage,
+            appBar: ChatBaseAppBar(
               leading: Row(
                 children: [
                   IconButton(
@@ -159,15 +161,7 @@ class _AtTextState extends TIMUIKitState<AtText> {
                   ),
                 ],
               ),
-              centerTitle: true,
-              leadingWidth: 100,
-              title: Text(
-                TIM_t("选择提醒人"),
-                style: TextStyle(
-                  color: theme.appbarTextColor,
-                  fontSize: 17,
-                ),
-              ),
+              title: TIM_t("选择提醒人"),
             ),
             body: mentionedMembersBody()));
   }
