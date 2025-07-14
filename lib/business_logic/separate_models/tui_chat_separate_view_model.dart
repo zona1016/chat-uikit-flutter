@@ -605,7 +605,22 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
           nextSeq: seq ?? groupMemberListSeq);
       final groupMemberListRes = res.data;
       if (res.code == 0 && groupMemberListRes != null) {
+
         final groupMemberListTemp = groupMemberListRes.memberInfoList ?? [];
+
+        for (var member in groupMemberListTemp) {
+          if (member?.nickName == null || member!.nickName!.isEmpty) {
+            V2TimValueCallback<List<V2TimUserFullInfo>> result =
+            await TencentImSDKPlugin.v2TIMManager
+                .getUsersInfo(userIDList: [member!.userID]);
+
+            if (result.code == 0 && result.data != null && result.data!.isNotEmpty) {
+              member.nickName = result.data!.first.nickName;
+              member.nameCard = result.data!.first.nickName;
+            }
+          }
+        }
+
         groupMemberList = [...?groupMemberList, ...groupMemberListTemp];
         groupMemberListSeq = groupMemberListRes.nextSeq ?? "0";
       } else if (res.code == 10010) {
