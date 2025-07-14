@@ -78,12 +78,15 @@ class MorePanel extends StatefulWidget {
   /// 会话类型
   final ConvType conversationType;
 
+  final bool needShow;
+
   final MorePanelConfig? morePanelConfig;
 
   const MorePanel(
       {required this.conversationID,
       required this.conversationType,
       Key? key,
+      this.needShow = false,
       this.morePanelConfig})
       : super(key: key);
 
@@ -177,7 +180,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
       //       height: 64,
       //       width: 64,
       //     )),
-      if (PlatformUtils().isMobile && !model.selfDestructMode)
+      if (PlatformUtils().isMobile && !model.selfDestructMode && !widget.needShow)
         MorePanelItem(
             id: "red_packet",
             title: tr('wallet.red_packet'),
@@ -822,7 +825,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                     : (start + itemsPerPage);
                 if (start >= items.length) return const SizedBox.shrink();
                 final pageItems = items.sublist(start, end);
-          
+
                 return GridView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   padding: EdgeInsets.zero,
@@ -853,8 +856,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                                     width: 64,
                                     margin: const EdgeInsets.only(bottom: 4),
                                     decoration: const BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.all(Radius.circular(5))),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))),
                                     child: item.icon,
                                   ),
                                   Text(
@@ -878,20 +881,21 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
           ),
           const SizedBox(height: 8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              (itemList(model, theme).length / 8).ceil(),
-              (index) => AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: _currentPage == index ? 10 : 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: _currentPage == index ? Colors.white : Colors.white24,
-                  borderRadius: BorderRadius.circular(3),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                (itemList(model, theme).length / 8).ceil(),
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentPage == index ? 10 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color:
+                        _currentPage == index ? Colors.white : Colors.white24,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
                 ),
-              ),
-            )),
+              )),
         ],
       ),
     );

@@ -265,6 +265,7 @@ class _TIMUIKitTextFieldLayoutNarrowState
 
     if (showMore) {
       return MorePanel(
+          needShow: widget.model.chatConfig.isNeedShow,
           morePanelConfig: widget.morePanelConfig,
           conversationID: widget.conversationID,
           conversationType: widget.conversationType);

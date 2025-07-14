@@ -245,9 +245,13 @@ class TIMUIKitChatConfig {
 
   final bool isAidTeam;
 
+  // 处理审核
+  final bool isNeedShow;
+
   const TIMUIKitChatConfig(
       {this.onTapLink,
       this.isAidTeam = false,
+      this.isNeedShow = false,
       this.timeDividerConfig,
       this.desktopStickerPanelHeight = 400,
       this.stickerPanelConfig,
