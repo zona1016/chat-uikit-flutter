@@ -271,44 +271,32 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
       },
       child: Container(
         height: 70,
-        constraints: const BoxConstraints(maxWidth: 160),
-        decoration: const BoxDecoration(
+        constraints: const BoxConstraints(maxWidth: 207),
+        decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/red_pagket_bg.png',
+            image: AssetImage('images/red_pagket_bg${widget.isFromSelf ? '1' : ''}.png',
                 package: 'tencent_cloud_chat_uikit'), // 本地图片
             fit: BoxFit.fitHeight,
           ),
         ),
-        child: Row(
-          children: [
-            const SizedBox(
-              width: 16,
-            ),
-            Image.asset(
-              'images/red_pagket_icon.png',
-              package: 'tencent_cloud_chat_uikit',
-              width: 40,
-              height: 40,
-            ),
-            const SizedBox(
-              width: 16,
-            ),
-            Expanded(
-                child: Text(
-              widget.message.customElem?.desc ??
-                  'AID ${tr('wallet.red_packet')}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AidaBaseColors.white,
-              ),
-            )),
-            const SizedBox(
-              width: 16,
-            ),
-          ],
-        ),
+        alignment: widget.isFromSelf ? Alignment.centerLeft : Alignment.centerRight,
+        // child:Padding(
+        //   padding: widget.isFromSelf ? const EdgeInsets.only(top: 8, left: 28) : const EdgeInsets.only(top: 8, right: 2),
+        //   child: SizedBox(
+        //     width: 60,
+        //     child: Text(
+        //       // widget.message.customElem?.desc ??
+        //           'AID ${tr('wallet.red_packet')}',
+        //       maxLines: 1,
+        //       textAlign: widget.isFromSelf ? TextAlign.end : TextAlign.start,
+        //       overflow: TextOverflow.ellipsis,
+        //       style: const TextStyle(
+        //         fontSize: 12,
+        //         color: AidaBaseColors.white,
+        //       ),
+        //     ),
+        //   ),
+        // ),
       ),
     );
   }
