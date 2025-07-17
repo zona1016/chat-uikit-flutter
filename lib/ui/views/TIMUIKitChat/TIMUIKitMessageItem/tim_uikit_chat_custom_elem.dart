@@ -265,6 +265,15 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
   }
 
   _redPacketItem() {
+    String? detail;
+    if (widget.message.customElem?.desc != null &&
+        widget.message.customElem!.desc!
+            .contains(TencentUtils.redPacketDelimiter)) {
+      final parts =
+      widget.message.customElem!.desc!.split(TencentUtils.redPacketDelimiter);
+      detail = parts[1];
+    }
+
     return GestureDetector(
       onTap: () {
         _redPacketOnTap();
@@ -274,29 +283,29 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
         constraints: const BoxConstraints(maxWidth: 207),
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/red_pagket_bg${widget.isFromSelf ? '1' : ''}.png',
+            image: AssetImage(
+                'images/red_pagket_bg${widget.isFromSelf ? '1' : ''}.png',
                 package: 'tencent_cloud_chat_uikit'), // 本地图片
             fit: BoxFit.fitHeight,
           ),
         ),
-        alignment: widget.isFromSelf ? Alignment.centerLeft : Alignment.centerRight,
-        // child:Padding(
-        //   padding: widget.isFromSelf ? const EdgeInsets.only(top: 8, left: 28) : const EdgeInsets.only(top: 8, right: 2),
-        //   child: SizedBox(
-        //     width: 60,
-        //     child: Text(
-        //       // widget.message.customElem?.desc ??
-        //           'AID ${tr('wallet.red_packet')}',
-        //       maxLines: 1,
-        //       textAlign: widget.isFromSelf ? TextAlign.end : TextAlign.start,
-        //       overflow: TextOverflow.ellipsis,
-        //       style: const TextStyle(
-        //         fontSize: 12,
-        //         color: AidaBaseColors.white,
-        //       ),
-        //     ),
-        //   ),
-        // ),
+        alignment:
+            widget.isFromSelf ? Alignment.centerLeft : Alignment.centerRight,
+        child: Container(
+          width: 80,
+          padding: const EdgeInsets.only(top: 8, left: 20),
+          child: Center(
+            child: Text(
+              detail ?? '',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AidaBaseColors.white,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -377,7 +386,6 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
   }
 
   _loadVideoImage(url) async {
-
     if (_isLoading) return;
 
     final plugin = FcNativeVideoThumbnail();

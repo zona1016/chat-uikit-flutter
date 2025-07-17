@@ -1,5 +1,7 @@
 class TencentUtils {
 
+  /// ##!红包分界线!##
+  static const String redPacketDelimiter = '##!红包分界线!##';
   /// aid team
   static const String aidTeam = '@TGS#_@TGS#cUALV6JM62CG';
   /// 韩国频道
