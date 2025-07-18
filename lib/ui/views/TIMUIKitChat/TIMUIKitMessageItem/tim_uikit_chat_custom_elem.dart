@@ -266,11 +266,11 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
 
   _redPacketItem() {
     String? detail;
-    if (widget.message.customElem?.desc != null &&
-        widget.message.customElem!.desc!
+    if (widget.message.customElem?.data != null &&
+        widget.message.customElem!.data!
             .contains(TencentUtils.redPacketDelimiter)) {
       final parts =
-      widget.message.customElem!.desc!.split(TencentUtils.redPacketDelimiter);
+      widget.message.customElem!.data!.split(TencentUtils.redPacketDelimiter);
       detail = parts[1];
     }
 
