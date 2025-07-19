@@ -269,8 +269,8 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
     if (widget.message.customElem?.data != null &&
         widget.message.customElem!.data!
             .contains(TencentUtils.redPacketDelimiter)) {
-      final parts =
-      widget.message.customElem!.data!.split(TencentUtils.redPacketDelimiter);
+      final parts = widget.message.customElem!.data!
+          .split(TencentUtils.redPacketDelimiter);
       detail = parts[1];
     }
 
@@ -313,7 +313,8 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
   _redPacketOnTap() async {
     eventCenter.post(RedPacketTipNotice(
         redEnvelopId: widget.message.customElem!.extension!,
-        desc: widget.message.customElem!.desc!));
+        desc: widget.message.customElem!.desc!,
+        isSelf: widget.isFromSelf));
   }
 
   _aidTeam(Map<String, dynamic> result) {
