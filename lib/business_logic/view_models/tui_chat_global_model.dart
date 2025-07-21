@@ -19,6 +19,7 @@ import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/logger.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 
 enum ConvType { none, c2c, group }
 
@@ -41,6 +42,7 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
   final Map<String, dynamic> _preloadImageMap = {};
   final Map<String, HistoryMessagePosition> _historyMessagePositionMap = {};
   final List<CurrentConversation> _currentConversationList = [];
+  final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
 
   Map<String, dynamic> get preloadImageMap => _preloadImageMap;
 
@@ -613,14 +615,48 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
       final convID = receipt.userID;
       final isNotEmpty = _messageListMap[convID]?.isNotEmpty;
       if (isNotEmpty != null && isNotEmpty) {
-        _messageListMap[convID] = _messageListMap[convID]!.map((element) {
-          final isSelf = element.isSelf ?? true;
-          final isPeerRead = element.isPeerRead ?? false;
-          if (isSelf && !isPeerRead) {
-            element.isPeerRead = true;
-          }
-          return element;
-        }).toList();
+        // _messageListMap[convID] = _messageListMap[convID]!.map((element) {
+        //   final isSelf = element.isSelf ?? true;
+        //   final isPeerRead = element.isPeerRead ?? false;
+        //   if (isSelf && !isPeerRead) {
+        //     element.isPeerRead = true;
+        //   }
+        //   return element;
+        // }).toList();
+
+        final updatedList = _messageListMap[convID]!.where((element) {
+        final isSelf = element.isSelf ?? true;
+        final isPeerRead = element.isPeerRead ?? false;
+
+        // If not self or already peer read, keep the message
+        if (!isSelf || isPeerRead) return true;
+
+        // Decode custom data
+        final customData = (element.cloudCustomData?.trim().isNotEmpty ?? false)
+            ? jsonDecode(element.cloudCustomData!)
+            : {};
+
+        final shouldDelete = customData['isSelfDestruct'] == true;
+        if (shouldDelete) {
+          // Future.delayed(const Duration(seconds: SelfDestructQueue.burnSeconds), () {
+          //   debugPrint('Deleting message after 15 seconds: ${element.msgID!}');
+          //   _messageService.deleteMessages(msgIDs: [element.msgID!]);
+
+          //   // Optional: remove from local list too
+          //   _messageListMap[convID]?.removeWhere((msg) => msg.msgID == element.msgID);
+          //   notifyListeners();
+          // });
+          debugPrint('Deleting self-destruct message ${element.msgID}');
+          _messageService.deleteMessages(msgIDs: [element.msgID!]);
+          return false; // Remove from list
+        }
+
+        // Mark as read
+        element.isPeerRead = true;
+        return true;
+      }).toList();
+
+      _messageListMap[convID] = updatedList;
       }
     }
     notifyListeners();

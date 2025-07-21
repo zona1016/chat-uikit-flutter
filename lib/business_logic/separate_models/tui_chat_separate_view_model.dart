@@ -115,6 +115,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
 
   set selfDestructMode(bool value) {
     _selfDestructMode = value;
+    TUIToast.show(content: value ? TIM_t("阅后即焚模式已打开") : TIM_t("阅后即焚模式已关闭"), duration: TUIDuration.short);
     _notify();
   }
 

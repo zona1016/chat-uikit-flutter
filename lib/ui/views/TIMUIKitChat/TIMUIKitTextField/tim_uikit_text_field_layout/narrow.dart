@@ -670,6 +670,7 @@ class _TIMUIKitTextFieldLayoutNarrowState
                             if (widget.textEditingController.text.isEmpty) {
                               setState(() {
                                 showMoreButton = true;
+                                isTextEmpty = true;
                               });
                             }
                           },
