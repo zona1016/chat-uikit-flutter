@@ -47,8 +47,9 @@ class SendRedPacketNotice {
 class RedPacketTipNotice {
   final String redEnvelopId;
   final String desc;
+  final bool isSelf;
 
-  RedPacketTipNotice({required this.redEnvelopId, required this.desc});
+  RedPacketTipNotice({required this.redEnvelopId, required this.desc, required this.isSelf});
 }
 
 // 个人名片点击 加好友
