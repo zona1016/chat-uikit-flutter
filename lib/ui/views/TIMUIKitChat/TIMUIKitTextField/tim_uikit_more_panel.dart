@@ -156,19 +156,19 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      if (PlatformUtils().isMobile)
-        MorePanelItem(
-            id: "screens",
-            title: TIM_t("录像"),
-            onTap: (c) {
-              _onFeatureTap("screen", c, model, theme);
-            },
-            icon: Image.asset(
-              "images/more_lx.png",
-              package: 'tencent_cloud_chat_uikit',
-              height: 64,
-              width: 64,
-            )),
+      // if (PlatformUtils().isMobile)
+      //   MorePanelItem(
+      //       id: "screens",
+      //       title: TIM_t("录像"),
+      //       onTap: (c) {
+      //         _onFeatureTap("screen", c, model, theme);
+      //       },
+      //       icon: Image.asset(
+      //         "images/more_lx.png",
+      //         package: 'tencent_cloud_chat_uikit',
+      //         height: 64,
+      //         width: 64,
+      //       )),
       // if (PlatformUtils().isMobile && widget.conversationType == ConvType.c2c)
       // MorePanelItem(
       //     id: "yhjf",
