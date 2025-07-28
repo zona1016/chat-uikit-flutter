@@ -191,6 +191,10 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
   Future<String?> _getLastMsgShowText(
       V2TimMessage? message, BuildContext context) async {
     final msgType = message!.elemType;
+    final customData = (message.cloudCustomData?.trim().isNotEmpty ?? false)
+        ? jsonDecode(message.cloudCustomData!)
+        : {};
+    debugPrint('LAST MESSAGE ${message.textElem?.text ?? 'EMPTY TEXT'} - isSelfDestruct ${customData['isSelfDestruct']}');
     switch (msgType) {
       case MessageElemType.V2TIM_ELEM_TYPE_CUSTOM:
         final isCallType = message.customElem?.data != null &&
@@ -210,10 +214,14 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
             ? '[${tr('chat.announcement_message')}]'
             : TIM_t("[自定义]");
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
-        return TIM_t("[语音]");
+        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[语音]");
       case MessageElemType.V2TIM_ELEM_TYPE_TEXT:
         final text = (message.textElem?.text)?.trim() ?? "";
         final emojiPattern = RegExp(r'\[.*?\]');
+
+        if (!emojiPattern.hasMatch(text)) {
+          return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : text;
+        }
         return text.replaceAllMapped(emojiPattern, (match) {
           var key = match.group(0)!.substring(1, match.group(0)!.length - 1);
           if (TUIKitStickerConstData.emojiMapList.containsKey(key)) {
@@ -221,10 +229,10 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
           } else if (CustomTUIKitStickerConstData.emojiMapListTCC1.containsKey(key)) {
             key = CustomTUIKitStickerConstData.emojiMapListTCC1[key]!;
           }
-          return TIM_t("[$key]");
+          return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[$key]");
         });
       case MessageElemType.V2TIM_ELEM_TYPE_FACE:
-        return TIM_t("[表情]");
+        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[表情]");
       case MessageElemType.V2TIM_ELEM_TYPE_FILE:
         final option1 = widget.lastMsg!.fileElem!.fileName;
         return TIM_t_para("[文件] {{option1}}", "[文件] $option1")(
@@ -233,15 +241,15 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
         return await MessageUtils.groupTipsMessageAbstract(
             message.groupTipsElem!, []);
       case MessageElemType.V2TIM_ELEM_TYPE_IMAGE:
-        return TIM_t("[图片]");
+        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[图片]");
       case MessageElemType.V2TIM_ELEM_TYPE_VIDEO:
-        return TIM_t("[视频]");
+        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[视频]");
       case MessageElemType.V2TIM_ELEM_TYPE_LOCATION:
         return TIM_t("[位置]");
       case MessageElemType.V2TIM_ELEM_TYPE_MERGER:
         return TIM_t("[聊天记录]");
       default:
-        return null;
+        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : null;
     }
   }
 

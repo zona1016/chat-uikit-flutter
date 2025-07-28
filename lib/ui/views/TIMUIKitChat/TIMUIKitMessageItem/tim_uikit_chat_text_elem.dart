@@ -67,7 +67,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     _setupCallbacks();
     _getLinkPreview();
 
-    debugPrint('CUSTOM DATA ' + (widget.message.cloudCustomData ?? 'NOTHING'));
+    debugPrint('CUSTOM DATA TEXT ${widget.message.msgID} ' + (widget.message.cloudCustomData ?? 'NOTHING'));
     final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
         ? jsonDecode(widget.message.cloudCustomData!)
         : {};
@@ -75,6 +75,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
       isSelfDestruct = customData['isSelfDestruct'] ?? false;
       if (widget.message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC) {
         _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
+        isOpen = _isViewed;
         _remainingSeconds =
             _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
       }
@@ -96,20 +97,39 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     });
   }
 
-  void _setupCallbacks() {
-    _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
-      if (msgID == widget.message.msgID && mounted) {
-        setState(() {
-          _remainingSeconds = remaining;
-        });
-      }
-    };
+  void _onCountdownUpdate(String msgID, int remaining) {
+    debugPrint('remaining seconds $remaining for msg id $msgID');
+    if (msgID == widget.message.msgID && mounted) {
+      setState(() {
+        _remainingSeconds = remaining;
+      });
+    }
+  }
 
-    _selfDestructQueue.onMessageDeleted = (msgID) {
-      if (msgID == widget.message.msgID) {
-        //widget.onDeleted?.call();
-      }
-    };
+  void _onMessageDeleted(String msgID) {
+    if (msgID == widget.message.msgID) {
+      //widget.onDeleted?.call();
+    }
+  }
+  void _setupCallbacks() {
+    // _selfDestructQueue.addCountdownListener((msgID, remaining) {
+    //   // debugPrint('countdown remaining seconds $remaining s');
+    //   debugPrint('current widget msgID: $_currentMsgID vs $msgID');
+    //   if (msgID == widget.message.msgID! && mounted) {
+    //     debugPrint('Updating UI with remaining: $remaining');
+    //     setState(() {
+    //       _remainingSeconds = remaining;
+    //     });
+    //   }
+    // });
+
+    // _selfDestructQueue.dele = (msgID) {
+    //   if (msgID == _currentMsgID) {
+    //     //widget.onDeleted?.call();
+    //   }
+    // };
+    _selfDestructQueue.addCountdownListener(_onCountdownUpdate);
+    _selfDestructQueue.addMessageDeletedListener(_onMessageDeleted);
   }
 
   void _viewMessage() {
@@ -117,8 +137,16 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
       setState(() {
         _isViewed = true;
       });
+      debugPrint('view message ${widget.message.msgID}');
       _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
     }
+  }
+
+  @override
+  void dispose() {
+    _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
+    _selfDestructQueue.removeMessageDeletedListener(_onMessageDeleted);
+    super.dispose();
   }
 
   _showJumpColor() {

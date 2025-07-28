@@ -16,8 +16,29 @@ class SelfDestructQueue {
   late TUIChatSeparateViewModel chatModel;
 
   // 用于UI更新的回调
-  Function(String msgID, int remainingSeconds)? onCountdownUpdate;
-  Function(String msgID)? onMessageDeleted;
+  // Function(String msgID, int remainingSeconds)? onCountdownUpdate;
+  // Function(String msgID)? onMessageDeleted;
+  final Set<void Function(String msgID, int remainingSeconds)>
+    _countdownListeners = {};
+  final Set<void Function(String msgID)> _messageDeletedListeners = {};
+
+  void addCountdownListener(
+    void Function(String msgID, int remainingSeconds) listener) {
+    _countdownListeners.add(listener);
+  }
+
+  void removeCountdownListener(
+    void Function(String msgID, int remainingSeconds) listener) {
+    _countdownListeners.remove(listener);
+  }
+
+  void addMessageDeletedListener(void Function(String msgID) listener) {
+    _messageDeletedListeners.add(listener);
+  }
+
+  void removeMessageDeletedListener(void Function(String msgID) listener) {
+    _messageDeletedListeners.remove(listener);
+  }
 
   /// 查看消息并开始倒计时
   void viewMessage(String msgID, V2TimMessage message) {
@@ -47,7 +68,10 @@ class SelfDestructQueue {
       _remainingSeconds[msgID] = remaining;
       
       // 通知UI更新倒计时
-      onCountdownUpdate?.call(msgID, remaining);
+      // onCountdownUpdate?.call(msgID, remaining);
+      for (final listener in _countdownListeners) {
+        listener(msgID, remaining);
+      }
       
       if (remaining <= 0) {
         timer.cancel();
@@ -69,7 +93,10 @@ class SelfDestructQueue {
       _viewedMessages.remove(msgID);
       
       // 通知UI删除消息
-      onMessageDeleted?.call(msgID);
+      // onMessageDeleted?.call(msgID);
+      for (final listener in _messageDeletedListeners) {
+        listener(msgID);
+      }
       
       debugPrint('消息已销毁: $msgID');
     } catch (e) {

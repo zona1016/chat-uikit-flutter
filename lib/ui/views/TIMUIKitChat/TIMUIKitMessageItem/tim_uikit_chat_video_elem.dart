@@ -197,20 +197,35 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
     });
   }
 
-  void _setupCallbacks() {
-    _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
-      if (msgID == widget.message.msgID && mounted) {
-        setState(() {
-          _remainingSeconds = remaining;
-        });
-      }
-    };
+  void _onCountdownUpdate(String msgID, int remaining) {
+    if (msgID == widget.message.msgID && mounted) {
+      setState(() {
+        _remainingSeconds = remaining;
+      });
+    }
+  }
 
-    _selfDestructQueue.onMessageDeleted = (msgID) {
-      if (msgID == widget.message.msgID) {
-        //widget.onDeleted?.call();
-      }
-    };
+  void _onMessageDeleted(String msgID) {
+    if (msgID == widget.message.msgID) {
+      //widget.onDeleted?.call();
+    }
+  }
+  void _setupCallbacks() {
+    // _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
+    //   if (msgID == widget.message.msgID && mounted) {
+    //     setState(() {
+    //       _remainingSeconds = remaining;
+    //     });
+    //   }
+    // };
+
+    // _selfDestructQueue.onMessageDeleted = (msgID) {
+    //   if (msgID == widget.message.msgID) {
+    //     //widget.onDeleted?.call();
+    //   }
+    // };
+    _selfDestructQueue.addCountdownListener(_onCountdownUpdate);
+    _selfDestructQueue.addMessageDeletedListener(_onMessageDeleted);
   }
 
   void _viewMessage() {
@@ -220,6 +235,13 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
       });
       _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
     }
+  }
+
+  @override
+  void dispose() {
+    _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
+    _selfDestructQueue.removeMessageDeletedListener(_onMessageDeleted);
+    super.dispose();
   }
 
   void launchDesktopFile(String path) {

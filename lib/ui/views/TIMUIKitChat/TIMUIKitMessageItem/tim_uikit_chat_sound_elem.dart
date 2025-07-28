@@ -152,20 +152,35 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
     downloadMessageDetailAndSave();
   }
 
-  void _setupCallbacks() {
-    _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
-      if (msgID == widget.message.msgID && mounted) {
-        setState(() {
-          _remainingSeconds = remaining;
-        });
-      }
-    };
+  void _onCountdownUpdate(String msgID, int remaining) {
+    if (msgID == widget.message.msgID && mounted) {
+      setState(() {
+        _remainingSeconds = remaining;
+      });
+    }
+  }
 
-    _selfDestructQueue.onMessageDeleted = (msgID) {
-      if (msgID == widget.message.msgID) {
-        //widget.onDeleted?.call();
-      }
-    };
+  void _onMessageDeleted(String msgID) {
+    if (msgID == widget.message.msgID) {
+      //widget.onDeleted?.call();
+    }
+  }
+  void _setupCallbacks() {
+    // _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
+    //   if (msgID == widget.message.msgID && mounted) {
+    //     setState(() {
+    //       _remainingSeconds = remaining;
+    //     });
+    //   }
+    // };
+
+    // _selfDestructQueue.onMessageDeleted = (msgID) {
+    //   if (msgID == widget.message.msgID) {
+    //     //widget.onDeleted?.call();
+    //   }
+    // };
+    _selfDestructQueue.addCountdownListener(_onCountdownUpdate);
+    _selfDestructQueue.addMessageDeletedListener(_onMessageDeleted);
   }
 
   void _viewMessage() {
@@ -179,6 +194,8 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
 
   @override
   void dispose() {
+    _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
+    _selfDestructQueue.removeMessageDeletedListener(_onMessageDeleted);
     if (isPlaying) {
       SoundPlayer.stop();
       widget.chatModel.currentPlayedMsgId = "";
