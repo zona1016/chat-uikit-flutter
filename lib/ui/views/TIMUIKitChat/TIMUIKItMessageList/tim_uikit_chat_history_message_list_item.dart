@@ -995,6 +995,11 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
     final wideHoverTipList = (model.chatConfig.isUseMessageHoverBarOnDesktop && customHoverBar == null) ? getMessageHoverControlBar(model, theme) : [];
 
     final lastItemName = wideHoverTipList.isNotEmpty ? wideHoverTipList.last.name : "";
+
+    final customData = (message.cloudCustomData?.trim().isNotEmpty ?? false)
+        ? jsonDecode(message.cloudCustomData!)
+        : {};
+    final isSelfDestruct = customData['isSelfDestruct'] ?? false;
     return Column(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1055,7 +1060,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
         if (model.chatConfig.isShowReadingStatus &&
             widget.showMessageReadRecipt &&
             model.conversationType == ConvType.c2c &&
-            isSelf &&
+            isSelf && (!isSelfDestruct || (message.isPeerRead == null || !message.isPeerRead!)) &&
             (message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC || message.status == MessageStatus.V2TIM_MSG_STATUS_SENDING))
           Container(
             padding: const EdgeInsets.only(bottom: 3),

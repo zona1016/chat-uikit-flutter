@@ -638,17 +638,10 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
 
         final shouldDelete = customData['isSelfDestruct'] == true;
         if (shouldDelete) {
-          // Future.delayed(const Duration(seconds: SelfDestructQueue.burnSeconds), () {
-          //   debugPrint('Deleting message after 15 seconds: ${element.msgID!}');
-          //   _messageService.deleteMessages(msgIDs: [element.msgID!]);
-
-          //   // Optional: remove from local list too
-          //   _messageListMap[convID]?.removeWhere((msg) => msg.msgID == element.msgID);
-          //   notifyListeners();
-          // });
-          debugPrint('Deleting self-destruct message ${element.msgID}');
-          _messageService.deleteMessages(msgIDs: [element.msgID!]);
-          return false; // Remove from list
+          // debugPrint('Deleting self-destruct message ${element.msgID}');
+          // _messageService.deleteMessages(msgIDs: [element.msgID!]);
+          // return false; // Remove from list
+          _selfDestructQueue.viewMessage(element.msgID!, element);
         }
 
         // Mark as read

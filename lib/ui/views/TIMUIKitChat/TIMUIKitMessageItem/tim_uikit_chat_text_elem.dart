@@ -422,6 +422,14 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
               child: Text('${_remainingSeconds}s',
                   style:
                       const TextStyle(color: AidaBaseColors.selfDestructMode))),
+        if (widget.message.isPeerRead != null && widget.message.isPeerRead! && isSelfDestruct && widget.message.isSelf!)
+          Positioned(
+              bottom: 0,
+              left: -25,
+              child: Text('${_remainingSeconds}s',
+                  textAlign: TextAlign.right,
+                  style:
+                      const TextStyle(color: AidaBaseColors.selfDestructMode))),
       ],
     );
   }
