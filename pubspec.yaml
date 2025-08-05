@@ -21,10 +21,11 @@ dependencies:
     sdk: flutter
 
   adaptive_action_sheet: ^2.0.1
-  tencent_calls_uikit:
-    #    path: /Users/wanxue/Desktop/demo/chat_aida
-    path: /Users/wangbo/Desktop/demo/call_aida
-#  tencent_calls_uikit: ^2.5.0
+#  tencent_calls_uikit:
+#    #    path: /Users/wanxue/Desktop/demo/chat_aida
+#    path: /Users/zona/Desktop/item/call_aida
+  tencent_calls_uikit: 3.1.1
+  tencent_cloud_chat_sdk: 8.6.7019
   provider: ^6.0.1
   intl: any
   get_it: ^7.2.0
@@ -53,7 +54,7 @@ dependencies:
   extended_text: ^13.0.0
   package_info_plus: ^4.0.1
   loading_animation_widget: ^1.1.0+3
-  permission_handler: ^10.2.0
+  permission_handler: ^11.0.0
   tuple: ^2.0.0
   flutter_markdown: ^0.6.15
   url_launcher: ^6.1.4
@@ -83,7 +84,7 @@ dependencies:
   easy_localization: ^3.0.5
   event_bus: ^2.0.1
   table_calendar: ^3.1.0
-
+  get_storage: ^2.1.1
 
 dev_dependencies:
   flutter_lints: ^1.0.0

@@ -92,15 +92,15 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                 faceUrl: groupInfo.faceUrl,
               );
               //tencent_chat 8.5
-              // final res = await TencentImSDKPlugin
-              //     .v2TIMManager.v2TIMConversationManager
-              //     .getConversation(
-              //         conversationID: "group_${groupInfo.groupID}");
-              //tencent_chat 8.2 - 确定升级了才去掉
               final res = await TencentImSDKPlugin
-                  .v2TIMManager.v2ConversationManager
+                  .v2TIMManager.v2TIMConversationManager
                   .getConversation(
                       conversationID: "group_${groupInfo.groupID}");
+              //tencent_chat 8.2 - 确定升级了才去掉
+              // final res = await TencentImSDKPlugin
+              //     .v2TIMManager.v2ConversationManager
+              //     .getConversation(
+              //         conversationID: "group_${groupInfo.groupID}");
               if (res.code == 0 && res.data != null) {
                 conversation = res.data!;
               }

@@ -112,14 +112,14 @@ class TUIGroupListenerModel extends ChangeNotifier {
 
   addCategoryForTopic(String groupID, String categoryName) {
     //tencent_chat 8.5
-    // TencentImSDKPlugin.v2TIMManager.getGroupManager().setTopicInfo(
-    //       topicInfo: V2TimTopicInfo(customString: categoryName), // 话题所在的群组id
-    //     );
-    //tencent_chat 8.2 - 确定升级了才去掉
     TencentImSDKPlugin.v2TIMManager.getGroupManager().setTopicInfo(
-          topicInfo: V2TimTopicInfo(customString: categoryName),
-          groupID: groupID, // 话题所在的群组id
+          topicInfo: V2TimTopicInfo(customString: categoryName), // 话题所在的群组id
         );
+    //tencent_chat 8.2 - 确定升级了才去掉
+    // TencentImSDKPlugin.v2TIMManager.getGroupManager().setTopicInfo(
+    //       topicInfo: V2TimTopicInfo(customString: categoryName),
+    //       groupID: groupID, // 话题所在的群组id
+    //     );
   }
 
   _onReceiveJoinApplication(
