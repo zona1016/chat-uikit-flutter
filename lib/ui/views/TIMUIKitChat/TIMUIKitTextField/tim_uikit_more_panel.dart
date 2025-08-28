@@ -306,7 +306,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      if (widget.conversationType != ConvType.group && !model.selfDestructMode)
+      if (!model.selfDestructMode)
         MorePanelItem(
             id: "vanish",
             title: TIM_t("阅后即焚"),
