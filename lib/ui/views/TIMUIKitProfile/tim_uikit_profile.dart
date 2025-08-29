@@ -404,6 +404,7 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                               handleDeleteFriend,
                               widget.smallCardMode)
                           : TIMUIKitProfileWidget.addAndDeleteArea(
+                              context,
                               userInfo,
                               conversation,
                               value.friendType,

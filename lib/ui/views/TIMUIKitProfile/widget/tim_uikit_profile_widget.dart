@@ -1,14 +1,19 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_class.dart';
+import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/controller/tim_uikit_chat_controller.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_button.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
 
 class TIMUIKitProfileWidget extends TIMUIKitClass {
   static final bool isDesktopScreen =
@@ -276,14 +281,15 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
         isEmpty: false,
         showAllowEditStatus: false,
         operationName: TIM_t("生日"),
-        operationRightWidget:
-            Text(TIM_t("未填写"), textAlign: isDesktopScreen ? null : TextAlign.end),
+        operationRightWidget: Text(TIM_t("未填写"),
+            textAlign: isDesktopScreen ? null : TextAlign.end),
       );
     }
   }
 
   /// default button area
   static Widget addAndDeleteArea(
+      BuildContext context,
       V2TimFriendInfo friendInfo,
       V2TimConversation conversation,
       int friendType,
@@ -312,8 +318,105 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
       );
     }
 
+    _clearHistory(
+        BuildContext context, theme) async {
+      final isDesktopScreen =
+          TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+
+      final sdkInstance = TIMUIKitCore.getSDKInstance();
+      final TIMUIKitChatController _timuiKitChatController =
+          TIMUIKitChatController();
+      if (isDesktopScreen) {
+        TUIKitWidePopup.showSecondaryConfirmDialog(
+            operationKey: TUIKitWideModalOperationKey.confirmClearChatHistory,
+            context: context,
+            text: TIM_t("清空聊天记录"),
+            theme: theme,
+            onCancel: () {},
+            onConfirm: () async {
+              if (PlatformUtils().isWeb) {
+                final res = await sdkInstance
+                    .getConversationManager()
+                    .deleteConversation(
+                        conversationID: conversation.conversationID);
+                if (res.code == 0) {
+                  _timuiKitChatController.clearHistory(conversation.conversationID);
+                }
+              } else {
+                final res = await sdkInstance
+                    .getMessageManager()
+                    .clearC2CHistoryMessage(userID: friendInfo.userID);
+                if (res.code == 0) {
+                  _timuiKitChatController.clearHistory(conversation.conversationID);
+                }
+              }
+            });
+      } else {
+        showCupertinoModalPopup<String>(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoActionSheet(
+              cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(
+                    context,
+                  );
+                },
+                child: Text(TIM_t("取消")),
+                isDefaultAction: false,
+              ),
+              actions: [
+                CupertinoActionSheetAction(
+                  onPressed: () async {
+                    Navigator.pop(
+                      context,
+                    );
+                    if (PlatformUtils().isWeb) {
+                      final res = await sdkInstance
+                          .getConversationManager()
+                          .deleteConversation(
+                              conversationID: conversation.conversationID);
+                      if (res.code == 0) {
+                        _timuiKitChatController.clearHistory(conversation.conversationID);
+                      }
+                    } else {
+                      final res = await sdkInstance
+                          .getMessageManager()
+                          .clearC2CHistoryMessage(userID: friendInfo.userID);
+                      if (res.code == 0) {
+                        _timuiKitChatController.clearHistory(conversation.conversationID);
+                      }
+                    }
+                  },
+                  child: Text(
+                    TIM_t("清空聊天记录"),
+                    style: TextStyle(color: theme.cautionColor),
+                  ),
+                  isDefaultAction: false,
+                )
+              ],
+            );
+          },
+        );
+      }
+    }
+
+    _buildClearOperation() {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: ChatBaseButton(
+          type: ChatBaseButtonType.secondary,
+          onPressed: () {
+            _clearHistory(context, theme);
+          },
+          text: TIM_t("清空消息"),
+        ),
+      );
+    }
+
     return Column(
       children: [
+        _buildClearOperation(),
         if (friendType != 0) _buildDeleteFriend(conversation, theme),
         if (friendType == 0 && !isBlocked) _buildAddOperation()
       ],
@@ -427,8 +530,18 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
       );
     }
 
+    _buildClearOperation() {
+      return wideButton(
+        smallCardMode: smallCardMode,
+        onPressed: handleAddFriend,
+        color: theme.primaryColor ?? hexToColor("3e4b67"),
+        text: TIM_t("清空消息"),
+      );
+    }
+
     return Column(
       children: [
+        _buildClearOperation(),
         if (friendType != 0) _buildDeleteFriend(conversation, theme),
         if (friendType == 0 && !isBlocked) _buildAddOperation()
       ],
