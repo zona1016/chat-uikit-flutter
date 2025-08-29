@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -340,14 +341,16 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                     .deleteConversation(
                         conversationID: conversation.conversationID);
                 if (res.code == 0) {
-                  _timuiKitChatController.clearHistory(conversation.conversationID);
+                  _timuiKitChatController.clearHistory(friendInfo.userID);
+                  TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                 }
               } else {
                 final res = await sdkInstance
                     .getMessageManager()
                     .clearC2CHistoryMessage(userID: friendInfo.userID);
                 if (res.code == 0) {
-                  _timuiKitChatController.clearHistory(conversation.conversationID);
+                  _timuiKitChatController.clearHistory(friendInfo.userID);
+                  TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                 }
               }
             });
@@ -377,14 +380,16 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                           .deleteConversation(
                               conversationID: conversation.conversationID);
                       if (res.code == 0) {
-                        _timuiKitChatController.clearHistory(conversation.conversationID);
+                        _timuiKitChatController.clearHistory(friendInfo.userID);
+                        TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                       }
                     } else {
                       final res = await sdkInstance
                           .getMessageManager()
                           .clearC2CHistoryMessage(userID: friendInfo.userID);
                       if (res.code == 0) {
-                        _timuiKitChatController.clearHistory(conversation.conversationID);
+                        _timuiKitChatController.clearHistory(friendInfo.userID);
+                        TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                       }
                     }
                   },

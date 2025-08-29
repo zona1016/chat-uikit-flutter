@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -49,6 +50,7 @@ class GroupProfileButtonArea extends TIMUIKitStatelessWidget {
                   .deleteConversation(conversationID: "group_$groupID");
               if (res.code == 0) {
                 _timuiKitChatController.clearHistory(groupID);
+                TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
               }
             } else {
               final res = await sdkInstance
@@ -56,6 +58,7 @@ class GroupProfileButtonArea extends TIMUIKitStatelessWidget {
                   .clearGroupHistoryMessage(groupID: groupID);
               if (res.code == 0) {
                 _timuiKitChatController.clearHistory(groupID);
+                TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
               }
             }
           });
@@ -85,6 +88,7 @@ class GroupProfileButtonArea extends TIMUIKitStatelessWidget {
                         .deleteConversation(conversationID: "group_$groupID");
                     if (res.code == 0) {
                       _timuiKitChatController.clearHistory(groupID);
+                      TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                     }
                   } else {
                     final res = await sdkInstance
@@ -92,6 +96,7 @@ class GroupProfileButtonArea extends TIMUIKitStatelessWidget {
                         .clearGroupHistoryMessage(groupID: groupID);
                     if (res.code == 0) {
                       _timuiKitChatController.clearHistory(groupID);
+                      TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                     }
                   }
                 },
