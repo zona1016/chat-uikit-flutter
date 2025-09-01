@@ -270,7 +270,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      if (!model.selfDestructMode)
+      // if (!model.selfDestructMode)
         MorePanelItem(
             id: "file",
             title: TIM_t("文件"),
@@ -634,7 +634,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                   inputElement: inputElem,
                   fileName: fileName,
                   convID: convID,
-                  convType: convType),
+                  convType: convType,
+                  isSelfDestruct: model.selfDestructMode),
               context);
           return;
         }
@@ -652,7 +653,8 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                 filePath: savePath,
                 size: size,
                 convID: convID,
-                convType: convType),
+                convType: convType,
+                isSelfDestruct: model.selfDestructMode),
             context);
       } else {
         throw TypeError();

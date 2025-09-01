@@ -119,6 +119,12 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
     _notify();
   }
 
+  /// Set self-destruct mode silently without showing toast (used during initialization)
+  void setSelfDestructModeSilently(bool value) {
+    _selfDestructMode = value;
+    _notify();
+  }
+
   String get currentPlayedMsgId => _currentPlayedMsgId;
 
   set currentPlayedMsgId(String value) {
@@ -741,6 +747,12 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
     if (lifeCycle?.messageDidSend != null) {
       lifeCycle!.messageDidSend(sendMsgRes);
     }
+    
+    // Handle pending conversation mode for new conversations
+    if (sendMsgRes.code == 0) {
+      // Message sent successfully, apply any pending conversation mode
+      globalModel.handlePendingConversationMode(convID);
+    }
 
     return sendMsgRes;
   }
@@ -1145,6 +1157,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
       String? fileName,
       int? size,
       dynamic inputElement,
+      bool isSelfDestruct = false,
       required String convID,
       required ConvType convType}) async {
     if (await tools.hasZeroSize(filePath ?? "")) {
@@ -1200,6 +1213,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
         messageInfo: lifeCycleMsg ?? messageInfoWithSender,
         id: fileMessageInfo.id as String,
         convType: convType,
+        cloudCustomData: '{"isSelfDestruct": $isSelfDestruct}',
         offlinePushInfo: tools.buildMessagePushInfo(
             fileMessageInfo.messageInfo!, convID, convType),
       );

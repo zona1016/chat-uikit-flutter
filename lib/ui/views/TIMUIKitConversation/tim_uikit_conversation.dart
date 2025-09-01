@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
@@ -30,6 +31,8 @@ typedef ConversationItemBuilder = Widget Function(
     V2TimConversation conversationItem,
     [V2TimUserStatus? onlineStatus]);
 
+typedef ConversationTapCallback = void Function(V2TimConversation conversation, bool selfDestructMode);
+
 typedef ConversationItemSlideBuilder = List<ConversationItemSlidePanel>
 Function(V2TimConversation conversationItem);
 
@@ -39,6 +42,9 @@ typedef ConversationItemSecondaryMenuBuilder = Widget Function(
 class TIMUIKitConversation extends StatefulWidget {
   /// the callback after clicking conversation item
   final ValueChanged<V2TimConversation>? onTapItem;
+
+  /// Enhanced callback that includes self-destruct mode determination
+  final ConversationTapCallback? onTapItemWithMode;
 
   /// conversation controller
   final TIMUIKitConversationController? controller;
@@ -75,6 +81,7 @@ class TIMUIKitConversation extends StatefulWidget {
       {Key? key,
         this.lifeCycle,
         this.onTapItem,
+        this.onTapItemWithMode,
         this.controller,
         this.itemSecondaryMenuBuilder,
         this.itemBuilder,
@@ -314,12 +321,26 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     return widget.controller ?? TIMUIKitConversationController();
   }
 
-  void onTapConvItem(V2TimConversation conversation) {
-    if (widget.onTapItem != null) {
+  void onTapConvItem(V2TimConversation conversation) async {
+    // debugPrint('onTapConvItem called for: ${conversation.conversationID}');
+    // debugPrint('Available callbacks - onTapItemWithMode: ${widget.onTapItemWithMode != null}, onTapItem: ${widget.onTapItem != null}');
+    
+    // Call the appropriate callback - mode checking moved to chat screen
+    if (widget.onTapItemWithMode != null) {
+      // debugPrint('Calling onTapItemWithMode callback');
+      // For now, pass false as mode will be determined in chat screen
+      widget.onTapItemWithMode!(conversation, false);
+    } else if (widget.onTapItem != null) {
+      // debugPrint('Calling legacy onTapItem callback');
       widget.onTapItem!(conversation);
+    } else {
+      // debugPrint('No callback provided!');
     }
+    
     model.setSelectedConversation(conversation);
+    // debugPrint('onTapConvItem completed');
   }
+
 
   _clearHistory(V2TimConversation conversationItem) {
     _timuiKitConversationController.clearHistoryMessage(
@@ -477,6 +498,14 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
             handleData = false; // 你自己的刷新方法
           });
 
+          // Create a Map for O(1) lookup instead of O(n) firstWhere for each item
+          final Map<String, V2TimUserStatus> userStatusMap = {};
+          for (final status in _friendShipViewModel.userStatusList) {
+            if (status.userID != null) {
+              userStatusMap[status.userID!] = status;
+            }
+          }
+
           Widget conversationList() {
             return filteredConversationList.isNotEmpty
                 ? ListView.builder(
@@ -492,10 +521,10 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
                   final conversationItem = filteredConversationList[index];
 
-                  final V2TimUserStatus? onlineStatus =
-                  _friendShipViewModel.userStatusList.firstWhere(
-                          (item) => item.userID == conversationItem?.userID,
-                      orElse: () => V2TimUserStatus(statusType: 0));
+                  // Optimized O(1) lookup instead of O(n) firstWhere
+                  final V2TimUserStatus? onlineStatus = conversationItem?.userID != null 
+                      ? userStatusMap[conversationItem!.userID!] ?? V2TimUserStatus(statusType: 0)
+                      : V2TimUserStatus(statusType: 0);
 
                   if (widget.itemBuilder != null) {
                     return widget.itemBuilder!(
@@ -540,12 +569,14 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
                             draftTimestamp: conversationItem.draftTimestamp,
                             convType: conversationItem.type),
                         onTap: () async {
+                          // debugPrint('Conversation item tapped: ${conversationItem.conversationID}');
                           conversationItem.unreadCount = 0;
                           final res = await TencentImSDKPlugin.v2TIMManager.getLoginUser();
                           if (res.code == 0) {
                             final key = '${TencentUtils.unreadMark}_${res.data}_${conversationItem.groupID}';
                             await GetStorage().write(key, DateTime.now().millisecondsSinceEpoch);
                           }
+                          // debugPrint('Calling onTapConvItem...');
                           onTapConvItem(conversationItem);
                         },
                       ),

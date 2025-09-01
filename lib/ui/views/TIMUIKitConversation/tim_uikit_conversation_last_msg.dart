@@ -235,7 +235,7 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
         return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[表情]");
       case MessageElemType.V2TIM_ELEM_TYPE_FILE:
         final option1 = widget.lastMsg!.fileElem!.fileName;
-        return TIM_t_para("[文件] {{option1}}", "[文件] $option1")(
+        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t_para("[文件] {{option1}}", "[文件] $option1")(
             option1: option1);
       case MessageElemType.V2TIM_ELEM_TYPE_GROUP_TIPS:
         return await MessageUtils.groupTipsMessageAbstract(

@@ -150,6 +150,7 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
     ProfileWidgetEnum.operationDivider,
     ProfileWidgetEnum.pinConversationBar,
     ProfileWidgetEnum.messageMute,
+    ProfileWidgetEnum.selfDestructMode,
     ProfileWidgetEnum.operationDivider,
     ProfileWidgetEnum.addToBlockListBar,
     ProfileWidgetEnum.operationDivider,
@@ -225,6 +226,10 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
 
           void handleMuteMessage(bool value) async {
             model.setMessageDisturb(userInfo.userID, value);
+          }
+
+          void handleSelfDestructMode(bool value) async {
+            model.setSelfDestructMode(conversation.conversationID ?? "c2c_${userInfo.userID}", value);
           }
 
           void handleTapRemarkBar({Offset? offset, String? initText}) {
@@ -334,6 +339,9 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                       ? customBuilder?.messageMute!(isMute, handleMuteMessage)
                       : TIMUIKitProfileWidget.messageDisturb(context, isMute,
                           handleMuteMessage, widget.smallCardMode))!;
+                case ProfileWidgetEnum.selfDestructMode:
+                  return TIMUIKitProfileWidget.selfDestructMode(context, model.selfDestructMode,
+                          handleSelfDestructMode, widget.smallCardMode);
                 case ProfileWidgetEnum.searchBar:
                   return (customBuilder?.searchBar != null
                       ? customBuilder?.searchBar!(conversation)

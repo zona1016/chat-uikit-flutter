@@ -172,7 +172,8 @@ Future<void> sendFiles(
             fileName: fileName,
             filePath: filePath,
             convID: _getConvID(conversation),
-            convType: conversationType),
+            convType: conversationType,
+            isSelfDestruct: model.selfDestructMode),
         context);
     await Future.delayed(const Duration(microseconds: 300));
   }

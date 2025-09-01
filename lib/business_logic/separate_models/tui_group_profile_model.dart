@@ -1,7 +1,10 @@
 // ignore_for_file: unnecessary_getters_setters, avoid_print
 
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/group_profile_life_cycle.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/conversation/conversation_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/core_services_implements.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_services.dart';
@@ -19,6 +22,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
   final MessageService _messageService = serviceLocator<MessageService>();
   final FriendshipServices _friendshipServices =
       serviceLocator<FriendshipServices>();
+  final TUIChatGlobalModel _chatGlobalModel = serviceLocator<TUIChatGlobalModel>();
   GroupProfileLifeCycle? _lifeCycle;
 
   V2TimConversation? _conversation;
@@ -30,6 +34,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
   List<V2TimGroupMemberFullInfo?>? _groupCommonMemberList;
   String _groupMemberListSeq = "0";
   V2TimGroupInfo? _groupInfo;
+  bool? _selfDestructMode;
   Function(String userID, TapDownDetails? tapDetails)? onClickUser;
 
   GroupProfileLifeCycle? get lifeCycle => _lifeCycle;
@@ -71,6 +76,12 @@ class TUIGroupProfileModel extends ChangeNotifier {
     _groupInfo = value;
   }
 
+  bool? get selfDestructMode => _selfDestructMode;
+
+  set selfDestructMode(bool? value) {
+    _selfDestructMode = value;
+  }
+
   void loadData(String groupID) {
     _groupID = groupID;
     loadGroupInfo(groupID);
@@ -80,6 +91,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
     _loadGroupCommonMemberList(groupID: groupID);
     _loadConversation();
     _loadContactList();
+    _loadSelfDestructMode();
   }
 
   loadGroupInfo(String groupID) async {
@@ -178,6 +190,45 @@ class TUIGroupProfileModel extends ChangeNotifier {
     _contactList = res;
   }
 
+  _loadSelfDestructMode() async {
+    try {
+      final conversationID = "group_$_groupID";
+      
+      // First check if there's a pending mode in global model
+      final globalMode = _chatGlobalModel.getSelfDestructMode(conversationID);
+      final pendingMode = _chatGlobalModel.consumePendingConversationMode(conversationID);
+      final hasPendingMode = pendingMode != null;
+      
+      if (hasPendingMode) {
+        // Use pending mode if available
+        _selfDestructMode = pendingMode;
+        // Put it back since we're just checking
+        _chatGlobalModel.setPendingConversationMode(conversationID, pendingMode);
+        print('Loaded pending self-destruct mode for group: $_selfDestructMode');
+        return;
+      }
+      
+      if (globalMode) {
+        // Use global model state if available
+        _selfDestructMode = globalMode;
+        print('Loaded global self-destruct mode for group: $_selfDestructMode');
+        return;
+      }
+      
+      // Fall back to conversation custom data
+      final customData = await _getConversationCustomData(conversationID);
+      _selfDestructMode = customData['conversation_default_mode'] == 'self_destruct';
+      
+      // Update global model with the loaded state
+      _chatGlobalModel.updateSelfDestructMode(conversationID, _selfDestructMode ?? false);
+      
+      print('Loaded self-destruct mode from custom data for group: $_selfDestructMode');
+    } catch (e) {
+      print('Error loading self-destruct mode for group: $e');
+      _selfDestructMode = false;
+    }
+  }
+
   pinedConversation(bool isPined) async {
     await _conversationService.pinConversation(
         conversationID: "group_$_groupID", isPinned: isPined);
@@ -199,6 +250,74 @@ class TUIGroupProfileModel extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  setSelfDestructMode(bool value) async {
+    try {
+      // Get existing custom data
+      final customData = await _getConversationCustomData("group_$_groupID");
+      
+      // Update the mode preference
+      customData['conversation_default_mode'] = value ? 'self_destruct' : 'normal';
+      
+      // Try to save to conversation custom data
+      final saveSuccess = await _setConversationCustomDataWithResult("group_$_groupID", customData);
+      
+      if (!saveSuccess) {
+        // Conversation doesn't exist yet, store as pending
+        _chatGlobalModel.setPendingConversationMode("group_$_groupID", value);
+        print('Stored pending self-destruct mode for group: $value');
+      } else {
+        print('Saved self-destruct mode to custom data for group: $value');
+      }
+      
+      // Update local state
+      _selfDestructMode = value;
+      notifyListeners();
+      
+      // Update the global model's self-destruct state for this conversation
+      _chatGlobalModel.updateSelfDestructMode("group_$_groupID", value);
+      print('Updated global model self-destruct mode: $value');
+      
+    } catch (e) {
+      print('Error setting self-destruct mode: $e');
+    }
+  }
+
+  /// Get conversation custom data
+  Future<Map<String, dynamic>> _getConversationCustomData(String conversationID) async {
+    try {
+      final result = await TencentImSDKPlugin.v2TIMManager
+          .getConversationManager()
+          .getConversation(conversationID: conversationID);
+      
+      if (result.code == 0 && result.data != null) {
+        final customDataStr = result.data!.customData ?? "";
+        if (customDataStr.isNotEmpty) {
+          return Map<String, dynamic>.from(jsonDecode(customDataStr));
+        }
+      }
+    } catch (e) {
+      print('Error getting conversation custom data: $e');
+    }
+    return {};
+  }
+
+  /// Set conversation custom data and return success status
+  Future<bool> _setConversationCustomDataWithResult(String conversationID, Map<String, dynamic> customData) async {
+    try {
+      final result = await TencentImSDKPlugin.v2TIMManager
+          .getConversationManager()
+          .setConversationCustomData(
+            conversationIDList: [conversationID],
+            customData: jsonEncode(customData),
+          );
+      return result.code == 0;
+    } catch (e) {
+      print('Error setting conversation custom data: $e');
+      return false;
+    }
+  }
+
 
   Future<V2TimValueCallback<V2GroupMemberInfoSearchResult>> searchGroupMember(
       V2TimGroupMemberSearchParam searchParam) async {
