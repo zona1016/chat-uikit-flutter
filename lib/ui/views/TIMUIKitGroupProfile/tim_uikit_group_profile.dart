@@ -124,6 +124,7 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
     GroupProfileWidgetEnum.customBuilderTwo,
     GroupProfileWidgetEnum.pinedConversationBar,
     GroupProfileWidgetEnum.muteGroupMessageBar,
+    GroupProfileWidgetEnum.selfDestructModeBar,
     GroupProfileWidgetEnum.operationDivider,
     GroupProfileWidgetEnum.nameCardBar,
     GroupProfileWidgetEnum.operationDivider,
@@ -289,6 +290,8 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                           model.conversation?.isPinned ?? false,
                           model.pinedConversation)
                       : TIMUIKitGroupProfileWidget.pinedConversation())!;
+                case GroupProfileWidgetEnum.selfDestructModeBar:
+                  return TIMUIKitGroupProfileWidget.selfDestructMode();
                 case GroupProfileWidgetEnum.buttonArea:
                   return (customBuilder?.buttonArea != null
                       ? customBuilder?.buttonArea!(groupInfo, memberList)

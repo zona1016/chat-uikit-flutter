@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/permission.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/TIMUIKitMessageReaction/tim_uikit_message_reaction_wrapper.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/tim_uikit_chat_file_icon.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/textSize.dart';
@@ -60,8 +62,16 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
   double? containerHeight;
   bool? _downloadFailed = false;
 
+  final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
+  bool _isViewed = false;
+  int _remainingSeconds = SelfDestructQueue.burnSeconds;
+  bool isSelfDestruct = false;
+  bool isOpen = false;
+
   @override
   void dispose() {
+    _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
+    _selfDestructQueue.removeMessageDeletedListener(_onMessageDeleted);
     if (advancedMsgListener != null) {
       TencentImSDKPlugin.v2TIMManager
           .getMessageManager()
@@ -74,11 +84,118 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
   @override
   void initState() {
     super.initState();
+    _selfDestructQueue.chatModel = widget.chatModel;
+    _setupCallbacks();
+
+    debugPrint('CUSTOM DATA TEXT ${widget.message.msgID} ' + (widget.message.cloudCustomData ?? 'NOTHING'));
+    final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
+        ? jsonDecode(widget.message.cloudCustomData!)
+        : {};
+    setState(() {
+      isSelfDestruct = customData['isSelfDestruct'] ?? false;
+      if (widget.message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC) {
+        _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
+        isOpen = _isViewed;
+        _remainingSeconds =
+            _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+      }
+    });
     if (!PlatformUtils().isWeb) {
       Future.delayed(const Duration(microseconds: 10), () {
         hasFile();
       });
     }
+  }
+
+  _openMessage() {
+    _viewMessage();
+    setState(() {
+      isOpen = true;
+    });
+  }
+
+  void _onCountdownUpdate(String msgID, int remaining) {
+    debugPrint('remaining seconds $remaining for msg id $msgID');
+    if (msgID == widget.message.msgID && mounted) {
+      setState(() {
+        _remainingSeconds = remaining;
+      });
+    }
+  }
+
+  void _onMessageDeleted(String msgID) {
+    if (msgID == widget.message.msgID) {
+      //widget.onDeleted?.call();
+    }
+  }
+  void _setupCallbacks() {
+    // _selfDestructQueue.addCountdownListener((msgID, remaining) {
+    //   // debugPrint('countdown remaining seconds $remaining s');
+    //   debugPrint('current widget msgID: $_currentMsgID vs $msgID');
+    //   if (msgID == widget.message.msgID! && mounted) {
+    //     debugPrint('Updating UI with remaining: $remaining');
+    //     setState(() {
+    //       _remainingSeconds = remaining;
+    //     });
+    //   }
+    // });
+
+    // _selfDestructQueue.dele = (msgID) {
+    //   if (msgID == _currentMsgID) {
+    //     //widget.onDeleted?.call();
+    //   }
+    // };
+    _selfDestructQueue.addCountdownListener(_onCountdownUpdate);
+    _selfDestructQueue.addMessageDeletedListener(_onMessageDeleted);
+  }
+
+  void _viewMessage() {
+    if (!_isViewed && isSelfDestruct && (_downloadFailed == true || downloadProgress == 100)) {
+      setState(() {
+        _isViewed = true;
+      });
+      debugPrint('view message ${widget.message.msgID}');
+      _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
+    }
+  }
+
+  /// Check if group message is read by all members using cached read receipt data
+  bool _isGroupMessageReadByAll() {
+    if (widget.message.groupID == null || widget.message.msgID == null) {
+      return false;
+    }
+    
+    bool isReadByAll = false;
+    
+    // Use the cached read receipt from the chat model
+    final messageReadReceiptMap = widget.chatModel.globalModel.messageReadReceiptMap;
+    final receipt = messageReadReceiptMap[widget.message.msgID!];
+    
+    if (receipt != null) {
+      isReadByAll = receipt.unreadCount == 0;
+    } else {
+      // Fallback: try to use the private property if it exists
+      try {
+        isReadByAll = (widget.message as dynamic)._messageGroupReceiptUnreadCount == 0;
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    // If message is read by all and is a self-destruct message from self, add to queue
+    if (isReadByAll && widget.message.isSelf! && isSelfDestruct) {
+      final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
+          ? jsonDecode(widget.message.cloudCustomData!)
+          : {};
+      
+      final shouldTriggerSelfDestruct = customData['isSelfDestruct'] == true;
+      if (shouldTriggerSelfDestruct) {
+        debugPrint('Group file message ${widget.message.msgID} read by all members, adding to self-destruct queue');
+        _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
+      }
+    }
+    
+    return isReadByAll;
   }
 
   Future<bool> addAdvancedMsgListenerForDownload() async {
@@ -98,6 +215,7 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
 
           if (messageProgress.isFinish) {
             if (mounted) {
+              _viewMessage();
               setState(() {
                 downloadProgress = 100;
               });
@@ -242,6 +360,9 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
           type: TIMCallbackType.INFO,
           infoRecommendText: "不支持 0KB 文件的传输",
           infoCode: 6660417));
+
+          //consider file corrupted - start disappear timer as well
+          _viewMessage();
       return;
     }
     if (PlatformUtils().isMobile) {
@@ -346,152 +467,233 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
       containerHeight = containerRenderBox.size.height;
     }
 
+    final backgroundColor = widget.message.isSelf!
+        ? AidaBaseColors.primaryColor
+        : AidaBaseColors.whiteWithOpacity01;
+
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
-    return Row(
-      key: containerKey,
-      mainAxisSize: MainAxisSize.min,
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        if (widget.isSelf && isWebDownloading)
-          Container(
-            margin: const EdgeInsets.only(top: 2),
-            child: LoadingAnimationWidget.threeArchedCircle(
-              color: theme.weakTextColor ?? Colors.grey,
-              size: 20,
-            ),
-          ),
-        TIMUIKitMessageReactionWrapper(
-            chatModel: widget.chatModel,
-            isShowJump: widget.isShowJump,
-            clearJump: widget.clearJump,
-            isFromSelf: widget.message.isSelf ?? true,
-            isShowMessageReaction: widget.isShowMessageReaction ?? true,
-            message: widget.message,
-            child: GestureDetector(
-              onTap: () async {
-                try {
-                  if (PlatformUtils().isWeb) {
-                    if (!isWebDownloading) {
-                      downloadWebFile(widget.fileElem?.path ?? "");
-                    }
-                    return;
-                  }
+        if (isOpen || widget.message.isSelf! || !isSelfDestruct)
+          Row(
+            key: containerKey,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.isSelf && isWebDownloading)
+                Container(
+                  margin: const EdgeInsets.only(top: 2),
+                  child: LoadingAnimationWidget.threeArchedCircle(
+                    color: theme.weakTextColor ?? Colors.grey,
+                    size: 20,
+                  ),
+                ),
+              TIMUIKitMessageReactionWrapper(
+                  chatModel: widget.chatModel,
+                  isShowJump: widget.isShowJump,
+                  clearJump: widget.clearJump,
+                  isFromSelf: widget.message.isSelf ?? true,
+                  isShowMessageReaction: widget.isShowMessageReaction ?? true,
+                  message: widget.message,
+                  child: GestureDetector(
+                    onTap: () async {
+                      try {
+                        if (PlatformUtils().isWeb) {
+                          if (!isWebDownloading) {
+                            downloadWebFile(widget.fileElem?.path ?? "");
+                          }
+                          return;
+                        }
 
-                  await addAdvancedMsgListenerForDownload();
-                  if (await hasFile()) {
-                    if (received == 100) {
-                      tryOpenFile(context, theme);
-                    } else {
-                      onTIMCallback(
-                        TIMCallback(
-                          type: TIMCallbackType.INFO,
-                          infoRecommendText: TIM_t("正在下载中"),
-                          infoCode: 6660411,
-                        ),
-                      );
-                    }
-                    return;
-                  }
-                  if (checkIsWaiting()) {
-                    onTIMCallback(
-                      TIMCallback(
-                          type: TIMCallbackType.INFO,
-                          infoRecommendText: TIM_t("已加入待下载队列，其他文件下载中"),
-                          infoCode: 6660413),
-                    );
-                    return;
-                  } else {
-                    await addUrlToWaitingPath(theme);
-                  }
-                } catch (e) {
-                  onTIMCallback(TIMCallback(
-                      type: TIMCallbackType.INFO,
-                      infoRecommendText: "文件处理异常",
-                      infoCode: 6660416));
-                }
-              },
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 72),
-                child: Container(
-                  width: 237,
-                  decoration: BoxDecoration(
-                      color: isDesktopScreen
-                          ? theme.weakDividerColor ??
-                              CommonColor.weakDividerColor
-                          : widget.isSelf
-                              ? AidaBaseColors.primaryColor
-                              : AidaBaseColors.whiteWithOpacity01,
-                      borderRadius: borderRadius),
-                  child: Stack(children: [
-                    ClipRRect(
-                      borderRadius: borderRadius,
-                      child: LinearProgressIndicator(
-                        minHeight: ((containerHeight) ?? 72) - 6,
-                        value: (received == 100 ? 0 : received) / 100,
-                        backgroundColor: received == 100
-                            ? widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01
-                            : AidaBaseColors.weakTextColor,
-                        valueColor: AlwaysStoppedAnimation(
-                            widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.primaryColor.withValues(alpha: 0.5)),
+                        await addAdvancedMsgListenerForDownload();
+                        if (await hasFile()) {
+                          if (received == 100) {
+                            tryOpenFile(context, theme);
+                          } else {
+                            onTIMCallback(
+                              TIMCallback(
+                                type: TIMCallbackType.INFO,
+                                infoRecommendText: TIM_t("正在下载中"),
+                                infoCode: 6660411,
+                              ),
+                            );
+                          }
+                          return;
+                        }
+                        if (checkIsWaiting()) {
+                          onTIMCallback(
+                            TIMCallback(
+                                type: TIMCallbackType.INFO,
+                                infoRecommendText: TIM_t("已加入待下载队列，其他文件下载中"),
+                                infoCode: 6660413),
+                          );
+                          return;
+                        } else {
+                          await addUrlToWaitingPath(theme);
+                        }
+                      } catch (e) {
+                        onTIMCallback(TIMCallback(
+                            type: TIMCallbackType.INFO,
+                            infoRecommendText: "文件处理异常",
+                            infoCode: 6660416));
+                      }
+                    },
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 72),
+                      child: Container(
+                        width: 237,
+                        decoration: BoxDecoration(
+                            color: isDesktopScreen
+                                ? theme.weakDividerColor ??
+                                    CommonColor.weakDividerColor
+                                : widget.isSelf
+                                    ? AidaBaseColors.primaryColor
+                                    : AidaBaseColors.whiteWithOpacity01,
+                            borderRadius: borderRadius),
+                        child: Stack(children: [
+                          ClipRRect(
+                            borderRadius: borderRadius,
+                            child: LinearProgressIndicator(
+                              minHeight: ((containerHeight) ?? 72) - 6,
+                              value: (received == 100 ? 0 : received) / 100,
+                              backgroundColor: received == 100
+                                  ? widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.whiteWithOpacity01
+                                  : AidaBaseColors.weakTextColor,
+                              valueColor: AlwaysStoppedAnimation(
+                                  widget.isSelf ? AidaBaseColors.primaryColor : AidaBaseColors.primaryColor.withValues(alpha: 0.5)),
+                            ),
+                          ),
+                          Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 12),
+                              child: Row(
+                                  mainAxisAlignment: widget.isSelf
+                                      ? MainAxisAlignment.end
+                                      : MainAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                        child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          constraints:
+                                              const BoxConstraints(maxWidth: 160),
+                                          child: LayoutBuilder(
+                                            builder: (buildContext, boxConstraints) {
+                                              return CustomText(
+                                                fileName,
+                                                width: boxConstraints.maxWidth,
+                                                maxLines: 1,
+                                                style: TextStyle(
+                                                  color: isDesktopScreen
+                                                      ? theme.darkTextColor
+                                                      : AidaBaseColors.white,
+                                                  fontSize: 16,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        if (fileSize != null)
+                                          Text(
+                                            showFileSize(fileSize),
+                                            style: const TextStyle(
+                                                fontSize: 14,
+                                                color: AidaBaseColors.white),
+                                          )
+                                      ],
+                                    )),
+                                    TIMUIKitFileIcon(
+                                      fileFormat: fileFormat,
+                                    ),
+                                  ])),
+                        ]),
                       ),
                     ),
-                    Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 12),
-                        child: Row(
-                            mainAxisAlignment: widget.isSelf
-                                ? MainAxisAlignment.end
-                                : MainAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                  child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    constraints:
-                                        const BoxConstraints(maxWidth: 160),
-                                    child: LayoutBuilder(
-                                      builder: (buildContext, boxConstraints) {
-                                        return CustomText(
-                                          fileName,
-                                          width: boxConstraints.maxWidth,
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                            color: isDesktopScreen
-                                                ? theme.darkTextColor
-                                                : AidaBaseColors.white,
-                                            fontSize: 16,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  if (fileSize != null)
-                                    Text(
-                                      showFileSize(fileSize),
-                                      style: const TextStyle(
-                                          fontSize: 14,
-                                          color: AidaBaseColors.white),
-                                    )
-                                ],
-                              )),
-                              TIMUIKitFileIcon(
-                                fileFormat: fileFormat,
-                              ),
-                            ])),
-                  ]),
+                  )),
+              if (!widget.isSelf && isWebDownloading)
+                Container(
+                  margin: const EdgeInsets.only(top: 2),
+                  child: LoadingAnimationWidget.threeArchedCircle(
+                    color: theme.weakTextColor ?? Colors.grey,
+                    size: 20,
+                  ),
                 ),
+            ],
+          ),
+          if (!isOpen && !widget.message.isSelf! && isSelfDestruct)
+          GestureDetector(
+            onTap: () {
+              _openMessage();
+            },
+            child: Container(
+              padding: EdgeInsets.all(isDesktopScreen ? 12 : 10),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: borderRadius,
               ),
-            )),
-        if (!widget.isSelf && isWebDownloading)
-          Container(
-            margin: const EdgeInsets.only(top: 2),
-            child: LoadingAnimationWidget.threeArchedCircle(
-              color: theme.weakTextColor ?? Colors.grey,
-              size: 20,
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.6),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TIM_t("点击查看"),
+                        style: TextStyle(
+                            color: isDesktopScreen
+                                ? Colors.black
+                                : AidaBaseColors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Image.asset(
+                        'images/vanish_file.png',
+                        package: 'tencent_cloud_chat_uikit',
+                        width: 17,
+                        height: 15,
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
+        if (isSelfDestruct)
+          Positioned(
+              top: 0,
+              left: widget.message.isSelf! ? -6.5 : null,
+              right: !widget.message.isSelf! ? -6.5 : null,
+              child: Image.asset(
+                'images/vanish_icon.png',
+                package: 'tencent_cloud_chat_uikit',
+                height: 13,
+                width: 13,
+              )),
+        if (isOpen && isSelfDestruct && !widget.message.isSelf!)
+          Positioned(
+              bottom: 0,
+              right: -25,
+              child: Text('${_remainingSeconds}s',
+                  style:
+                      const TextStyle(color: AidaBaseColors.selfDestructMode))),
+        if (isSelfDestruct && 
+            widget.message.isSelf! && 
+            ((widget.message.userID != null && 
+              widget.message.isPeerRead != null && 
+              widget.message.isPeerRead!) ||
+            (widget.message.groupID != null && 
+              _isGroupMessageReadByAll())))
+          Positioned(
+              bottom: 0,
+              left: -25,
+              child: Text('${_remainingSeconds}s',
+                  textAlign: TextAlign.right,
+                  style:
+                      const TextStyle(color: AidaBaseColors.selfDestructMode))),
       ],
     );
   }

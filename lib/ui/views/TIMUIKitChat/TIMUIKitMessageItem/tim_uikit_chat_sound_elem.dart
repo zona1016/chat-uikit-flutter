@@ -192,6 +192,45 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
     }
   }
 
+  /// Check if group message is read by all members using cached read receipt data
+  bool _isGroupMessageReadByAll() {
+    if (widget.message.groupID == null || widget.message.msgID == null) {
+      return false;
+    }
+    
+    bool isReadByAll = false;
+    
+    // Use the cached read receipt from the chat model
+    final messageReadReceiptMap = widget.chatModel.globalModel.messageReadReceiptMap;
+    final receipt = messageReadReceiptMap[widget.message.msgID!];
+    
+    if (receipt != null) {
+      isReadByAll = receipt.unreadCount == 0;
+    } else {
+      // Fallback: try to use the private property if it exists
+      try {
+        isReadByAll = (widget.message as dynamic)._messageGroupReceiptUnreadCount == 0;
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    // If message is read by all and is a self-destruct message from self, add to queue
+    if (isReadByAll && widget.message.isSelf! && isSelfDestruct) {
+      final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
+          ? jsonDecode(widget.message.cloudCustomData!)
+          : {};
+      
+      final shouldTriggerSelfDestruct = customData['isSelfDestruct'] == true;
+      if (shouldTriggerSelfDestruct) {
+        debugPrint('Group sound message ${widget.message.msgID} read by all members, adding to self-destruct queue');
+        _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
+      }
+    }
+    
+    return isReadByAll;
+  }
+
   @override
   void dispose() {
     _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
@@ -369,7 +408,13 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
                 child: Text('${_remainingSeconds}s',
                     style: const TextStyle(
                         color: AidaBaseColors.selfDestructMode))),
-          if (widget.message.isPeerRead != null && widget.message.isPeerRead! && isSelfDestruct && widget.message.isSelf!)
+          if (isSelfDestruct && 
+            widget.message.isSelf! && 
+            ((widget.message.userID != null && 
+              widget.message.isPeerRead != null && 
+              widget.message.isPeerRead!) ||
+            (widget.message.groupID != null && 
+              _isGroupMessageReadByAll())))
           Positioned(
               bottom: 0,
               left: -25,

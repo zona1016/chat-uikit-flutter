@@ -39,6 +39,9 @@ enum GroupProfileWidgetEnum {
   /// The switch of if pin this group to the top in conversation list.
   pinedConversationBar,
 
+  /// The switch of if enable self-destruct mode for this conversation.
+  selfDestructModeBar,
+
   /// The button area, includes
   /// "clear chat history", "transfer group owner", "disband group" and "quit group"
   /// as default.
@@ -104,6 +107,10 @@ class GroupProfileWidgetBuilder {
   Widget Function(bool isPined, Function(bool isMute) pinedConversation)?
       pinedConversationBar;
 
+  /// The switch of if enable self-destruct mode for this conversation.
+  Widget Function(bool isEnabled, Function(bool isEnabled) setSelfDestructMode)?
+      selfDestructModeBar;
+
   /// The button area, includes
   /// "clear chat history", "transfer group owner", "disband group" and "quit group"
   /// as default.
@@ -142,6 +149,7 @@ class GroupProfileWidgetBuilder {
       this.nameCardBar,
       this.muteGroupMessageBar,
       this.pinedConversationBar,
+      this.selfDestructModeBar,
       this.buttonArea,
       this.customBuilderOne,
       this.customBuilderTwo,

@@ -17,6 +17,9 @@ enum ProfileWidgetEnum {
   /// This will not shows when friendship relation not exist as default.
   messageMute,
 
+  /// The switch to enable/disable self-destruct mode for conversations.
+  selfDestructMode,
+
   /// The entrance to search page, please set the `onTap` callback yourself, to the search page with conversation ID.
   /// You can develop it with `TIMUIKitProfileWidget.searchBar`.
   searchBar,

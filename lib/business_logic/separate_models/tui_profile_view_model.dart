@@ -1,10 +1,12 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/profile_life_cycle.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/model/profile_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_friendship_view_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/conversation/conversation_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/core_services_implements.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_services.dart';
@@ -20,12 +22,14 @@ class TUIProfileViewModel extends ChangeNotifier {
       serviceLocator<TUIFriendShipViewModel>();
   final CoreServicesImpl _coreServices = serviceLocator<CoreServicesImpl>();
   final MessageService _messageService = serviceLocator<MessageService>();
+  final TUIChatGlobalModel _chatGlobalModel = serviceLocator<TUIChatGlobalModel>();
 
   UserProfile? _userProfile;
   ProfileLifeCycle? _lifeCycle;
   bool? _shouldAddToBlackList;
   int _friendType = 0;
   bool? _isDisturb;
+  bool _selfDestructMode = false;
 
   UserProfile? get userProfile {
     return _userProfile;
@@ -42,6 +46,10 @@ class TUIProfileViewModel extends ChangeNotifier {
 
   bool? get isAddToBlackList {
     return _shouldAddToBlackList;
+  }
+
+  bool get selfDestructMode {
+    return _selfDestructMode;
   }
 
   int get friendType {
@@ -79,6 +87,8 @@ class TUIProfileViewModel extends ChangeNotifier {
       conversation = await _conversationService.getConversation(
           conversationID: "c2c_$userID");
       _isDisturb = conversation?.recvOpt == 2;
+      // Load self-destruct mode state
+      await _loadSelfDestructMode("c2c_$userID");
     }
 
     final friendInfo =
@@ -251,6 +261,132 @@ class TUIProfileViewModel extends ChangeNotifier {
     notifyListeners();
     return res;
   }
+
+  setSelfDestructMode(String conversationID, bool value) async {
+    try {
+      // Get existing custom data
+      final customData = await _getConversationCustomData(conversationID);
+      
+      // Update the mode preference
+      customData['conversation_default_mode'] = value ? 'self_destruct' : 'normal';
+      
+      // Try to save to conversation custom data
+      final saveSuccess = await _setConversationCustomDataWithResult(conversationID, customData);
+      
+      if (!saveSuccess) {
+        // Conversation doesn't exist yet, store as pending
+        _chatGlobalModel.setPendingConversationMode(conversationID, value);
+        print('Stored pending self-destruct mode for C2C conversation: $value');
+      } else {
+        print('Saved self-destruct mode to custom data for C2C conversation: $value');
+      }
+      
+      // Update local state
+      _selfDestructMode = value;
+      notifyListeners();
+      
+      // Update the global model's self-destruct state for this conversation
+      _chatGlobalModel.updateSelfDestructMode(conversationID, value);
+      print('Updated global model C2C self-destruct mode: $value');
+      
+    } catch (e) {
+      print('Error setting self-destruct mode for C2C: $e');
+    }
+  }
+
+  /// Get conversation custom data
+  Future<Map<String, dynamic>> _getConversationCustomData(String conversationID) async {
+    try {
+      final result = await TencentImSDKPlugin.v2TIMManager
+          .getConversationManager()
+          .getConversation(conversationID: conversationID);
+      
+      if (result.code == 0 && result.data?.customData != null) {
+        final customDataString = result.data!.customData!;
+        if (customDataString.isNotEmpty) {
+          final decoded = jsonDecode(customDataString);
+          return Map<String, dynamic>.from(decoded);
+        }
+      }
+    } catch (e) {
+      print('Error getting conversation custom data: $e');
+    }
+    
+    return <String, dynamic>{};
+  }
+  
+  /// Set conversation custom data and return success status
+  Future<bool> _setConversationCustomDataWithResult(String conversationID, Map<String, dynamic> customData) async {
+    try {
+      final result = await TencentImSDKPlugin.v2TIMManager
+          .getConversationManager()
+          .setConversationCustomData(
+            conversationIDList: [conversationID],
+            customData: jsonEncode(customData),
+          );
+      return result.code == 0;
+    } catch (e) {
+      print('Error setting conversation custom data: $e');
+      return false;
+    }
+  }
+
+  /// Set conversation custom data
+  Future<void> _setConversationCustomData(String conversationID, Map<String, dynamic> data) async {
+    try {
+      final customDataString = jsonEncode(data);
+      
+      await TencentImSDKPlugin.v2TIMManager
+          .getConversationManager()
+          .setConversationCustomData(
+            conversationIDList: [conversationID],
+            customData: customDataString,
+          );
+          
+      print('Updated conversation custom data for: $conversationID');
+    } catch (e) {
+      print('Error setting conversation custom data: $e');
+    }
+  }
+
+  /// Load self-destruct mode state from conversation custom data
+  Future<void> _loadSelfDestructMode(String conversationID) async {
+    try {
+      // First check if there's a pending mode in global model
+      final globalMode = _chatGlobalModel.getSelfDestructMode(conversationID);
+      final pendingMode = _chatGlobalModel.consumePendingConversationMode(conversationID);
+      
+      if (pendingMode != null) {
+        // Use pending mode if available
+        _selfDestructMode = pendingMode;
+        // Put it back since we're just checking, not consuming yet
+        _chatGlobalModel.setPendingConversationMode(conversationID, pendingMode);
+        print('Loaded pending self-destruct mode for C2C conversation: $_selfDestructMode');
+        return;
+      }
+      
+      if (globalMode) {
+        // Use global model state if available
+        _selfDestructMode = globalMode;
+        print('Loaded global self-destruct mode for C2C conversation: $_selfDestructMode');
+        return;
+      }
+      
+      // Fall back to conversation custom data
+      final customData = await _getConversationCustomData(conversationID);
+      final mode = customData['conversation_default_mode'] as String?;
+      _selfDestructMode = mode == 'self_destruct';
+      
+      // Update global model with the loaded state
+      _chatGlobalModel.updateSelfDestructMode(conversationID, _selfDestructMode);
+      
+      print('Loaded self-destruct mode from custom data for C2C conversation: $_selfDestructMode');
+    } catch (e) {
+      print('Error loading self-destruct mode: $e');
+      _selfDestructMode = false;
+    }
+  }
+
 
   updateUserInfo(String key, dynamic value) {
     if (key == "nickName") {

@@ -14,6 +14,7 @@ import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/t
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_name_card.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_notification.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_pin_conversation.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_self_destruct_mode.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_type.dart';
 
 class TIMUIKitGroupProfileWidget {
@@ -89,5 +90,9 @@ class TIMUIKitGroupProfileWidget {
 
   static Widget allowAddingFriends () {
     return GroupAllowAddingFriends();
+  }
+
+  static Widget selfDestructMode() {
+    return GroupSelfDestructMode();
   }
 }

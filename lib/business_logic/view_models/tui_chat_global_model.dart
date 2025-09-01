@@ -1137,4 +1137,68 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
     _historyMessagePositionMap[conversationID] = position;
     notifyListeners();
   }
+
+  // Map to store self-destruct mode states per conversation
+  final Map<String, bool> _conversationSelfDestructStates = {};
+  
+  // Map to store pending conversation mode preferences for new conversations
+  final Map<String, bool> _pendingConversationModes = {};
+
+  /// Update self-destruct mode for any conversation and trigger UI refresh
+  void updateSelfDestructMode(String conversationID, bool isEnabled) {
+    // Store the self-destruct mode state globally for any conversation
+    _conversationSelfDestructStates[conversationID] = isEnabled;
+    
+    // Notify all listeners (including the chat screen) to refresh
+    notifyListeners();
+    
+    print('Updated self-destruct mode globally for: $conversationID -> $isEnabled');
+  }
+
+  /// Get self-destruct mode state for a conversation
+  bool getSelfDestructMode(String conversationID) {
+    return _conversationSelfDestructStates[conversationID] ?? false;
+  }
+  
+  /// Set a pending conversation mode for a new conversation that doesn't exist yet
+  void setPendingConversationMode(String conversationID, bool isEnabled) {
+    _pendingConversationModes[conversationID] = isEnabled;
+    // Also update the current state so the UI reflects the selection immediately
+    updateSelfDestructMode(conversationID, isEnabled);
+    print('Set pending conversation mode: $conversationID -> $isEnabled');
+  }
+  
+  /// Get and remove pending conversation mode, called when first message is sent
+  bool? consumePendingConversationMode(String conversationID) {
+    final mode = _pendingConversationModes.remove(conversationID);
+    if (mode != null) {
+      print('Consumed pending conversation mode: $conversationID -> $mode');
+    }
+    return mode;
+  }
+  
+  /// Handle pending conversation mode when first message is sent
+  Future<void> handlePendingConversationMode(String conversationID) async {
+    final pendingMode = consumePendingConversationMode(conversationID);
+    if (pendingMode != null) {
+      // Save the pending mode to the now-existing conversation
+      try {
+        final customData = {'conversation_default_mode': pendingMode ? 'self_destruct' : 'normal'};
+        final result = await TencentImSDKPlugin.v2TIMManager
+            .getConversationManager()
+            .setConversationCustomData(
+              conversationIDList: [conversationID],
+              customData: jsonEncode(customData),
+            );
+        
+        if (result.code == 0) {
+          print('Applied pending conversation mode to conversation: $conversationID -> $pendingMode');
+        } else {
+          print('Failed to apply pending conversation mode: ${result.desc}');
+        }
+      } catch (e) {
+        print('Error applying pending conversation mode: $e');
+      }
+    }
+  }
 }

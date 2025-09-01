@@ -111,6 +111,23 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
     );
   }
 
+  /// self destruct mode
+  static Widget selfDestructMode(BuildContext context, bool isEnabled,
+      Function(bool value)? onChanged, bool smallCardMode) {
+    return TIMUIKitOperationItem(
+      smallCardMode: smallCardMode,
+      isEmpty: false,
+      operationName: TIM_t("打开阅后即焚模式"),
+      type: "switch",
+      operationValue: isEnabled,
+      onSwitchChange: (value) {
+        if (onChanged != null) {
+          onChanged(value);
+        }
+      },
+    );
+  }
+
   static Widget operationItem(
       {required String operationName,
       required String type,

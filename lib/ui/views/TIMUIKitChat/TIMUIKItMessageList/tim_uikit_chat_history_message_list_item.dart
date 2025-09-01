@@ -1073,7 +1073,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
         if (model.chatConfig.isShowGroupReadingStatus &&
             model.chatConfig.isShowGroupMessageReadReceipt &&
             model.conversationType == ConvType.group &&
-            isSelf &&
+            isSelf && !isSelfDestruct &&
             (message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC || message.status == MessageStatus.V2TIM_MSG_STATUS_SENDING))
           TIMUIKitMessageReadReceipt(
             messageItem: widget.message,
