@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_allow_adding_friends.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_disappearing_message_conversation.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_search_widget.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_ui_group_search_msg.dart';
@@ -80,6 +81,10 @@ class TIMUIKitGroupProfileWidget {
 
   static Widget pinedConversation() {
     return GroupPinConversation();
+  }
+
+  static Widget groupDisappearingMessageConversation() {
+    return GroupDisappearingMessageConversation();
   }
 
   static Widget allowAddingFriends () {

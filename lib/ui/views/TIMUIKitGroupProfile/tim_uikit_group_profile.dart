@@ -121,6 +121,7 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
     GroupProfileWidgetEnum.groupJoiningModeBar,
     GroupProfileWidgetEnum.groupTypeBar,
     GroupProfileWidgetEnum.operationDivider,
+    GroupProfileWidgetEnum.customBuilderTwo,
     GroupProfileWidgetEnum.pinedConversationBar,
     GroupProfileWidgetEnum.muteGroupMessageBar,
     GroupProfileWidgetEnum.operationDivider,
@@ -309,7 +310,7 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                   return (customBuilder?.customBuilderTwo != null
                       ? customBuilder?.customBuilderTwo!(groupInfo, memberList)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
-                      : Text(TIM_t("如使用自定义区域，请在profileWidgetBuilder传入对应组件")))!;
+                      : TIMUIKitGroupProfileWidget.groupDisappearingMessageConversation())!;
                 case GroupProfileWidgetEnum.customBuilderThree:
                   return (customBuilder?.customBuilderThree != null
                       ? customBuilder?.customBuilderThree!(
