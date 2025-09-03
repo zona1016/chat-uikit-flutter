@@ -71,7 +71,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
 
   final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
   bool _isViewed = false;
-  int _remainingSeconds = SelfDestructQueue.burnSeconds;
+  int _remainingSeconds = SelfDestructQueue().currentBurnSeconds;
 
   Widget? imageItem;
   bool isSent = false;
@@ -659,13 +659,18 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     _setupCallbacks();
     initImages();
 
-    debugPrint(
-        'CUSTOM DATA IMG ' + (widget.message.cloudCustomData ?? 'NOTHING'));
+    // debugPrint('CUSTOM DATA IMG ' + (widget.message.cloudCustomData ?? 'NOTHING'));
     final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
         ? jsonDecode(widget.message.cloudCustomData!)
         : {};
     setState(() {
       isSelfDestruct = customData['isSelfDestruct'] ?? false;
+      if (widget.message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC) {
+        _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
+        isOpen = _isViewed;
+        _remainingSeconds =
+            _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+      }
     });
   }
 
@@ -709,51 +714,32 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
   }
 
   void _viewMessage() {
-    if (!_isViewed) {
+    if (!_isViewed && widget.message.msgID != null) {
+      final globalModel = serviceLocator<TUIChatGlobalModel>();
+      final conversationID = widget.message.groupID != null ? 
+                           'group_${widget.message.groupID}' : 
+                           'c2c_${TencentUtils.checkString(widget.message.userID) ?? TencentUtils.checkString(widget.message.sender)}';
+      final burnSeconds = globalModel.getConversationBurnSeconds(conversationID);
+      
       setState(() {
         _isViewed = true;
+        _remainingSeconds = burnSeconds;
       });
-      _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
+      _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message,
+          conversationBurnSeconds: burnSeconds);
     }
   }
 
-  /// Check if group message is read by all members using cached read receipt data
   bool _isGroupMessageReadByAll() {
-    if (widget.message.groupID == null || widget.message.msgID == null) {
-      return false;
-    }
-    
-    bool isReadByAll = false;
-    
-    // Use the cached read receipt from the chat model
-    final messageReadReceiptMap = widget.chatModel.globalModel.messageReadReceiptMap;
-    final receipt = messageReadReceiptMap[widget.message.msgID!];
-    
-    if (receipt != null) {
-      isReadByAll = receipt.unreadCount == 0;
-    } else {
-      // Fallback: try to use the private property if it exists
-      try {
-        isReadByAll = (widget.message as dynamic)._messageGroupReceiptUnreadCount == 0;
-      } catch (e) {
-        return false;
-      }
-    }
-    
-    // If message is read by all and is a self-destruct message from self, add to queue
-    if (isReadByAll && widget.message.isSelf! && isSelfDestruct) {
-      final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
-          ? jsonDecode(widget.message.cloudCustomData!)
-          : {};
-      
-      final shouldTriggerSelfDestruct = customData['isSelfDestruct'] == true;
-      if (shouldTriggerSelfDestruct) {
-        debugPrint('Group image message ${widget.message.msgID} read by all members, adding to self-destruct queue');
-        _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
-      }
-    }
-    
-    return isReadByAll;
+    return MessageReceiptUtils.isGroupMessageReadByAllWithSelfDestruct(
+      message: widget.message,
+      chatModel: widget.chatModel,
+      onSelfDestructTrigger: (msgID, message, {conversationBurnSeconds}) {
+        if (isSelfDestruct) {
+          _selfDestructQueue.viewMessage(msgID, message, conversationBurnSeconds: conversationBurnSeconds);
+        }
+      },
+    );
   }
 
   @override

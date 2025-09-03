@@ -28,6 +28,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
   final void Function(bool newValue)? onSwitchChange;
   final Key? itemBoxKey;
   final bool isUseCheckedBoxOnWide;
+  final Color rightIconColor;
 
   /// Is use the small card mode on Desktop. Usually shows on the Chat page.
   final bool smallCardMode;
@@ -42,6 +43,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
       this.smallCardMode = false,
       this.operationValue,
       this.type = "arrow",
+      this.rightIconColor = AidaBaseColors.white,
       this.isUseCheckedBoxOnWide = false,
       this.onSwitchChange,
       this.operationRightWidget,
@@ -194,7 +196,7 @@ class TIMUIKitOperationItem extends TIMUIKitStatelessWidget {
                     children: [Expanded(child: operationRightWidget ?? const Text(""))],
                   )),
                 (type != "switch" && !isDesktopScreen && showAllowEditStatus)
-                    ? const Icon(Icons.keyboard_arrow_right, color: AidaBaseColors.white,)
+                    ? Icon(Icons.keyboard_arrow_right, color: rightIconColor)
                     : Container(
                         width: 0,
                       ),

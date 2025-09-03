@@ -35,6 +35,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
   String _groupMemberListSeq = "0";
   V2TimGroupInfo? _groupInfo;
   bool? _selfDestructMode;
+  int _burnSeconds = 15;
   Function(String userID, TapDownDetails? tapDetails)? onClickUser;
 
   GroupProfileLifeCycle? get lifeCycle => _lifeCycle;
@@ -82,6 +83,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
     _selfDestructMode = value;
   }
 
+  int get burnSeconds => _burnSeconds;
+
   void loadData(String groupID) {
     _groupID = groupID;
     loadGroupInfo(groupID);
@@ -92,6 +95,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
     _loadConversation();
     _loadContactList();
     _loadSelfDestructMode();
+    loadBurnSeconds("group_$groupID");
   }
 
   loadGroupInfo(String groupID) async {
@@ -196,14 +200,11 @@ class TUIGroupProfileModel extends ChangeNotifier {
       
       // First check if there's a pending mode in global model
       final globalMode = _chatGlobalModel.getSelfDestructMode(conversationID);
-      final pendingMode = _chatGlobalModel.consumePendingConversationMode(conversationID);
-      final hasPendingMode = pendingMode != null;
+      final pendingMode = _chatGlobalModel.getPendingConversationMode(conversationID);
       
-      if (hasPendingMode) {
+      if (pendingMode != null) {
         // Use pending mode if available
         _selfDestructMode = pendingMode;
-        // Put it back since we're just checking
-        _chatGlobalModel.setPendingConversationMode(conversationID, pendingMode);
         print('Loaded pending self-destruct mode for group: $_selfDestructMode');
         return;
       }
@@ -219,8 +220,13 @@ class TUIGroupProfileModel extends ChangeNotifier {
       final customData = await _getConversationCustomData(conversationID);
       _selfDestructMode = customData['conversation_default_mode'] == 'self_destruct';
       
-      // Update global model with the loaded state
-      _chatGlobalModel.updateSelfDestructMode(conversationID, _selfDestructMode ?? false);
+      // Only update global model if we have explicit mode data - don't overwrite existing state
+      if (customData.containsKey('conversation_default_mode')) {
+        _chatGlobalModel.updateSelfDestructMode(conversationID, _selfDestructMode ?? false);
+        print('Updated global model with explicit mode for group: $_selfDestructMode');
+      } else {
+        print('No explicit mode found, keeping existing global state for group');
+      }
       
       print('Loaded self-destruct mode from custom data for group: $_selfDestructMode');
     } catch (e) {
@@ -259,6 +265,12 @@ class TUIGroupProfileModel extends ChangeNotifier {
       // Update the mode preference
       customData['conversation_default_mode'] = value ? 'self_destruct' : 'normal';
       
+      // Clear burn_seconds when disabling self-destruct mode
+      if (!value && customData.containsKey('burn_seconds')) {
+        customData.remove('burn_seconds');
+        print('Cleared burn_seconds for group conversation since self-destruct mode disabled');
+      }
+      
       // Try to save to conversation custom data
       final saveSuccess = await _setConversationCustomDataWithResult("group_$_groupID", customData);
       
@@ -280,6 +292,43 @@ class TUIGroupProfileModel extends ChangeNotifier {
       
     } catch (e) {
       print('Error setting self-destruct mode: $e');
+    }
+  }
+
+  setBurnSeconds(String conversationID, int seconds) async {
+    try {
+      // Update local state
+      _burnSeconds = seconds;
+      notifyListeners();
+      
+      // Update the global model's burn seconds for this conversation
+      await _chatGlobalModel.setConversationBurnSeconds(conversationID, seconds);
+      print('Updated conversation burn seconds for group: $seconds');
+      
+    } catch (e) {
+      print('Error setting burn seconds for group: $e');
+    }
+  }
+
+  loadBurnSeconds(String conversationID) async {
+    try {
+      // Load burn seconds from global model
+      _burnSeconds = _chatGlobalModel.getConversationBurnSeconds(conversationID);
+      
+      // Also try to load from conversation custom data to sync
+      final customData = await _getConversationCustomData(conversationID);
+      final burnSeconds = customData['burn_seconds'] as int?;
+      if (burnSeconds != null) {
+        _burnSeconds = burnSeconds;
+        // Update global model with the loaded value
+        await _chatGlobalModel.setConversationBurnSeconds(conversationID, burnSeconds);
+      }
+      
+      print('Loaded burn seconds for group conversation: $_burnSeconds');
+      notifyListeners();
+    } catch (e) {
+      print('Error loading burn seconds: $e');
+      _burnSeconds = _chatGlobalModel.defaultBurnSeconds;
     }
   }
 

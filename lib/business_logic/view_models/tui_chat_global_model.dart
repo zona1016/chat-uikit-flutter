@@ -69,6 +69,9 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
   Map<String, List> loadingMessage = {};
 
   TUIChatGlobalModel() {
+    // Initialize burn seconds setting
+    loadBurnSecondsFromStorage();
+    
     advancedMsgListener = V2TimAdvancedMsgListener(
       onRecvC2CReadReceipt: (List<V2TimMessageReceipt> receiptList) {
         _onReceiveC2CReadReceipt(receiptList);
@@ -641,7 +644,9 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
           // debugPrint('Deleting self-destruct message ${element.msgID}');
           // _messageService.deleteMessages(msgIDs: [element.msgID!]);
           // return false; // Remove from list
-          _selfDestructQueue.viewMessage(element.msgID!, element);
+          final conversationID = convID;
+          final burnSeconds = getConversationBurnSeconds(conversationID);
+          _selfDestructQueue.viewMessage(element.msgID!, element, conversationBurnSeconds: burnSeconds);
         }
 
         // Mark as read
@@ -1143,6 +1148,15 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
   
   // Map to store pending conversation mode preferences for new conversations
   final Map<String, bool> _pendingConversationModes = {};
+  
+  // Global default self-destruct burn seconds setting
+  int _defaultBurnSeconds = 15;
+  
+  // Per-conversation burn seconds settings
+  final Map<String, int> _conversationBurnSeconds = {};
+  
+  // Map to store pending conversation burn seconds for new conversations
+  final Map<String, int> _pendingConversationBurnSeconds = {};
 
   /// Update self-destruct mode for any conversation and trigger UI refresh
   void updateSelfDestructMode(String conversationID, bool isEnabled) {
@@ -1168,6 +1182,11 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
     print('Set pending conversation mode: $conversationID -> $isEnabled');
   }
   
+  /// Get pending conversation mode without removing it
+  bool? getPendingConversationMode(String conversationID) {
+    return _pendingConversationModes[conversationID];
+  }
+  
   /// Get and remove pending conversation mode, called when first message is sent
   bool? consumePendingConversationMode(String conversationID) {
     final mode = _pendingConversationModes.remove(conversationID);
@@ -1180,10 +1199,20 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
   /// Handle pending conversation mode when first message is sent
   Future<void> handlePendingConversationMode(String conversationID) async {
     final pendingMode = consumePendingConversationMode(conversationID);
-    if (pendingMode != null) {
-      // Save the pending mode to the now-existing conversation
+    final pendingBurnSeconds = _pendingConversationBurnSeconds.remove(conversationID);
+    
+    if (pendingMode != null || pendingBurnSeconds != null) {
+      // Save the pending settings to the now-existing conversation
       try {
-        final customData = {'conversation_default_mode': pendingMode ? 'self_destruct' : 'normal'};
+        final customData = <String, dynamic>{};
+        if (pendingMode != null) {
+          customData['conversation_default_mode'] = pendingMode ? 'self_destruct' : 'normal';
+        }
+        if (pendingBurnSeconds != null) {
+          customData['burn_seconds'] = pendingBurnSeconds;
+          _conversationBurnSeconds[conversationID] = pendingBurnSeconds;
+        }
+        
         final result = await TencentImSDKPlugin.v2TIMManager
             .getConversationManager()
             .setConversationCustomData(
@@ -1192,13 +1221,129 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
             );
         
         if (result.code == 0) {
-          print('Applied pending conversation mode to conversation: $conversationID -> $pendingMode');
+          if (pendingMode != null) {
+            print('Applied pending conversation mode to conversation: $conversationID -> $pendingMode');
+          }
+          if (pendingBurnSeconds != null) {
+            print('Applied pending conversation burn seconds: $conversationID -> ${pendingBurnSeconds}s');
+          }
         } else {
-          print('Failed to apply pending conversation mode: ${result.desc}');
+          print('Failed to apply pending conversation settings: ${result.desc}');
         }
       } catch (e) {
-        print('Error applying pending conversation mode: $e');
+        print('Error applying pending conversation settings: $e');
       }
+    }
+  }
+  
+  /// Set default burn seconds for self-destruct messages
+  Future<void> setDefaultBurnSeconds(int seconds) async {
+    _defaultBurnSeconds = seconds;
+    
+    // Save to persistent storage
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('default_burn_seconds_setting', seconds);
+      debugPrint('Saved default burn seconds setting: $seconds');
+    } catch (e) {
+      debugPrint('Failed to save default burn seconds setting: $e');
+    }
+    
+    notifyListeners();
+  }
+  
+  /// Set burn seconds for a specific conversation
+  Future<void> setConversationBurnSeconds(String conversationID, int seconds) async {
+    _conversationBurnSeconds[conversationID] = seconds;
+    
+    // Try to save to conversation custom data - preserve existing data
+    try {
+      // Get existing custom data first
+      final result = await TencentImSDKPlugin.v2TIMManager
+          .getConversationManager()
+          .getConversation(conversationID: conversationID);
+      
+      Map<String, dynamic> customData = {};
+      if (result.code == 0 && result.data?.customData != null && result.data!.customData!.isNotEmpty) {
+        try {
+          customData = Map<String, dynamic>.from(jsonDecode(result.data!.customData!));
+        } catch (e) {
+          debugPrint('Error parsing existing custom data, starting fresh: $e');
+        }
+      }
+      
+      // Update only the burn_seconds field
+      customData['burn_seconds'] = seconds;
+      
+      final saveResult = await TencentImSDKPlugin.v2TIMManager
+          .getConversationManager()
+          .setConversationCustomData(
+            conversationIDList: [conversationID],
+            customData: jsonEncode(customData),
+          );
+          
+      if (saveResult.code == 0) {
+        debugPrint('Saved conversation burn seconds: $conversationID -> ${seconds}s (preserved existing data)');
+      } else {
+        // Conversation might not exist yet, store as pending
+        _pendingConversationBurnSeconds[conversationID] = seconds;
+        debugPrint('Failed to save burn seconds, stored as pending: $conversationID -> ${seconds}s (code: ${saveResult.code})');
+      }
+    } catch (e) {
+      debugPrint('Error saving conversation burn seconds: $e');
+      // Fallback: store as pending
+      _pendingConversationBurnSeconds[conversationID] = seconds;
+    }
+    
+    notifyListeners();
+  }
+  
+  /// Get burn seconds for a specific conversation (returns default if not set)
+  int getConversationBurnSeconds(String conversationID) {
+    return _conversationBurnSeconds[conversationID] ?? 
+           _pendingConversationBurnSeconds[conversationID] ?? 
+           _defaultBurnSeconds;
+  }
+  
+  /// Get current default burn seconds setting
+  int get defaultBurnSeconds => _defaultBurnSeconds;
+  
+  /// Load default burn seconds setting from storage
+  Future<void> loadBurnSecondsFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedSeconds = prefs.getInt('default_burn_seconds_setting') ?? 15;
+      _defaultBurnSeconds = savedSeconds;
+      debugPrint('Loaded default burn seconds setting: $savedSeconds');
+    } catch (e) {
+      debugPrint('Failed to load default burn seconds setting: $e');
+    }
+  }
+  
+  /// Load conversation burn seconds from conversation custom data
+  /// This method should be called when entering a conversation to load its specific settings
+  void loadConversationBurnSeconds(String conversationID, String? conversationCustomData) {
+    try {
+      if (conversationCustomData?.trim().isNotEmpty == true) {
+        final customData = jsonDecode(conversationCustomData!);
+        final burnSeconds = customData['burn_seconds'] as int?;
+        if (burnSeconds != null) {
+          _conversationBurnSeconds[conversationID] = burnSeconds;
+          debugPrint('Loaded conversation burn seconds: $conversationID -> ${burnSeconds}s');
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to load conversation burn seconds for $conversationID: $e');
+    }
+  }
+  
+  /// Handle pending conversation burn seconds when first message is sent
+  Future<void> handlePendingConversationBurnSeconds(String conversationID) async {
+    final pendingBurnSeconds = _pendingConversationBurnSeconds.remove(conversationID);
+    if (pendingBurnSeconds != null) {
+      // Save the pending burn seconds to the now-existing conversation
+      await setConversationBurnSeconds(conversationID, pendingBurnSeconds);
+      debugPrint('Applied pending conversation burn seconds: $conversationID -> ${pendingBurnSeconds}s');
     }
   }
 }

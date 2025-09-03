@@ -151,6 +151,7 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
     ProfileWidgetEnum.pinConversationBar,
     ProfileWidgetEnum.messageMute,
     ProfileWidgetEnum.selfDestructMode,
+    ProfileWidgetEnum.burnSecondsOption,
     ProfileWidgetEnum.operationDivider,
     ProfileWidgetEnum.addToBlockListBar,
     ProfileWidgetEnum.operationDivider,
@@ -342,6 +343,18 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                 case ProfileWidgetEnum.selfDestructMode:
                   return TIMUIKitProfileWidget.selfDestructMode(context, model.selfDestructMode,
                           handleSelfDestructMode, widget.smallCardMode);
+                case ProfileWidgetEnum.burnSecondsOption:
+                  // Only show burn seconds option when self-destruct mode is enabled
+                  if (!(model.selfDestructMode ?? false)) {
+                    return Container();
+                  }
+                  return TIMUIKitProfileWidget.burnSecondsOption(
+                    context,
+                    conversation.conversationID ?? "c2c_${userInfo.userID}",
+                    theme,
+                    model,
+                    widget.smallCardMode,
+                  );
                 case ProfileWidgetEnum.searchBar:
                   return (customBuilder?.searchBar != null
                       ? customBuilder?.searchBar!(conversation)
