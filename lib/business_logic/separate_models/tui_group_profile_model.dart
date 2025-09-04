@@ -22,7 +22,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
   final MessageService _messageService = serviceLocator<MessageService>();
   final FriendshipServices _friendshipServices =
       serviceLocator<FriendshipServices>();
-  final TUIChatGlobalModel _chatGlobalModel = serviceLocator<TUIChatGlobalModel>();
+  final TUIChatGlobalModel _chatGlobalModel =
+      serviceLocator<TUIChatGlobalModel>();
   GroupProfileLifeCycle? _lifeCycle;
 
   V2TimConversation? _conversation;
@@ -63,9 +64,14 @@ class TUIGroupProfileModel extends ChangeNotifier {
   }
 
   List<V2TimGroupMemberFullInfo?> get groupMemberList => _groupMemberList ?? [];
+
   List<V2TimGroupMemberFullInfo?> get groupOwnerList => _groupOwnerList ?? [];
-  List<V2TimGroupMemberFullInfo?> get groupAdminMemberList => _groupAdminMemberList ?? [];
-  List<V2TimGroupMemberFullInfo?> get groupCommonMemberList => _groupCommonMemberList ?? [];
+
+  List<V2TimGroupMemberFullInfo?> get groupAdminMemberList =>
+      _groupAdminMemberList ?? [];
+
+  List<V2TimGroupMemberFullInfo?> get groupCommonMemberList =>
+      _groupCommonMemberList ?? [];
 
   set groupMemberList(List<V2TimGroupMemberFullInfo?> value) {
     _groupMemberList = value;
@@ -144,8 +150,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
     return groupMemberListRes?.nextSeq;
   }
 
-  Future<void> _loadGroupOwnerMemberList(
-      {required String groupID}) async {
+  Future<void> _loadGroupOwnerMemberList({required String groupID}) async {
     final res = await _groupServices.getGroupMemberList(
         groupID: groupID,
         filter: GroupMemberFilterTypeEnum.V2TIM_GROUP_MEMBER_FILTER_OWNER,
@@ -157,8 +162,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadGroupAdminMemberList(
-      {required String groupID}) async {
+  Future<void> _loadGroupAdminMemberList({required String groupID}) async {
     final res = await _groupServices.getGroupMemberList(
         groupID: groupID,
         filter: GroupMemberFilterTypeEnum.V2TIM_GROUP_MEMBER_FILTER_ADMIN,
@@ -170,8 +174,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadGroupCommonMemberList(
-      {required String groupID}) async {
+  Future<void> _loadGroupCommonMemberList({required String groupID}) async {
     final res = await _groupServices.getGroupMemberList(
         groupID: groupID,
         filter: GroupMemberFilterTypeEnum.V2TIM_GROUP_MEMBER_FILTER_COMMON,
@@ -181,7 +184,6 @@ class TUIGroupProfileModel extends ChangeNotifier {
     if (res.code == 0 && groupMemberListRes != null) {
       _groupCommonMemberList = groupMemberListRes.memberInfoList ?? [];
     }
-
   }
 
   _loadConversation() async {
@@ -197,38 +199,45 @@ class TUIGroupProfileModel extends ChangeNotifier {
   _loadSelfDestructMode() async {
     try {
       final conversationID = "group_$_groupID";
-      
+
       // First check if there's a pending mode in global model
       final globalMode = _chatGlobalModel.getSelfDestructMode(conversationID);
-      final pendingMode = _chatGlobalModel.getPendingConversationMode(conversationID);
-      
+      final pendingMode =
+          _chatGlobalModel.getPendingConversationMode(conversationID);
+
       if (pendingMode != null) {
         // Use pending mode if available
         _selfDestructMode = pendingMode;
-        print('Loaded pending self-destruct mode for group: $_selfDestructMode');
+        print(
+            'Loaded pending self-destruct mode for group: $_selfDestructMode');
         return;
       }
-      
+
       if (globalMode) {
         // Use global model state if available
         _selfDestructMode = globalMode;
         print('Loaded global self-destruct mode for group: $_selfDestructMode');
         return;
       }
-      
+
       // Fall back to conversation custom data
       final customData = await _getConversationCustomData(conversationID);
-      _selfDestructMode = customData['conversation_default_mode'] == 'self_destruct';
-      
+      _selfDestructMode =
+          customData['conversation_default_mode'] == 'self_destruct';
+
       // Only update global model if we have explicit mode data - don't overwrite existing state
       if (customData.containsKey('conversation_default_mode')) {
-        _chatGlobalModel.updateSelfDestructMode(conversationID, _selfDestructMode ?? false);
-        print('Updated global model with explicit mode for group: $_selfDestructMode');
+        _chatGlobalModel.updateSelfDestructMode(
+            conversationID, _selfDestructMode ?? false);
+        print(
+            'Updated global model with explicit mode for group: $_selfDestructMode');
       } else {
-        print('No explicit mode found, keeping existing global state for group');
+        print(
+            'No explicit mode found, keeping existing global state for group');
       }
-      
-      print('Loaded self-destruct mode from custom data for group: $_selfDestructMode');
+
+      print(
+          'Loaded self-destruct mode from custom data for group: $_selfDestructMode');
     } catch (e) {
       print('Error loading self-destruct mode for group: $e');
       _selfDestructMode = false;
@@ -261,19 +270,22 @@ class TUIGroupProfileModel extends ChangeNotifier {
     try {
       // Get existing custom data
       final customData = await _getConversationCustomData("group_$_groupID");
-      
+
       // Update the mode preference
-      customData['conversation_default_mode'] = value ? 'self_destruct' : 'normal';
-      
+      customData['conversation_default_mode'] =
+          value ? 'self_destruct' : 'normal';
+
       // Clear burn_seconds when disabling self-destruct mode
       if (!value && customData.containsKey('burn_seconds')) {
         customData.remove('burn_seconds');
-        print('Cleared burn_seconds for group conversation since self-destruct mode disabled');
+        print(
+            'Cleared burn_seconds for group conversation since self-destruct mode disabled');
       }
-      
+
       // Try to save to conversation custom data
-      final saveSuccess = await _setConversationCustomDataWithResult("group_$_groupID", customData);
-      
+      final saveSuccess = await _setConversationCustomDataWithResult(
+          "group_$_groupID", customData);
+
       if (!saveSuccess) {
         // Conversation doesn't exist yet, store as pending
         _chatGlobalModel.setPendingConversationMode("group_$_groupID", value);
@@ -281,15 +293,14 @@ class TUIGroupProfileModel extends ChangeNotifier {
       } else {
         print('Saved self-destruct mode to custom data for group: $value');
       }
-      
+
       // Update local state
       _selfDestructMode = value;
       notifyListeners();
-      
+
       // Update the global model's self-destruct state for this conversation
       _chatGlobalModel.updateSelfDestructMode("group_$_groupID", value);
       print('Updated global model self-destruct mode: $value');
-      
     } catch (e) {
       print('Error setting self-destruct mode: $e');
     }
@@ -300,11 +311,11 @@ class TUIGroupProfileModel extends ChangeNotifier {
       // Update local state
       _burnSeconds = seconds;
       notifyListeners();
-      
+
       // Update the global model's burn seconds for this conversation
-      await _chatGlobalModel.setConversationBurnSeconds(conversationID, seconds);
+      await _chatGlobalModel.setConversationBurnSeconds(
+          conversationID, seconds);
       print('Updated conversation burn seconds for group: $seconds');
-      
     } catch (e) {
       print('Error setting burn seconds for group: $e');
     }
@@ -313,17 +324,19 @@ class TUIGroupProfileModel extends ChangeNotifier {
   loadBurnSeconds(String conversationID) async {
     try {
       // Load burn seconds from global model
-      _burnSeconds = _chatGlobalModel.getConversationBurnSeconds(conversationID);
-      
+      _burnSeconds =
+          _chatGlobalModel.getConversationBurnSeconds(conversationID);
+
       // Also try to load from conversation custom data to sync
       final customData = await _getConversationCustomData(conversationID);
       final burnSeconds = customData['burn_seconds'] as int?;
       if (burnSeconds != null) {
         _burnSeconds = burnSeconds;
         // Update global model with the loaded value
-        await _chatGlobalModel.setConversationBurnSeconds(conversationID, burnSeconds);
+        await _chatGlobalModel.setConversationBurnSeconds(
+            conversationID, burnSeconds);
       }
-      
+
       print('Loaded burn seconds for group conversation: $_burnSeconds');
       notifyListeners();
     } catch (e) {
@@ -333,12 +346,13 @@ class TUIGroupProfileModel extends ChangeNotifier {
   }
 
   /// Get conversation custom data
-  Future<Map<String, dynamic>> _getConversationCustomData(String conversationID) async {
+  Future<Map<String, dynamic>> _getConversationCustomData(
+      String conversationID) async {
     try {
       final result = await TencentImSDKPlugin.v2TIMManager
           .getConversationManager()
           .getConversation(conversationID: conversationID);
-      
+
       if (result.code == 0 && result.data != null) {
         final customDataStr = result.data!.customData ?? "";
         if (customDataStr.isNotEmpty) {
@@ -352,21 +366,21 @@ class TUIGroupProfileModel extends ChangeNotifier {
   }
 
   /// Set conversation custom data and return success status
-  Future<bool> _setConversationCustomDataWithResult(String conversationID, Map<String, dynamic> customData) async {
+  Future<bool> _setConversationCustomDataWithResult(
+      String conversationID, Map<String, dynamic> customData) async {
     try {
       final result = await TencentImSDKPlugin.v2TIMManager
           .getConversationManager()
           .setConversationCustomData(
-            conversationIDList: [conversationID],
-            customData: jsonEncode(customData),
-          );
+        conversationIDList: [conversationID],
+        customData: jsonEncode(customData),
+      );
       return result.code == 0;
     } catch (e) {
       print('Error setting conversation custom data: $e');
       return false;
     }
   }
-
 
   Future<V2TimValueCallback<V2GroupMemberInfoSearchResult>> searchGroupMember(
       V2TimGroupMemberSearchParam searchParam) async {
@@ -377,16 +391,38 @@ class TUIGroupProfileModel extends ChangeNotifier {
     return res;
   }
 
+  disappearing(Map<String, String>? groupCustomInfo) async {
+    if (_groupInfo != null) {
+      groupCustomInfo?['disappearing_message_time'] =
+          DateTime.now().millisecondsSinceEpoch.toString();
+      final customInfo = Map<String, String>.from(_groupInfo!.customInfo ?? {});
+      customInfo['disappearing'] = jsonEncode(groupCustomInfo);
+
+      final info = V2TimGroupInfo(
+        groupID: _groupID,
+        groupType: _groupInfo!.groupType,
+        customInfo: customInfo,
+      );
+      final response = await _groupServices.setGroupInfo(info: info);
+      if (response.code == 0) {
+        _groupInfo!.customInfo = customInfo;
+        notifyListeners();
+      }
+    }
+  }
+
   allowAddingFriends(bool isAllow) async {
     if (_groupInfo != null) {
-      final response = await _groupServices.setGroupInfo(
-          info: V2TimGroupInfo.fromJson({
-            "groupID": _groupID,
-            "groupType": _groupInfo!.groupType,
-            "customInfo": {'url_detail': isAllow ? 'true' : 'false'},
-          }));
+      final customInfo = Map<String, String>.from(_groupInfo!.customInfo ?? {});
+      customInfo['url_detail'] = isAllow ? 'true' : 'false';
+      final info = V2TimGroupInfo(
+        groupID: _groupID,
+        groupType: _groupInfo!.groupType,
+        customInfo: customInfo,
+      );
+      final response = await _groupServices.setGroupInfo(info: info);
       if (response.code == 0) {
-        conversation?.customData = 'url_detail = ${isAllow ? 'true' : 'false'}';
+        _groupInfo!.customInfo = customInfo;
         notifyListeners();
       }
     }
@@ -394,14 +430,14 @@ class TUIGroupProfileModel extends ChangeNotifier {
 
   Future<V2TimCallback?> setGroupFaceUrl(String faceUrl) async {
     if (_groupInfo != null) {
-      String? originalGroupFaceUrl= _groupInfo?.faceUrl;
+      String? originalGroupFaceUrl = _groupInfo?.faceUrl;
       _groupInfo?.faceUrl = faceUrl;
-      final response = await _groupServices.setGroupInfo(
-          info: V2TimGroupInfo.fromJson({
-            "groupID": _groupID,
-            "groupType": _groupInfo!.groupType,
-            "faceUrl": faceUrl
-          }));
+      final info = V2TimGroupInfo(
+        groupID: _groupID,
+        groupType: _groupInfo!.groupType,
+        faceUrl: faceUrl,
+      );
+      final response = await _groupServices.setGroupInfo(info: info);
       if (response.code != 0) {
         _groupInfo?.faceUrl = originalGroupFaceUrl;
       }
@@ -415,12 +451,12 @@ class TUIGroupProfileModel extends ChangeNotifier {
     if (_groupInfo != null) {
       String? originalGroupName = _groupInfo?.groupName;
       _groupInfo?.groupName = groupName;
-      final response = await _groupServices.setGroupInfo(
-          info: V2TimGroupInfo.fromJson({
-        "groupID": _groupID,
-        "groupType": _groupInfo!.groupType,
-        "groupName": groupName
-      }));
+      final info = V2TimGroupInfo(
+        groupID: _groupID,
+        groupType: _groupInfo!.groupType,
+        groupName: groupName,
+      );
+      final response = await _groupServices.setGroupInfo(info: info);
       if (response.code != 0) {
         _groupInfo?.groupName = originalGroupName;
       }
@@ -432,12 +468,12 @@ class TUIGroupProfileModel extends ChangeNotifier {
 
   setGroupNotification(String notification) async {
     if (_groupInfo != null) {
-      final response = await _groupServices.setGroupInfo(
-          info: V2TimGroupInfo.fromJson({
-        "groupID": _groupID,
-        "groupType": _groupInfo!.groupType,
-        "notification": notification
-      }));
+      final info = V2TimGroupInfo(
+        groupID: _groupID,
+        groupType: _groupInfo!.groupType,
+        notification: notification,
+      );
+      final response = await _groupServices.setGroupInfo(info: info);
       if (response.code == 0) {
         notifyListeners();
         _groupInfo?.notification = notification;

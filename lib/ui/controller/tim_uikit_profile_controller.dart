@@ -41,6 +41,10 @@ class TIMUIKitProfileController {
     return model.updateRemarks(userID, remark);
   }
 
+  Future<V2TimCallback> updateCustomInfo(String userID, Map<String, String>? friendCustomInfo) {
+    return model.updateCustomInfo(userID, friendCustomInfo);
+  }
+
   /// set the message from a specific user as not disturb, mute notification
   Future<V2TimCallback> setMessageDisturb(String userID, bool isDisturb) {
     return model.setMessageDisturb(userID, isDisturb);

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
@@ -5,6 +7,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_grou
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_disappearing_message.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/widget/tim_uikit_operation_item.dart';
 
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -16,6 +19,15 @@ class GroupDisappearingMessageConversation extends TIMUIKitStatelessWidget {
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final model = Provider.of<TUIGroupProfileModel>(context);
+    DisappearingMessageConfig config;
+    if (model.groupInfo?.customInfo != null && model.groupInfo?.customInfo!['disappearing'] != null) {
+      print(model.groupInfo?.customInfo!['disappearing']);
+      Map<String, dynamic> tempMap = jsonDecode(model.groupInfo!.customInfo!['disappearing']!);
+      Map<String, String> customData = tempMap.map((key, value) => MapEntry(key, value.toString()));
+      config = DisappearingMessageConfig.fromJson(customData);
+    } else {
+      config = DisappearingMessageConfig(hour: 0, minute: 0, type: '3', startTime: '', desc: TIM_t('关闭'));
+    }
     return InkWell(
       onTap: () {
         final isDesktopScreen =
@@ -24,8 +36,11 @@ class GroupDisappearingMessageConversation extends TIMUIKitStatelessWidget {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const GroupDisappearingMessage(
-                        selectedTime: '',
+                  builder: (context) => GroupDisappearingMessage(
+                        onSubmitted: (customData) {
+                          model.disappearing(customData);
+                        },
+                        config: config,
                       )));
         }
       },
@@ -44,7 +59,7 @@ class GroupDisappearingMessageConversation extends TIMUIKitStatelessWidget {
             ),
             const Spacer(),
             Text(
-              TIM_t("关闭"),
+              config.desc,
               style: const TextStyle(
                   fontSize: 16, color: AidaBaseColors.weakTextColor),
             ),

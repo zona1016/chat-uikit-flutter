@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -7,24 +9,29 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_button.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
 
 class GroupDisappearingMessage extends StatefulWidget {
-  final String selectedTime;
+  final Function(Map<String, String> customData) onSubmitted;
+  final DisappearingMessageConfig config;
+  final String? groupId;
+  final String? userId;
 
   const GroupDisappearingMessage(
-      {Key? key, required this.selectedTime})
+      {Key? key,
+      required this.config,
+      this.groupId,
+      this.userId,
+      required this.onSubmitted})
       : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _GroupDisappearingMessageState();
 }
 
-class _GroupDisappearingMessageState extends TIMUIKitState {
-
-  final List<String> options = ["24小时", "7天", "90天", "已关闭"];
-  String _selected = "24小时";
-  int selectedHour = 2;
-  int selectedMinute = 30;
+class _GroupDisappearingMessageState
+    extends TIMUIKitState<GroupDisappearingMessage> {
+  final List<String> options = ["24小时", "7天", "90天", TIM_t('关闭')];
 
   @override
   void initState() {
@@ -40,7 +47,7 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
       backgroundImage: AidaBaseColors.baseBackgroundImage,
       appBar: ChatBaseAppBar(
         backgroundColor: Colors.transparent,
-          title: TIM_t("限时消息"),
+        title: TIM_t("限时消息"),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -48,7 +55,9 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 36,),
+              const SizedBox(
+                height: 36,
+              ),
               Center(
                 child: Image.asset(
                   'images/disappearing_message_big.png',
@@ -57,47 +66,33 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
                   package: 'tencent_cloud_chat_uikit',
                 ),
               ),
-              const SizedBox(height: 22.5,),
+              const SizedBox(
+                height: 22.5,
+              ),
               const Text(
                 '设置此对话中的消息自动消失',
                 style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AidaBaseColors.white
-                ),
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AidaBaseColors.white),
               ),
-              const SizedBox(height: 16,),
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AidaBaseColors.weakTextColor,
-                    height: 1.5,
-                  ),
-                  children: [
-                    TextSpan(
-                      text:
-                      '为更好地保护隐私并节省存储空间，在所选期限过后，此对话中的所有新消息都将在所有人设备上自动消失（除非消息已保留）。群组管理员可以控制谁可以更改此设置。 ',
-                    ),
-                    TextSpan(
-                      text: '了解更多',
-                      style: TextStyle(
-                        color: AidaBaseColors.primaryColor,
-                        decoration: TextDecoration.none,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(
+                height: 16,
               ),
-              const SizedBox(height: 30,),
+              const Text(
+                '为更好地保护隐私并节省存储空间，在所选期限过后，此对话中的所有新消息都将在所有人设备上自动消失（除非消息已保留）。',
+                style: TextStyle(
+                    fontSize: 14, color: AidaBaseColors.weakTextColor),
+              ),
+              const SizedBox(
+                height: 30,
+              ),
               const Text(
                 '消息保留期限',
                 style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AidaBaseColors.white
-                ),
+                    color: AidaBaseColors.white),
               ),
               Container(
                 margin: const EdgeInsets.symmetric(vertical: 10),
@@ -108,23 +103,36 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
                 ),
                 child: Column(
                   children: [
-                    ...options.map((option) {
+                    ...options.asMap().entries.map((entry) {
+                      final index = entry.key; // 索引
+                      final option = entry.value; // 值
+
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
                           option,
-                          style: const TextStyle(color: Colors.white, fontSize: 16),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16),
                         ),
-                        trailing: _selected == option
-                            ? const Icon(Icons.check, color: AidaBaseColors.primaryColor)
+                        trailing: widget.config.desc == option
+                            ? const Icon(Icons.check,
+                                color: AidaBaseColors.primaryColor)
                             : null,
-                        splashColor: Colors.transparent,  // 移除水波纹
-                        hoverColor: Colors.transparent,   // 移除鼠标悬浮效果（Web/桌面）
-                        focusColor: Colors.transparent,   // 移除焦点颜色
+                        splashColor: Colors.transparent,
+                        // 移除水波纹
+                        hoverColor: Colors.transparent,
+                        // 移除鼠标悬浮效果（Web/桌面）
+                        focusColor: Colors.transparent,
+                        // 移除焦点颜色
                         onTap: () {
+                          widget.config.type =
+                              index.toString();
+                          widget.config.hour = 0;
+                          widget.config.minute = 0;
                           setState(() {
-                            _selected = option;
+                            widget.config.desc = option;
                           });
+                          widget.onSubmitted(widget.config.toJson());
                         },
                       );
                     }),
@@ -146,15 +154,18 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
                     "自定义消息保留期限",
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
-                  subtitle: const Text(
-                    "2小时 30分钟",
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  subtitle: Text(
+                    "${widget.config.hour}小时 ${widget.config.minute}分钟",
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
-                  trailing:
-                  const Icon(Icons.chevron_right, color: Colors.white, size: 20),
-                  splashColor: Colors.transparent,  // 移除水波纹
-                  hoverColor: Colors.transparent,   // 移除鼠标悬浮效果（Web/桌面）
-                  focusColor: Colors.transparent,   // 移除焦点颜色
+                  trailing: const Icon(Icons.chevron_right,
+                      color: Colors.white, size: 20),
+                  splashColor: Colors.transparent,
+                  // 移除水波纹
+                  hoverColor: Colors.transparent,
+                  // 移除鼠标悬浮效果（Web/桌面）
+                  focusColor: Colors.transparent,
+                  // 移除焦点颜色
                   onTap: () {
                     _showCustomPicker();
                   },
@@ -168,6 +179,8 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
   }
 
   void _showCustomPicker() {
+    int selectedHourDefault = widget.config.hour;
+    int selectedMinuteDefault = widget.config.minute;
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1E1E1E), // 背景色
@@ -182,7 +195,8 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
               children: [
                 // 标题行
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -193,7 +207,8 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: const Text("取消",
-                            style: TextStyle(color: Colors.white70, fontSize: 16)),
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 16)),
                       ),
                     ],
                   ),
@@ -206,17 +221,19 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
                       // 小时选择器
                       Expanded(
                         child: CupertinoPicker(
-                          scrollController: FixedExtentScrollController(initialItem: selectedHour),
+                          scrollController: FixedExtentScrollController(
+                              initialItem: selectedHourDefault),
                           itemExtent: 40,
                           onSelectedItemChanged: (value) {
-                            setState(() => selectedHour = value);
+                            setState(() => selectedHourDefault = value);
                           },
                           children: List.generate(
                             24,
-                                (index) => Center(
+                            (index) => Center(
                               child: Text(
                                 "$index",
-                                style: const TextStyle(color: Colors.white, fontSize: 20),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 20),
                               ),
                             ),
                           ),
@@ -225,17 +242,19 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
                       // 分钟选择器
                       Expanded(
                         child: CupertinoPicker(
-                          scrollController: FixedExtentScrollController(initialItem: (selectedMinute ~/ 10)),
+                          scrollController: FixedExtentScrollController(
+                              initialItem: (selectedMinuteDefault - 1)),
                           itemExtent: 40,
                           onSelectedItemChanged: (value) {
-                            setState(() => selectedMinute = value * 10);
+                            setState(() => selectedMinuteDefault = value + 1);
                           },
                           children: List.generate(
                             59,
-                                (index) => Center(
+                            (index) => Center(
                               child: Text(
                                 "${index + 1}",
-                                style: const TextStyle(color: Colors.white, fontSize: 20),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 20),
                               ),
                             ),
                           ),
@@ -251,6 +270,12 @@ class _GroupDisappearingMessageState extends TIMUIKitState {
                   borderRadius: BorderRadius.circular(30),
                   onPressed: () {
                     Navigator.pop(context);
+                    setState(() {
+                      widget.config.hour = selectedHourDefault;
+                      widget.config.minute = selectedMinuteDefault;
+                      widget.config.desc = '';
+                      widget.onSubmitted(widget.config.toJson());
+                    });
                   },
                   text: TIM_t('确定'),
                 )
