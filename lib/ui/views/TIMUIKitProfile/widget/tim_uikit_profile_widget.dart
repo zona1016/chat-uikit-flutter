@@ -174,11 +174,11 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
   static String _translateBurnSecondsKey(String key) {
     switch (key) {
       case '15s':
-        return '15$TIM_t("秒")';
+        return '15${tr("general.second_short")}';
       case '30s':
-        return '30$TIM_t("秒")';
+        return '30${tr("general.second_short")}';
       case '1min':
-        return '1$TIM_t("分钟")';
+        return '1${tr("general.minute_short")}';
       default:
         return key;
     }
@@ -205,9 +205,15 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
             padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: burnSecondsOptions.entries.map((entry) => 
-                ListTile(
-                  title: Text(_translateBurnSecondsKey(entry.key)),
+              children: burnSecondsOptions.entries.map((entry) {
+                final isSelected = entry.value == profileModel.burnSeconds; 
+                return ListTile(
+                  title: Text(
+                      _translateBurnSecondsKey(entry.key),
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
                   trailing: profileModel.burnSeconds == entry.value 
                       ? Icon(Icons.check, color: theme.primaryColor) 
                       : null,
@@ -215,7 +221,8 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                     await profileModel.setBurnSeconds(conversationID, entry.value);
                     onClose();
                   },
-                )
+                );
+              }
               ).toList(),
             ),
           ));
@@ -225,33 +232,30 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
         builder: (BuildContext context) {
           return CupertinoActionSheet(
             title: Text(TIM_t("选择自毁时间")),
+            actions: burnSecondsOptions.entries.map((entry) {
+              final isSelected = entry.value == profileModel.burnSeconds;
+              return CupertinoActionSheetAction(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await profileModel.setBurnSeconds(conversationID, entry.value);
+                },
+                child: Text(
+                  _translateBurnSecondsKey(entry.key),
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? CupertinoColors.systemBlue : null,
+                  ),
+                ),
+                // isDefaultAction: profileModel.burnSeconds == entry.value,
+              );
+            }).toList(),
             cancelButton: CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
               },
               child: Text(TIM_t("取消")),
-              isDefaultAction: false,
+              // isDefaultAction: false,
             ),
-            actions: burnSecondsOptions.entries.map((entry) =>
-              CupertinoActionSheetAction(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await profileModel.setBurnSeconds(conversationID, entry.value);
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(_translateBurnSecondsKey(entry.key)),
-                    if (profileModel.burnSeconds == entry.value)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Icon(Icons.check, color: theme.primaryColor, size: 18),
-                      ),
-                  ],
-                ),
-                isDefaultAction: profileModel.burnSeconds == entry.value,
-              )
-            ).toList(),
           );
         },
       );
