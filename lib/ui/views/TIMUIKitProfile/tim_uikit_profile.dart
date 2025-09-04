@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +11,8 @@ import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_disappearing_message.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/profile_widget.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/widget/tim_uikit_profile_widget.dart';
 
@@ -148,6 +152,7 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
     ProfileWidgetEnum.operationDivider,
     ProfileWidgetEnum.remarkBar,
     ProfileWidgetEnum.operationDivider,
+    ProfileWidgetEnum.customBuilderThree,
     ProfileWidgetEnum.pinConversationBar,
     ProfileWidgetEnum.messageMute,
     ProfileWidgetEnum.selfDestructMode,
@@ -230,7 +235,8 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
           }
 
           void handleSelfDestructMode(bool value) async {
-            model.setSelfDestructMode(conversation.conversationID ?? "c2c_${userInfo.userID}", value);
+            model.setSelfDestructMode(
+                conversation.conversationID ?? "c2c_${userInfo.userID}", value);
           }
 
           void handleTapRemarkBar({Offset? offset, String? initText}) {
@@ -341,8 +347,11 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                       : TIMUIKitProfileWidget.messageDisturb(context, isMute,
                           handleMuteMessage, widget.smallCardMode))!;
                 case ProfileWidgetEnum.selfDestructMode:
-                  return TIMUIKitProfileWidget.selfDestructMode(context, model.selfDestructMode,
-                          handleSelfDestructMode, widget.smallCardMode);
+                  return TIMUIKitProfileWidget.selfDestructMode(
+                      context,
+                      model.selfDestructMode,
+                      handleSelfDestructMode,
+                      widget.smallCardMode);
                 case ProfileWidgetEnum.burnSecondsOption:
                   // Only show burn seconds option when self-destruct mode is enabled
                   if (!(model.selfDestructMode ?? false)) {
@@ -494,11 +503,49 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           handleDeleteFriend,
                           widget.smallCardMode))!;
                 case ProfileWidgetEnum.customBuilderThree:
+                  DisappearingMessageConfig config;
+                  if (userInfo.friendCustomInfo?['disap'] != null) {
+                    Map<String, dynamic> tempMap =
+                        jsonDecode(userInfo.friendCustomInfo!['disap']!);
+                    Map<String, String> customData = tempMap
+                        .map((key, value) => MapEntry(key, value.toString()));
+                    config = DisappearingMessageConfig.fromJson(customData);
+                  } else {
+                    config = DisappearingMessageConfig(
+                        hour: 0,
+                        minute: 0,
+                        type: '3',
+                        startTime: '',
+                        desc: TIM_t('关闭'));
+                  }
                   return (customBuilder?.customBuilderThree != null
                       ? customBuilder?.customBuilderThree!(
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
-                      : Text(TIM_t("如使用自定义区域，请在profileWidgetBuilder传入对应组件")))!;
+                      : TIMUIKitProfileWidget.disappearingMessage(
+                          context, "", config, () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      GroupDisappearingMessage(
+                                        onSubmitted: (customData) async {
+                                          customData[
+                                                  'disappearing_message_time'] =
+                                              DateTime.now()
+                                                  .millisecondsSinceEpoch
+                                                  .toString();
+                                          Map<String, String> result = {
+                                            'disap': jsonEncode(customData)
+                                          };
+                                          final res = await _controller.model
+                                              .updateCustomInfo(
+                                                  widget.userID, result);
+                                        },
+                                        config: config,
+                                      )));
+                        }, widget.smallCardMode))!;
+
                 case ProfileWidgetEnum.customBuilderFour:
                   return (customBuilder?.customBuilderFour != null
                       ? customBuilder?.customBuilderFour!(

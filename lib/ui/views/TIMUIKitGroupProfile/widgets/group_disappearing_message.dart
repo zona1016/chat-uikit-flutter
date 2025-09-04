@@ -9,16 +9,17 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_button.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
 
 class GroupDisappearingMessage extends StatefulWidget {
   final Function(Map<String, String> customData) onSubmitted;
-  final String customDataString;
+  final DisappearingMessageConfig config;
   final String? groupId;
   final String? userId;
 
   const GroupDisappearingMessage(
       {Key? key,
-      required this.customDataString,
+      required this.config,
       this.groupId,
       this.userId,
       required this.onSubmitted})
@@ -30,53 +31,11 @@ class GroupDisappearingMessage extends StatefulWidget {
 
 class _GroupDisappearingMessageState
     extends TIMUIKitState<GroupDisappearingMessage> {
-  final List<String> options = ["24小时", "7天", "90天", "已关闭"];
-  String _selected = "";
-  int selectedHour = 0;
-  int selectedMinute = 0;
-  Map<String, String> customData = {};
+  final List<String> options = ["24小时", "7天", "90天", TIM_t('关闭')];
 
   @override
   void initState() {
     super.initState();
-
-    if (widget.customDataString.isEmpty) {
-      _selected = "已关闭";
-    } else {
-      Map<String, dynamic> tempMap = jsonDecode(widget.customDataString);
-      customData = tempMap.map((key, value) => MapEntry(key, value.toString()));
-      if (customData['disappearing_message_hour'] != null) {
-        selectedHour =
-            int.parse(customData['disappearing_message_hour'].toString());
-      }
-      if (customData['disappearing_message_minute'] != null) {
-        selectedMinute =
-            int.parse(customData['disappearing_message_minute'].toString());
-      }
-
-      if (selectedHour == 0 && selectedMinute == 0) {
-        if (customData['disappearing_message_type'] != null) {
-          // 获取类型
-          switch (customData['disappearing_message_type']) {
-            case "0":
-              _selected = "24小时";
-              break;
-            case "1":
-              _selected = "7天";
-              break;
-            case "2":
-              _selected = "90天";
-              break;
-            case "3":
-              _selected = "已关闭";
-              break;
-            default:
-              _selected = "";
-              break;
-          }
-        }
-      }
-    }
   }
 
   @override
@@ -155,7 +114,7 @@ class _GroupDisappearingMessageState
                           style: const TextStyle(
                               color: Colors.white, fontSize: 16),
                         ),
-                        trailing: _selected == option
+                        trailing: widget.config.desc == option
                             ? const Icon(Icons.check,
                                 color: AidaBaseColors.primaryColor)
                             : null,
@@ -166,16 +125,14 @@ class _GroupDisappearingMessageState
                         focusColor: Colors.transparent,
                         // 移除焦点颜色
                         onTap: () {
-                          customData['disappearing_message_type'] =
+                          widget.config.type =
                               index.toString();
-                          customData['disappearing_message_hour'] = '0';
-                          customData['disappearing_message_minute'] = '0';
+                          widget.config.hour = 0;
+                          widget.config.minute = 0;
                           setState(() {
-                            selectedHour = 0;
-                            selectedMinute = 0;
-                            _selected = option;
+                            widget.config.desc = option;
                           });
-                          widget.onSubmitted(customData);
+                          widget.onSubmitted(widget.config.toJson());
                         },
                       );
                     }),
@@ -198,7 +155,7 @@ class _GroupDisappearingMessageState
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   subtitle: Text(
-                    "$selectedHour}小时 $selectedMinute分钟",
+                    "${widget.config.hour}小时 ${widget.config.minute}分钟",
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   trailing: const Icon(Icons.chevron_right,
@@ -222,8 +179,8 @@ class _GroupDisappearingMessageState
   }
 
   void _showCustomPicker() {
-    int selectedHourDefault = selectedHour;
-    int selectedMinuteDefault = selectedMinute;
+    int selectedHourDefault = widget.config.hour;
+    int selectedMinuteDefault = widget.config.minute;
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1E1E1E), // 背景色
@@ -314,16 +271,10 @@ class _GroupDisappearingMessageState
                   onPressed: () {
                     Navigator.pop(context);
                     setState(() {
-                      selectedHour = selectedHourDefault;
-                      selectedMinute = selectedMinuteDefault;
-                      _selected = '';
-
-                      customData['disappearing_message_type'] = '4';
-                      customData['disappearing_message_hour'] =
-                          selectedHour.toString();
-                      customData['disappearing_message_minute'] =
-                          selectedMinute.toString();
-                      widget.onSubmitted(customData);
+                      widget.config.hour = selectedHourDefault;
+                      widget.config.minute = selectedMinuteDefault;
+                      widget.config.desc = '';
+                      widget.onSubmitted(widget.config.toJson());
                     });
                   },
                   text: TIM_t('确定'),
