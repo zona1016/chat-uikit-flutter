@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -125,6 +126,66 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
           onChanged(value);
         }
       },
+    );
+  }
+
+  static Widget disappearingMessage(
+      BuildContext context,
+      String disappearTime,
+      String pram,
+      Function() onChanged,
+      bool smallCardMode) {
+    final GlobalKey key = GlobalKey();
+    String selected = '';
+    int selectedHour = 0;
+    int selectedMinute = 0;
+    if (pram.isEmpty) {
+      selected = "已关闭";
+    } else {
+      Map<String, dynamic> tempMap = jsonDecode(pram);
+      Map<String, String> customData = tempMap.map((key, value) => MapEntry(key, value.toString()));
+      if (customData['disappearing_message_hour'] != null) {
+        selectedHour = int.parse(customData['disappearing_message_hour'].toString());
+      }
+      if (customData['disappearing_message_minute'] != null) {
+        selectedMinute = int.parse(customData['disappearing_message_minute'].toString());
+      }
+
+      if (selectedHour == 0 && selectedMinute == 0) {
+        if (customData['disappearing_message_type'] != null) {
+          // 获取类型
+          switch (customData['disappearing_message_type']) {
+            case "0":
+              selected = "24小时";
+              break;
+            case "1":
+              selected = "7天";
+              break;
+            case "2":
+              selected = "90天";
+              break;
+            case "3":
+              selected = "已关闭";
+              break;
+            default:
+              selected = "";
+              break;
+          }
+        }
+      }
+    }
+    return InkWell(
+      onTap: onChanged,
+      child: TIMUIKitOperationItem(
+        smallCardMode: smallCardMode,
+        itemBoxKey: key,
+        isEmpty: disappearTime.isEmpty,
+        wideEditText: TIM_t("限时消息"),
+        operationName: TIM_t("限时消息"),
+        operationRightWidget: Text(
+        selected.isNotEmpty ? selected : '$selectedHour小时$selectedMinute分钟',
+            textAlign: isDesktopScreen ? null : TextAlign.end),
+      ),
     );
   }
 
@@ -336,8 +397,7 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
       );
     }
 
-    _clearHistory(
-        BuildContext context, theme) async {
+    _clearHistory(BuildContext context, theme) async {
       final isDesktopScreen =
           TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
@@ -359,7 +419,9 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                         conversationID: conversation.conversationID);
                 if (res.code == 0) {
                   _timuiKitChatController.clearHistory(friendInfo.userID);
-                  TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
+                  TUIToast.show(
+                      content: tr('meeting.chat_deleted_success'),
+                      gravity: TUIGravity.top);
                 }
               } else {
                 final res = await sdkInstance
@@ -367,7 +429,9 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                     .clearC2CHistoryMessage(userID: friendInfo.userID);
                 if (res.code == 0) {
                   _timuiKitChatController.clearHistory(friendInfo.userID);
-                  TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
+                  TUIToast.show(
+                      content: tr('meeting.chat_deleted_success'),
+                      gravity: TUIGravity.top);
                 }
               }
             });
@@ -398,7 +462,9 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                               conversationID: conversation.conversationID);
                       if (res.code == 0) {
                         _timuiKitChatController.clearHistory(friendInfo.userID);
-                        TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
+                        TUIToast.show(
+                            content: tr('meeting.chat_deleted_success'),
+                            gravity: TUIGravity.top);
                       }
                     } else {
                       final res = await sdkInstance
@@ -406,7 +472,9 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                           .clearC2CHistoryMessage(userID: friendInfo.userID);
                       if (res.code == 0) {
                         _timuiKitChatController.clearHistory(friendInfo.userID);
-                        TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
+                        TUIToast.show(
+                            content: tr('meeting.chat_deleted_success'),
+                            gravity: TUIGravity.top);
                       }
                     }
                   },

@@ -249,6 +249,17 @@ class TUIProfileViewModel extends ChangeNotifier {
     return res;
   }
 
+  Future<V2TimCallback> updateCustomInfo(String userID, Map<String, String>? friendCustomInfo) async {
+    final res = await _friendshipServices.setFriendInfo(
+        userID: userID, friendCustomInfo: friendCustomInfo);
+
+    if (res.code == 0) {
+      _userProfile?.friendInfo!.friendCustomInfo = friendCustomInfo;
+      notifyListeners();
+    }
+    return res;
+  }
+
   Future<V2TimCallback> setMessageDisturb(String userID, bool isDisturb) async {
     final res = await _messageService.setC2CReceiveMessageOpt(
         userIDList: [userID],

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +11,9 @@ import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_self_inf
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_button.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_disappearing_message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/profile_widget.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/widget/tim_uikit_profile_widget.dart';
 
@@ -148,6 +153,7 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
     ProfileWidgetEnum.operationDivider,
     ProfileWidgetEnum.remarkBar,
     ProfileWidgetEnum.operationDivider,
+    ProfileWidgetEnum.customBuilderThree,
     ProfileWidgetEnum.pinConversationBar,
     ProfileWidgetEnum.messageMute,
     ProfileWidgetEnum.selfDestructMode,
@@ -174,7 +180,6 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
               Provider.of<TUIProfileViewModel>(context);
           _controller.model = model;
           final V2TimFriendInfo? userInfo = model.userProfile?.friendInfo;
-
           if (userInfo == null) {
             return Center(
               child: LoadingAnimationWidget.staggeredDotsWave(
@@ -229,7 +234,8 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
           }
 
           void handleSelfDestructMode(bool value) async {
-            model.setSelfDestructMode(conversation.conversationID ?? "c2c_${userInfo.userID}", value);
+            model.setSelfDestructMode(
+                conversation.conversationID ?? "c2c_${userInfo.userID}", value);
           }
 
           void handleTapRemarkBar({Offset? offset, String? initText}) {
@@ -340,8 +346,11 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                       : TIMUIKitProfileWidget.messageDisturb(context, isMute,
                           handleMuteMessage, widget.smallCardMode))!;
                 case ProfileWidgetEnum.selfDestructMode:
-                  return TIMUIKitProfileWidget.selfDestructMode(context, model.selfDestructMode,
-                          handleSelfDestructMode, widget.smallCardMode);
+                  return TIMUIKitProfileWidget.selfDestructMode(
+                      context,
+                      model.selfDestructMode,
+                      handleSelfDestructMode,
+                      widget.smallCardMode);
                 case ProfileWidgetEnum.searchBar:
                   return (customBuilder?.searchBar != null
                       ? customBuilder?.searchBar!(conversation)
@@ -485,7 +494,25 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                       ? customBuilder?.customBuilderThree!(
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
-                      : Text(TIM_t("如使用自定义区域，请在profileWidgetBuilder传入对应组件")))!;
+                      : TIMUIKitProfileWidget.disappearingMessage(context, "",
+                          userInfo.friendCustomInfo?['disap'] ?? '', () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      GroupDisappearingMessage(
+                                        onSubmitted: (customData) async {
+                                          Map<String, String> result = {
+                                            'disap': jsonEncode(customData)
+                                          };
+                                          final res = await _controller.model
+                                              .updateCustomInfo(
+                                                  widget.userID, result);
+                                        },
+                                        customDataString: userInfo.friendCustomInfo?['disap'] ??
+                                            '',
+                                      )));
+                        }, widget.smallCardMode))!;
                 case ProfileWidgetEnum.customBuilderFour:
                   return (customBuilder?.customBuilderFour != null
                       ? customBuilder?.customBuilderFour!(

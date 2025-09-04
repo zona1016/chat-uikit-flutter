@@ -24,8 +24,9 @@ class GroupDisappearingMessageConversation extends TIMUIKitStatelessWidget {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const GroupDisappearingMessage(
-                        selectedTime: '',
+                  builder: (context) => GroupDisappearingMessage(
+                        onSubmitted: (customData) {},
+                        customDataString: '',
                       )));
         }
       },
