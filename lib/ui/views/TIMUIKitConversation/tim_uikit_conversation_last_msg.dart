@@ -194,7 +194,8 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
     final customData = (message.cloudCustomData?.trim().isNotEmpty ?? false)
         ? jsonDecode(message.cloudCustomData!)
         : {};
-    debugPrint('LAST MESSAGE ${message.textElem?.text ?? 'EMPTY TEXT'} - isSelfDestruct ${customData['isSelfDestruct']}');
+    final isSelfDestruct = customData['isSelfDestruct'] == true;
+    // debugPrint('LAST MESSAGE ${message.textElem?.text ?? 'EMPTY TEXT'} - isSelfDestruct $isSelfDestruct');
     switch (msgType) {
       case MessageElemType.V2TIM_ELEM_TYPE_CUSTOM:
         final isCallType = message.customElem?.data != null &&
@@ -214,13 +215,13 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
             ? '[${tr('chat.announcement_message')}]'
             : TIM_t("[自定义]");
       case MessageElemType.V2TIM_ELEM_TYPE_SOUND:
-        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[语音]");
+        return isSelfDestruct ? "[${TIM_t("阅后即焚")}]" : TIM_t("[语音]");
       case MessageElemType.V2TIM_ELEM_TYPE_TEXT:
         final text = (message.textElem?.text)?.trim() ?? "";
         final emojiPattern = RegExp(r'\[.*?\]');
 
         if (!emojiPattern.hasMatch(text)) {
-          return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : text;
+          return isSelfDestruct ? "[${TIM_t("阅后即焚")}]" : text;
         }
         return text.replaceAllMapped(emojiPattern, (match) {
           var key = match.group(0)!.substring(1, match.group(0)!.length - 1);
@@ -229,27 +230,27 @@ class _TIMUIKitLastMsgState extends TIMUIKitState<TIMUIKitLastMsg> {
           } else if (CustomTUIKitStickerConstData.emojiMapListTCC1.containsKey(key)) {
             key = CustomTUIKitStickerConstData.emojiMapListTCC1[key]!;
           }
-          return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[$key]");
+          return isSelfDestruct ? "[${TIM_t("阅后即焚")}]" : TIM_t("[$key]");
         });
       case MessageElemType.V2TIM_ELEM_TYPE_FACE:
-        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[表情]");
+        return isSelfDestruct ? "[${TIM_t("阅后即焚")}]" : TIM_t("[表情]");
       case MessageElemType.V2TIM_ELEM_TYPE_FILE:
-        final option1 = widget.lastMsg!.fileElem!.fileName;
-        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t_para("[文件] {{option1}}", "[文件] $option1")(
+        final option1 = widget.lastMsg!.fileElem?.fileName ?? TIM_t("未知文件");
+        return isSelfDestruct ? "[${TIM_t("阅后即焚")}]" : TIM_t_para("[文件] {{option1}}", "[文件] $option1")(
             option1: option1);
       case MessageElemType.V2TIM_ELEM_TYPE_GROUP_TIPS:
         return await MessageUtils.groupTipsMessageAbstract(
             message.groupTipsElem!, []);
       case MessageElemType.V2TIM_ELEM_TYPE_IMAGE:
-        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[图片]");
+        return isSelfDestruct ? "[${TIM_t("阅后即焚")}]" : TIM_t("[图片]");
       case MessageElemType.V2TIM_ELEM_TYPE_VIDEO:
-        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : TIM_t("[视频]");
+        return isSelfDestruct ? "[${TIM_t("阅后即焚")}]" : TIM_t("[视频]");
       case MessageElemType.V2TIM_ELEM_TYPE_LOCATION:
         return TIM_t("[位置]");
       case MessageElemType.V2TIM_ELEM_TYPE_MERGER:
         return TIM_t("[聊天记录]");
       default:
-        return customData['isSelfDestruct'] ? "[${TIM_t("阅后即焚")}]" : null;
+        return isSelfDestruct ? "[${TIM_t("阅后即焚")}]" : null;
     }
   }
 

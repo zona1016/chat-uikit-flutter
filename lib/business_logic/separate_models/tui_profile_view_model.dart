@@ -30,6 +30,7 @@ class TUIProfileViewModel extends ChangeNotifier {
   int _friendType = 0;
   bool? _isDisturb;
   bool _selfDestructMode = false;
+  int _burnSeconds = 15;
 
   UserProfile? get userProfile {
     return _userProfile;
@@ -50,6 +51,10 @@ class TUIProfileViewModel extends ChangeNotifier {
 
   bool get selfDestructMode {
     return _selfDestructMode;
+  }
+
+  int get burnSeconds {
+    return _burnSeconds;
   }
 
   int get friendType {
@@ -89,6 +94,8 @@ class TUIProfileViewModel extends ChangeNotifier {
       _isDisturb = conversation?.recvOpt == 2;
       // Load self-destruct mode state
       await _loadSelfDestructMode("c2c_$userID");
+      // Load burn seconds state
+      await loadBurnSeconds("c2c_$userID");
     }
 
     final friendInfo =
@@ -281,6 +288,12 @@ class TUIProfileViewModel extends ChangeNotifier {
       // Update the mode preference
       customData['conversation_default_mode'] = value ? 'self_destruct' : 'normal';
       
+      // Clear burn_seconds when disabling self-destruct mode
+      if (!value && customData.containsKey('burn_seconds')) {
+        customData.remove('burn_seconds');
+        print('Cleared burn_seconds for C2C conversation since self-destruct mode disabled');
+      }
+      
       // Try to save to conversation custom data
       final saveSuccess = await _setConversationCustomDataWithResult(conversationID, customData);
       
@@ -302,6 +315,37 @@ class TUIProfileViewModel extends ChangeNotifier {
       
     } catch (e) {
       print('Error setting self-destruct mode for C2C: $e');
+    }
+  }
+
+  setBurnSeconds(String conversationID, int seconds) async {
+    try {
+      // Update local state
+      _burnSeconds = seconds;
+      notifyListeners();
+      
+      // Get existing custom data
+      final customData = await _getConversationCustomData(conversationID);
+      
+      // Update burn_seconds in custom data
+      customData['burn_seconds'] = seconds;
+      
+      // Try to save to conversation custom data
+      final saveSuccess = await _setConversationCustomDataWithResult(conversationID, customData);
+      
+      if (saveSuccess) {
+        print('Saved burn seconds to custom data for C2C conversation: $seconds');
+      } else {
+        // Conversation might not exist yet - the global model will handle pending state
+        print('Failed to save to custom data, conversation may not exist yet for C2C: $seconds');
+      }
+      
+      // Update the global model's burn seconds for this conversation
+      await _chatGlobalModel.setConversationBurnSeconds(conversationID, seconds);
+      print('Updated conversation burn seconds for C2C: $seconds');
+      
+    } catch (e) {
+      print('Error setting burn seconds for C2C: $e');
     }
   }
 
@@ -342,36 +386,17 @@ class TUIProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Set conversation custom data
-  Future<void> _setConversationCustomData(String conversationID, Map<String, dynamic> data) async {
-    try {
-      final customDataString = jsonEncode(data);
-      
-      await TencentImSDKPlugin.v2TIMManager
-          .getConversationManager()
-          .setConversationCustomData(
-            conversationIDList: [conversationID],
-            customData: customDataString,
-          );
-          
-      print('Updated conversation custom data for: $conversationID');
-    } catch (e) {
-      print('Error setting conversation custom data: $e');
-    }
-  }
 
   /// Load self-destruct mode state from conversation custom data
   Future<void> _loadSelfDestructMode(String conversationID) async {
     try {
       // First check if there's a pending mode in global model
       final globalMode = _chatGlobalModel.getSelfDestructMode(conversationID);
-      final pendingMode = _chatGlobalModel.consumePendingConversationMode(conversationID);
+      final pendingMode = _chatGlobalModel.getPendingConversationMode(conversationID);
       
       if (pendingMode != null) {
         // Use pending mode if available
         _selfDestructMode = pendingMode;
-        // Put it back since we're just checking, not consuming yet
-        _chatGlobalModel.setPendingConversationMode(conversationID, pendingMode);
         print('Loaded pending self-destruct mode for C2C conversation: $_selfDestructMode');
         return;
       }
@@ -388,13 +413,40 @@ class TUIProfileViewModel extends ChangeNotifier {
       final mode = customData['conversation_default_mode'] as String?;
       _selfDestructMode = mode == 'self_destruct';
       
-      // Update global model with the loaded state
-      _chatGlobalModel.updateSelfDestructMode(conversationID, _selfDestructMode);
+      // Only update global model if we have explicit mode data - don't overwrite existing state
+      if (mode != null) {
+        _chatGlobalModel.updateSelfDestructMode(conversationID, _selfDestructMode);
+        print('Updated global model with explicit mode for C2C: $_selfDestructMode');
+      } else {
+        print('No explicit mode found, keeping existing global state for C2C');
+      }
       
       print('Loaded self-destruct mode from custom data for C2C conversation: $_selfDestructMode');
     } catch (e) {
       print('Error loading self-destruct mode: $e');
       _selfDestructMode = false;
+    }
+  }
+
+  loadBurnSeconds(String conversationID) async {
+    try {
+      // Load burn seconds from global model
+      _burnSeconds = _chatGlobalModel.getConversationBurnSeconds(conversationID);
+      
+      // Also try to load from conversation custom data to sync
+      final customData = await _getConversationCustomData(conversationID);
+      final burnSeconds = customData['burn_seconds'] as int?;
+      if (burnSeconds != null) {
+        _burnSeconds = burnSeconds;
+        // Update global model with the loaded value
+        await _chatGlobalModel.setConversationBurnSeconds(conversationID, burnSeconds);
+      }
+      
+      print('Loaded burn seconds for C2C conversation: $_burnSeconds');
+      notifyListeners();
+    } catch (e) {
+      print('Error loading burn seconds: $e');
+      _burnSeconds = _chatGlobalModel.defaultBurnSeconds;
     }
   }
 

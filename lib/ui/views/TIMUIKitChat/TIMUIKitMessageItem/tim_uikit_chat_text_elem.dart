@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:extended_text/extended_text.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField/special_text/DefaultSpecialTextSpanBuilder.dart';
@@ -52,7 +54,7 @@ class TIMUIKitTextElem extends StatefulWidget {
 class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
   bool _isViewed = false;
-  int _remainingSeconds = SelfDestructQueue.burnSeconds;
+  int _remainingSeconds = SelfDestructQueue().currentBurnSeconds;
 
   bool isSelfDestruct = false;
   bool isOpen = false;
@@ -67,7 +69,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     _setupCallbacks();
     _getLinkPreview();
 
-    debugPrint('CUSTOM DATA TEXT ${widget.message.msgID} ' + (widget.message.cloudCustomData ?? 'NOTHING'));
+    // debugPrint('CUSTOM DATA TEXT ${widget.message.msgID} ' + (widget.message.cloudCustomData ?? 'NOTHING'));
     final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
         ? jsonDecode(widget.message.cloudCustomData!)
         : {};
@@ -98,7 +100,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   }
 
   void _onCountdownUpdate(String msgID, int remaining) {
-    debugPrint('remaining seconds $remaining for msg id $msgID');
+    // debugPrint('remaining seconds $remaining for msg id $msgID');
     if (msgID == widget.message.msgID && mounted) {
       setState(() {
         _remainingSeconds = remaining;
@@ -133,13 +135,34 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   }
 
   void _viewMessage() {
-    if (!_isViewed) {
+    if (!_isViewed && widget.message.msgID != null) {
+      // debugPrint('view message ${widget.message.msgID}');
+      
+      final globalModel = serviceLocator<TUIChatGlobalModel>();
+      final conversationID = widget.message.groupID != null ? 
+                           'group_${widget.message.groupID}' : 
+                           'c2c_${TencentUtils.checkString(widget.message.userID) ?? TencentUtils.checkString(widget.message.sender)}';
+      final burnSeconds = globalModel.getConversationBurnSeconds(conversationID);
+      
       setState(() {
         _isViewed = true;
+        _remainingSeconds = burnSeconds;
       });
-      debugPrint('view message ${widget.message.msgID}');
-      _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
+      _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message, 
+          conversationBurnSeconds: burnSeconds);
     }
+  }
+
+  bool _isGroupMessageReadByAll() {
+    return MessageReceiptUtils.isGroupMessageReadByAllWithSelfDestruct(
+      message: widget.message,
+      chatModel: widget.chatModel,
+      onSelfDestructTrigger: (msgID, message, {conversationBurnSeconds}) {
+        if (isSelfDestruct) {
+          _selfDestructQueue.viewMessage(msgID, message, conversationBurnSeconds: conversationBurnSeconds);
+        }
+      },
+    );
   }
 
   @override
@@ -147,45 +170,6 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
     _selfDestructQueue.removeMessageDeletedListener(_onMessageDeleted);
     super.dispose();
-  }
-
-  /// Check if group message is read by all members using cached read receipt data
-  bool _isGroupMessageReadByAll() {
-    if (widget.message.groupID == null || widget.message.msgID == null) {
-      return false;
-    }
-    
-    bool isReadByAll = false;
-    
-    // Use the cached read receipt from the chat model
-    final messageReadReceiptMap = widget.chatModel.globalModel.messageReadReceiptMap;
-    final receipt = messageReadReceiptMap[widget.message.msgID!];
-    
-    if (receipt != null) {
-      isReadByAll = receipt.unreadCount == 0;
-    } else {
-      // Fallback: try to use the private property if it exists
-      try {
-        isReadByAll = (widget.message as dynamic)._messageGroupReceiptUnreadCount == 0;
-      } catch (e) {
-        return false;
-      }
-    }
-    
-    // If message is read by all and is a self-destruct message from self, add to queue
-    if (isReadByAll && widget.message.isSelf! && isSelfDestruct) {
-      final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
-          ? jsonDecode(widget.message.cloudCustomData!)
-          : {};
-      
-      final shouldTriggerSelfDestruct = customData['isSelfDestruct'] == true;
-      if (shouldTriggerSelfDestruct) {
-        debugPrint('Group message ${widget.message.msgID} read by all members, adding to self-destruct queue');
-        _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message);
-      }
-    }
-    
-    return isReadByAll;
   }
 
   _showJumpColor() {

@@ -12,7 +12,13 @@ class SelfDestructQueue {
   final Map<String, Timer> _burnTimers = {};
   final Map<String, int> _remainingSeconds = {};
   final Set<String> _viewedMessages = {};
-  static const int burnSeconds = 15;
+  static const Map<String, int> burnSecondsOptions = {
+    '15s': 15,
+    '30s': 30,
+    '1min': 60,
+  };
+  
+  int _currentBurnSeconds = 15;
   late TUIChatSeparateViewModel chatModel;
 
   // 用于UI更新的回调
@@ -41,7 +47,10 @@ class SelfDestructQueue {
   }
 
   /// 查看消息并开始倒计时
-  void viewMessage(String msgID, V2TimMessage message) {
+  void viewMessage(String msgID, V2TimMessage message, {int? conversationBurnSeconds}) {
+    if (conversationBurnSeconds != null) {
+      _currentBurnSeconds = conversationBurnSeconds;
+    }
     if (_viewedMessages.contains(msgID)) {
       return; // 已经查看过了
     }
@@ -52,6 +61,8 @@ class SelfDestructQueue {
       Map<String, dynamic> customData = jsonDecode(message.cloudCustomData ?? "{}");
       
       if (customData['isSelfDestruct'] == true) {
+        // Use conversation-specific burn seconds if provided, otherwise use current default
+        final burnSeconds = conversationBurnSeconds ?? _currentBurnSeconds;
         _startCountdown(msgID, burnSeconds);
       }
     } catch (e) {
@@ -106,13 +117,21 @@ class SelfDestructQueue {
 
   /// 获取剩余时间
   int getRemainingSeconds(String msgID) {
-    return _remainingSeconds[msgID] ?? burnSeconds;
+    return _remainingSeconds[msgID] ?? _currentBurnSeconds;
   }
 
   /// 检查消息是否已查看
   bool isMessageViewed(String msgID) {
     return _viewedMessages.contains(msgID);
   }
+
+  /// 设置自毁时间
+  void setBurnSeconds(int seconds) {
+    _currentBurnSeconds = seconds;
+  }
+
+  /// 获取当前自毁时间
+  int get currentBurnSeconds => _currentBurnSeconds;
 
   void dispose() {
     for (var timer in _burnTimers.values) {

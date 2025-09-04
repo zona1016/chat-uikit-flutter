@@ -67,25 +67,31 @@ class _UnreadMessageState extends State<UnreadMessage> {
         bool isToday = await isGroupCheckedToday(
             res.data!, widget.convID!, DateTime.now().millisecondsSinceEpoch);
         if (isToday) {
-          setState(() {
-            unreadText = '0';
-          });
-        } else {
-          bool haveMessage = await pressedFunction();
-          if (haveMessage) {
-            setState(() {
-              unreadText = '';
-            });
-          } else {
+          if (mounted) {
             setState(() {
               unreadText = '0';
             });
           }
+        } else {
+          bool haveMessage = await pressedFunction();
+          if (mounted) {
+            if (haveMessage) {
+              setState(() {
+                unreadText = '';
+              });
+            } else {
+              setState(() {
+                unreadText = '0';
+              });
+            }
+          }
         }
       } else {
-        setState(() {
-          unreadText = '0';
-        });
+        if (mounted) {
+          setState(() {
+            unreadText = '0';
+          });
+        }
       }
     }
   }
@@ -143,22 +149,58 @@ class _UnreadMessageState extends State<UnreadMessage> {
   }
 
   @override
+  void didUpdateWidget(UnreadMessage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-trigger handleShowUnRead if the convID or unreadCount changes
+    if (oldWidget.convID != widget.convID || oldWidget.unreadCount != widget.unreadCount) {
+      unreadText = (TencentUtils.india == widget.convID ||
+              TencentUtils.korea == widget.convID ||
+              TencentUtils.english == widget.convID ||
+              TencentUtils.chinese == widget.convID ||
+              TencentUtils.french == widget.convID ||
+              TencentUtils.german == widget.convID ||
+              TencentUtils.aidTeam == widget.convID)
+          ? ''
+          : generateUnreadText();
+      
+      // Schedule async work after build frame completes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          handleShowUnRead();
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final fontSize = generateFontSize(unreadText);
-    if (TencentUtils.india == widget.convID ||
+    
+    // Handle special channels/teams - but don't call async methods here
+    final isChannelOrTeam = (TencentUtils.india == widget.convID ||
         TencentUtils.korea == widget.convID ||
         TencentUtils.english == widget.convID ||
         TencentUtils.chinese == widget.convID ||
         TencentUtils.french == widget.convID ||
         TencentUtils.german == widget.convID ||
-        TencentUtils.aidTeam == widget.convID) {
-      handleShowUnRead();
+        TencentUtils.aidTeam == widget.convID);
+    
+    if (isChannelOrTeam) {
+      // Remove from update list if present
       if (model.needUpdateGroup.contains(widget.convID)) {
         model.needUpdateGroup.remove(widget.convID);
+        // Schedule handleShowUnRead after build completes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            handleShowUnRead();
+          }
+        });
       }
     } else {
+      // For normal conversations, update unreadText directly (synchronous)
       unreadText = generateUnreadText();
     }
+    
     return unreadText != "0"
         ? Container(
             width: widget.width,

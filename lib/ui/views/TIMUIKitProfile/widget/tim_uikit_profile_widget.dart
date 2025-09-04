@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -16,6 +15,9 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_profile_view_model.dart';
+import 'package:provider/provider.dart';
 
 class TIMUIKitProfileWidget extends TIMUIKitClass {
   static final bool isDesktopScreen =
@@ -129,64 +131,131 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
     );
   }
 
-  static Widget disappearingMessage(
-      BuildContext context,
-      String disappearTime,
-      String pram,
-      Function() onChanged,
-      bool smallCardMode) {
-    final GlobalKey key = GlobalKey();
-    String selected = '';
-    int selectedHour = 0;
-    int selectedMinute = 0;
-    if (pram.isEmpty) {
-      selected = "已关闭";
-    } else {
-      Map<String, dynamic> tempMap = jsonDecode(pram);
-      Map<String, String> customData = tempMap.map((key, value) => MapEntry(key, value.toString()));
-      if (customData['disappearing_message_hour'] != null) {
-        selectedHour = int.parse(customData['disappearing_message_hour'].toString());
-      }
-      if (customData['disappearing_message_minute'] != null) {
-        selectedMinute = int.parse(customData['disappearing_message_minute'].toString());
-      }
-
-      if (selectedHour == 0 && selectedMinute == 0) {
-        if (customData['disappearing_message_type'] != null) {
-          // 获取类型
-          switch (customData['disappearing_message_type']) {
-            case "0":
-              selected = "24小时";
-              break;
-            case "1":
-              selected = "7天";
-              break;
-            case "2":
-              selected = "90天";
-              break;
-            case "3":
-              selected = "已关闭";
-              break;
-            default:
-              selected = "";
-              break;
-          }
-        }
-      }
+  /// burn seconds time setting for self-destruct mode
+  static Widget burnSecondsOption(
+    BuildContext context,
+    String conversationID, 
+    TUITheme theme,
+    TUIProfileViewModel profileModel,
+    bool smallCardMode,
+    {bool isEnabled = true}
+  ) {
+    String getCurrentBurnSecondsText(int seconds) {
+      const burnSecondsOptions = SelfDestructQueue.burnSecondsOptions;
+      final entry = burnSecondsOptions.entries.firstWhere(
+        (e) => e.value == seconds, 
+        orElse: () => MapEntry('${seconds}s', seconds)
+      );
+      return _translateBurnSecondsKey(entry.key);
     }
-    return InkWell(
-      onTap: onChanged,
+    
+    return GestureDetector(
+      onTap: isEnabled ? () {
+        _showBurnSecondsSelector(context, conversationID, theme, profileModel);
+      } : null,
       child: TIMUIKitOperationItem(
         smallCardMode: smallCardMode,
-        itemBoxKey: key,
-        isEmpty: disappearTime.isEmpty,
-        wideEditText: TIM_t("限时消息"),
-        operationName: TIM_t("限时消息"),
-        operationRightWidget: Text(
-        selected.isNotEmpty ? selected : '$selectedHour小时$selectedMinute分钟',
-            textAlign: isDesktopScreen ? null : TextAlign.end),
+        isEmpty: false,
+        operationName: TIM_t("自毁时间"),
+        type: "arrow",
+        rightIconColor: AidaBaseColors.weakTextColor,
+        operationRightWidget: Consumer<TUIProfileViewModel>(
+          builder: (context, model, child) {
+            return Text(
+              textAlign: TextAlign.end, 
+              getCurrentBurnSecondsText(model.burnSeconds)
+            );
+          },
+        ),
       ),
     );
+  }
+
+  static String _translateBurnSecondsKey(String key) {
+    switch (key) {
+      case '15s':
+        return '15$TIM_t("秒")';
+      case '30s':
+        return '30$TIM_t("秒")';
+      case '1min':
+        return '1$TIM_t("分钟")';
+      default:
+        return key;
+    }
+  }
+
+  static void _showBurnSecondsSelector(
+    BuildContext context, 
+    String conversationID, 
+    TUITheme theme,
+    TUIProfileViewModel profileModel) async {
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+
+    const burnSecondsOptions = SelfDestructQueue.burnSecondsOptions;
+    
+    if (isDesktopScreen) {
+      TUIKitWidePopup.showPopupWindow(
+          operationKey: TUIKitWideModalOperationKey.custom,
+          context: context,
+          width: MediaQuery.of(context).size.width * 0.4,
+          height: MediaQuery.of(context).size.height * 0.5,
+          title: TIM_t("选择自毁时间"),
+          child: (onClose) => Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: burnSecondsOptions.entries.map((entry) => 
+                ListTile(
+                  title: Text(_translateBurnSecondsKey(entry.key)),
+                  trailing: profileModel.burnSeconds == entry.value 
+                      ? Icon(Icons.check, color: theme.primaryColor) 
+                      : null,
+                  onTap: () async {
+                    await profileModel.setBurnSeconds(conversationID, entry.value);
+                    onClose();
+                  },
+                )
+              ).toList(),
+            ),
+          ));
+    } else {
+      showCupertinoModalPopup<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoActionSheet(
+            title: Text(TIM_t("选择自毁时间")),
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(TIM_t("取消")),
+              isDefaultAction: false,
+            ),
+            actions: burnSecondsOptions.entries.map((entry) =>
+              CupertinoActionSheetAction(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await profileModel.setBurnSeconds(conversationID, entry.value);
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(_translateBurnSecondsKey(entry.key)),
+                    if (profileModel.burnSeconds == entry.value)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Icon(Icons.check, color: theme.primaryColor, size: 18),
+                      ),
+                  ],
+                ),
+                isDefaultAction: profileModel.burnSeconds == entry.value,
+              )
+            ).toList(),
+          );
+        },
+      );
+    }
   }
 
   static Widget operationItem(
@@ -397,7 +466,8 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
       );
     }
 
-    _clearHistory(BuildContext context, theme) async {
+    _clearHistory(
+        BuildContext context, theme) async {
       final isDesktopScreen =
           TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
@@ -419,9 +489,7 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                         conversationID: conversation.conversationID);
                 if (res.code == 0) {
                   _timuiKitChatController.clearHistory(friendInfo.userID);
-                  TUIToast.show(
-                      content: tr('meeting.chat_deleted_success'),
-                      gravity: TUIGravity.top);
+                  TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                 }
               } else {
                 final res = await sdkInstance
@@ -429,9 +497,7 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                     .clearC2CHistoryMessage(userID: friendInfo.userID);
                 if (res.code == 0) {
                   _timuiKitChatController.clearHistory(friendInfo.userID);
-                  TUIToast.show(
-                      content: tr('meeting.chat_deleted_success'),
-                      gravity: TUIGravity.top);
+                  TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                 }
               }
             });
@@ -462,9 +528,7 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                               conversationID: conversation.conversationID);
                       if (res.code == 0) {
                         _timuiKitChatController.clearHistory(friendInfo.userID);
-                        TUIToast.show(
-                            content: tr('meeting.chat_deleted_success'),
-                            gravity: TUIGravity.top);
+                        TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                       }
                     } else {
                       final res = await sdkInstance
@@ -472,9 +536,7 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
                           .clearC2CHistoryMessage(userID: friendInfo.userID);
                       if (res.code == 0) {
                         _timuiKitChatController.clearHistory(friendInfo.userID);
-                        TUIToast.show(
-                            content: tr('meeting.chat_deleted_success'),
-                            gravity: TUIGravity.top);
+                        TUIToast.show(content: tr('meeting.chat_deleted_success'), gravity: TUIGravity.top);
                       }
                     }
                   },

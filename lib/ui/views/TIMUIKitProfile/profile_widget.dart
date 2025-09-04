@@ -20,6 +20,9 @@ enum ProfileWidgetEnum {
   /// The switch to enable/disable self-destruct mode for conversations.
   selfDestructMode,
 
+  /// The burn seconds time setting for self-destruct mode.
+  burnSecondsOption,
+
   /// The entrance to search page, please set the `onTap` callback yourself, to the search page with conversation ID.
   /// You can develop it with `TIMUIKitProfileWidget.searchBar`.
   searchBar,

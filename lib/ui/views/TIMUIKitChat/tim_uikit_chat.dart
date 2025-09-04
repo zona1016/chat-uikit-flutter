@@ -271,7 +271,8 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
       int timeSpend = widget.endTime - widget.startTime;
       outputLogger.i("Page render time:$timeSpend ms");
       
-      // Check and set conversation mode after the widget is built
+      // Check and set conversation mode after the widget is built with a small delay
+      await Future.delayed(const Duration(milliseconds: 100));
       await _checkAndSetConversationMode();
     });
     
@@ -294,13 +295,18 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
   void didUpdateWidget(TIMUIKitChat oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.conversationID != oldWidget.conversationID) {
+      debugPrint('=== CONVERSATION CHANGED ===');
+      debugPrint('Old conversation: ${oldWidget.conversationID}');
+      debugPrint('New conversation: ${widget.conversationID}');
+      debugPrint('Resetting _hasShownModeDialog from $_hasShownModeDialog to false');
+      
       isInit = false;
       _hasShownModeDialog = false;  // Reset for new conversation
       chatGlobalModel.clearCurrentConversation();
       model = TUIChatSeparateViewModel();
       model.abstractMessageBuilder = widget.abstractMessageBuilder;
       model.onTapAvatar = widget.onTapAvatar;
-      Future.delayed(const Duration(milliseconds: 50), () {
+      Future.delayed(const Duration(milliseconds: 100), () async {
         updateDraft();
         textFieldController.requestFocus();
         try {
@@ -313,8 +319,9 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
           // ignore: empty_catches
         } catch (e) {}
         
-        // Refresh conversation mode when conversation changes
-        _checkAndSetConversationMode();
+        // Refresh conversation mode when conversation changes - add small delay for SDK to load
+        await Future.delayed(const Duration(milliseconds: 100));
+        await _checkAndSetConversationMode();
       });
     }
     if (oldWidget.textFieldBuilder != null && widget.textFieldBuilder == null) {
@@ -793,17 +800,23 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
     final conversationID = widget.conversation.conversationID;
     if (conversationID == null || conversationID.isEmpty) return;
     
+    debugPrint('=== _checkAndSetConversationMode START for $conversationID ===');
+    debugPrint('Current _hasShownModeDialog: $_hasShownModeDialog');
+    debugPrint('Current global model state: ${chatGlobalModel.getSelfDestructMode(conversationID)}');
+    debugPrint('Current pending mode: ${chatGlobalModel.getPendingConversationMode(conversationID)}');
+    
     // Skip mode selection for read-only conversations
     if (_isReadOnlyConversation(conversationID)) {
       model.setSelfDestructModeSilently(false);
       chatGlobalModel.updateSelfDestructMode(conversationID, false);
+      debugPrint('Skipped read-only conversation: $conversationID');
       return;
     }
     
     try {
-      
       // Get conversation custom data
       final customData = await _getConversationCustomData(conversationID);
+      debugPrint('Custom data for $conversationID: $customData');
       
       // Check if mode preference already exists
       if (customData.containsKey('conversation_default_mode')) {
@@ -819,8 +832,10 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
       }
       
       // Show mode selection dialog if no preference exists and hasn't been shown yet
-      if (mounted && !_hasShownModeDialog) {  // Only show dialog once per conversation
-        _hasShownModeDialog = true;  // Mark as shown
+      debugPrint('Dialog check - mounted: $mounted, _hasShownModeDialog: $_hasShownModeDialog');
+      if (mounted && !_hasShownModeDialog) {  // Only show dialog once per session
+        debugPrint('Will show mode selection dialog for $conversationID');
+        _hasShownModeDialog = true;  // Mark as shown for this session
         final selectedMode = await _showModeSelectionDialog();
         
         if (selectedMode != null) {
@@ -828,6 +843,13 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
           
           // Try to save the selected mode, but don't fail if conversation doesn't exist yet
           customData['conversation_default_mode'] = selectedMode;
+          
+          // Clear burn_seconds when normal mode is selected
+          if (selectedMode == 'normal' && customData.containsKey('burn_seconds')) {
+            customData.remove('burn_seconds');
+            debugPrint('Cleared burn_seconds for $conversationID since normal mode selected');
+          }
+          
           final saveSuccess = await _setConversationCustomData(conversationID, customData);
           
           if (!saveSuccess) {
@@ -848,6 +870,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
         }
       } else {
         // Default to normal mode if no preference and dialog not shown
+        debugPrint('No dialog shown, defaulting to normal mode for $conversationID');
         model.setSelfDestructModeSilently(false);
         chatGlobalModel.updateSelfDestructMode(conversationID, false);
       }
@@ -857,24 +880,59 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
       model.setSelfDestructModeSilently(false);
       chatGlobalModel.updateSelfDestructMode(conversationID, false);
     }
+    
+    debugPrint('=== _checkAndSetConversationMode END for $conversationID ===');
+    debugPrint('Final _hasShownModeDialog: $_hasShownModeDialog');
+    debugPrint('Final global model state: ${chatGlobalModel.getSelfDestructMode(conversationID)}');
   }
 
-  /// Get conversation custom data
-  Future<Map<String, dynamic>> _getConversationCustomData(String conversationID) async {
+  /// Get conversation custom data with retry logic
+  Future<Map<String, dynamic>> _getConversationCustomData(String conversationID, {int retryCount = 0}) async {
+    debugPrint('Getting conversation custom data for $conversationID (attempt ${retryCount + 1})');
+    
     try {
       final result = await TencentImSDKPlugin.v2TIMManager
           .getConversationManager()
           .getConversation(conversationID: conversationID);
       
+      debugPrint('SDK getConversation result for $conversationID: code=${result.code}, hasData=${result.data != null}');
+      
       if (result.code == 0 && result.data != null) {
         final customDataStr = result.data!.customData ?? "";
         if (customDataStr.isNotEmpty) {
-          return Map<String, dynamic>.from(jsonDecode(customDataStr));
+          try {
+            final parsed = Map<String, dynamic>.from(jsonDecode(customDataStr));
+            debugPrint('Successfully parsed custom data for $conversationID: $parsed');
+            return parsed;
+          } catch (parseError) {
+            debugPrint('Failed to parse custom data JSON for $conversationID: $parseError, raw: $customDataStr');
+            return {};
+          }
+        } else {
+          debugPrint('Empty custom data for conversation: $conversationID');
+        }
+      } else {
+        debugPrint('SDK error getting conversation $conversationID: code=${result.code}, desc=${result.desc}');
+        
+        // Retry once if conversation not found and this is the first attempt
+        if (result.code != 0 && retryCount == 0) {
+          debugPrint('Will retry conversation data retrieval for $conversationID in 300ms...');
+          await Future.delayed(const Duration(milliseconds: 300));
+          return _getConversationCustomData(conversationID, retryCount: 1);
         }
       }
     } catch (e) {
-      // debugPrint('Error getting conversation custom data: $e');
+      debugPrint('Exception getting conversation custom data for $conversationID: $e');
+      
+      // Retry once on exception if this is the first attempt
+      if (retryCount == 0) {
+        debugPrint('Will retry conversation data retrieval for $conversationID due to exception in 300ms...');
+        await Future.delayed(const Duration(milliseconds: 300));
+        return _getConversationCustomData(conversationID, retryCount: 1);
+      }
     }
+    
+    debugPrint('Returning empty custom data for $conversationID after ${retryCount + 1} attempts');
     return {};
   }
 
