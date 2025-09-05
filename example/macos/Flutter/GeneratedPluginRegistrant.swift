@@ -18,7 +18,7 @@ import pasteboard
 import path_provider_foundation
 import photo_manager
 import shared_preferences_foundation
-import sqflite_darwin
+import sqflite
 import tencent_cloud_chat_sdk
 import url_launcher_macos
 import video_player_avfoundation

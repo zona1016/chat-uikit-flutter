@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -98,11 +99,11 @@ class GroupSelfDestructMode extends TIMUIKitStatelessWidget {
   String _translateBurnSecondsKey(String key) {
     switch (key) {
       case '15s':
-        return '15${TIM_t("秒")}';
+        return '15${tr("general.second_short")}';
       case '30s':
-        return '30${TIM_t("秒")}';
+        return '30${tr("general.second_short")}';
       case '1min':
-        return '1${TIM_t("分钟")}';
+        return '1${tr("general.minute_short")}';
       default:
         return key;
     }

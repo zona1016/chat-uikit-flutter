@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_class.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/tim_uikit_wide_modal_operation_key.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
@@ -193,11 +192,11 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
   static String _translateBurnSecondsKey(String key) {
     switch (key) {
       case '15s':
-        return '15$TIM_t("秒")';
+        return '15${tr("general.second_short")}';
       case '30s':
-        return '30$TIM_t("秒")';
+        return '30${tr("general.second_short")}';
       case '1min':
-        return '1$TIM_t("分钟")';
+        return '1${tr("general.minute_short")}';
       default:
         return key;
     }
@@ -221,59 +220,60 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
           height: MediaQuery.of(context).size.height * 0.5,
           title: TIM_t("选择自毁时间"),
           child: (onClose) => Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: burnSecondsOptions.entries
-                      .map((entry) => ListTile(
-                            title: Text(_translateBurnSecondsKey(entry.key)),
-                            trailing: profileModel.burnSeconds == entry.value
-                                ? Icon(Icons.check, color: theme.primaryColor)
-                                : null,
-                            onTap: () async {
-                              await profileModel.setBurnSeconds(
-                                  conversationID, entry.value);
-                              onClose();
-                            },
-                          ))
-                      .toList(),
-                ),
-              ));
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: burnSecondsOptions.entries.map((entry) {
+                final isSelected = entry.value == profileModel.burnSeconds; 
+                return ListTile(
+                  title: Text(
+                      _translateBurnSecondsKey(entry.key),
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  trailing: profileModel.burnSeconds == entry.value 
+                      ? Icon(Icons.check, color: theme.primaryColor) 
+                      : null,
+                  onTap: () async {
+                    await profileModel.setBurnSeconds(conversationID, entry.value);
+                    onClose();
+                  },
+                );
+              }
+              ).toList(),
+            ),
+          ));
     } else {
       showCupertinoModalPopup<String>(
         context: context,
         builder: (BuildContext context) {
           return CupertinoActionSheet(
             title: Text(TIM_t("选择自毁时间")),
+            actions: burnSecondsOptions.entries.map((entry) {
+              final isSelected = entry.value == profileModel.burnSeconds;
+              return CupertinoActionSheetAction(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await profileModel.setBurnSeconds(conversationID, entry.value);
+                },
+                child: Text(
+                  _translateBurnSecondsKey(entry.key),
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? CupertinoColors.systemBlue : null,
+                  ),
+                ),
+                // isDefaultAction: profileModel.burnSeconds == entry.value,
+              );
+            }).toList(),
             cancelButton: CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
               },
               child: Text(TIM_t("取消")),
-              isDefaultAction: false,
+              // isDefaultAction: false,
             ),
-            actions: burnSecondsOptions.entries
-                .map((entry) => CupertinoActionSheetAction(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        await profileModel.setBurnSeconds(
-                            conversationID, entry.value);
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(_translateBurnSecondsKey(entry.key)),
-                          if (profileModel.burnSeconds == entry.value)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Icon(Icons.check,
-                                  color: theme.primaryColor, size: 18),
-                            ),
-                        ],
-                      ),
-                      isDefaultAction: profileModel.burnSeconds == entry.value,
-                    ))
-                .toList(),
           );
         },
       );
