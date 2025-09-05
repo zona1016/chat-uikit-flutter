@@ -21,12 +21,17 @@ class GroupDisappearingMessageConversation extends TIMUIKitStatelessWidget {
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final model = Provider.of<TUIGroupProfileModel>(context);
     DisappearingMessageConfig config;
-    if (model.groupInfo?.customInfo != null && model.groupInfo?.customInfo!['disappearing'] != null) {
-      Map<String, dynamic> tempMap = jsonDecode(model.groupInfo!.customInfo!['disappearing']!);
-      Map<String, String> customData = tempMap.map((key, value) => MapEntry(key, value.toString()));
+    if (model.groupInfo?.customInfo != null &&
+        model.groupInfo?.customInfo!['disappearing'] != null &&
+        model.groupInfo!.customInfo!['disappearing']!.isNotEmpty) {
+      Map<String, dynamic> tempMap =
+          jsonDecode(model.groupInfo!.customInfo!['disappearing']!);
+      Map<String, String> customData =
+          tempMap.map((key, value) => MapEntry(key, value.toString()));
       config = DisappearingMessageConfig.fromJson(customData);
     } else {
-      config = DisappearingMessageConfig(hour: 0, minute: 0, type: '3', startTime: '', desc: TIM_t('关闭'));
+      config = DisappearingMessageConfig(
+          hour: 0, minute: 0, type: '3', startTime: '', desc: TIM_t('关闭'));
     }
     return InkWell(
       onTap: () {
