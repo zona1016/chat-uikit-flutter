@@ -543,12 +543,24 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                                           final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
                                           final disappearingMessage = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
                                           UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(disappearingMessage);
+                                          bool found = false;
+
                                           for (UserGroupDisappearingConfig item in configs.groupConfigs) {
                                             if (item.userID == userInfo.userID) {
-                                              item.config.startTime = DateTime.now()
-                                                  .millisecondsSinceEpoch
-                                                  .toString();
+                                              item.config.startTime =
+                                                  DateTime.now().millisecondsSinceEpoch.toString();
+                                              found = true;
+                                              break; // 已找到，退出循环
                                             }
+                                          }
+
+                                          if (!found) {
+                                            configs.groupConfigs.add(
+                                              UserGroupDisappearingConfig(
+                                                userID: userInfo.userID,
+                                                config: DisappearingMessageConfig.fromJson(customData),
+                                              ),
+                                            );
                                           }
                                           await GetStorage().write('disappearing_message_${loginUserInfo.userID}', configs.toJson());
                                           final res = await _controller.model

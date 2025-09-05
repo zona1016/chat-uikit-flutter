@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -31,7 +30,12 @@ class GroupDisappearingMessage extends StatefulWidget {
 
 class _GroupDisappearingMessageState
     extends TIMUIKitState<GroupDisappearingMessage> {
-  final List<String> options = ["24小时", "7天", "90天", TIM_t('关闭')];
+  final List<String> options = [
+    "24 ${tr('wallet.hours')}",
+    "7 ${tr('wallet.days')}",
+    "90 ${tr('wallet.days')}",
+    TIM_t('关闭')
+  ];
 
   @override
   void initState() {
@@ -47,7 +51,7 @@ class _GroupDisappearingMessageState
       backgroundImage: AidaBaseColors.baseBackgroundImage,
       appBar: ChatBaseAppBar(
         backgroundColor: Colors.transparent,
-        title: TIM_t("限时消息"),
+        title: tr('disappear.disappearing_message'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -69,9 +73,9 @@ class _GroupDisappearingMessageState
               const SizedBox(
                 height: 22.5,
               ),
-              const Text(
-                '设置此对话中的消息自动消失',
-                style: TextStyle(
+              Text(
+                tr('disappear.set_auto_disappear'),
+                style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: AidaBaseColors.white),
@@ -79,17 +83,17 @@ class _GroupDisappearingMessageState
               const SizedBox(
                 height: 16,
               ),
-              const Text(
-                '为更好地保护隐私并节省存储空间，在所选期限过后，此对话中的所有新消息都将在所有人设备上自动消失（除非消息已保留）。',
-                style: TextStyle(
+              Text(
+                tr('disappear.disappear_description'),
+                style: const TextStyle(
                     fontSize: 14, color: AidaBaseColors.weakTextColor),
               ),
               const SizedBox(
                 height: 30,
               ),
-              const Text(
-                '消息保留期限',
-                style: TextStyle(
+              Text(
+                tr('disappear.message_retention_period'),
+                style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: AidaBaseColors.white),
@@ -125,8 +129,7 @@ class _GroupDisappearingMessageState
                         focusColor: Colors.transparent,
                         // 移除焦点颜色
                         onTap: () {
-                          widget.config.type =
-                              index.toString();
+                          widget.config.type = index.toString();
                           widget.config.hour = 0;
                           widget.config.minute = 0;
                           setState(() {
@@ -150,12 +153,12 @@ class _GroupDisappearingMessageState
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.timer_outlined,
                       color: Colors.white, size: 28),
-                  title: const Text(
-                    "自定义消息保留期限",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  title: Text(
+                    tr('disappear.custom_message_retention'),
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   subtitle: Text(
-                    "${widget.config.hour}小时 ${widget.config.minute}分钟",
+                    "${widget.config.hour} ${tr('wallet.hours')} ${widget.config.minute} ${tr('wallet.minutes')}",
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   trailing: const Icon(Icons.chevron_right,
@@ -201,14 +204,14 @@ class _GroupDisappearingMessageState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Spacer(),
-                      const Text("自定义期限",
-                          style: TextStyle(color: Colors.white, fontSize: 16)),
+                      Text(tr('disappear.custom_period'),
+                          style: const TextStyle(color: Colors.white, fontSize: 16)),
                       const Spacer(),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Text("取消",
+                        child: Text(TIM_t('取消'),
                             style:
-                                TextStyle(color: Colors.white70, fontSize: 16)),
+                                const TextStyle(color: Colors.white70, fontSize: 16)),
                       ),
                     ],
                   ),

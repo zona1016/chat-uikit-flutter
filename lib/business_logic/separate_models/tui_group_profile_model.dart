@@ -15,6 +15,7 @@ import 'package:tencent_cloud_chat_uikit/data_services/message/message_services.
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/logger.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 
 class TUIGroupProfileModel extends ChangeNotifier {
@@ -411,12 +412,25 @@ class TUIGroupProfileModel extends ChangeNotifier {
         final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
         final disappearingMessage = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
         UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(disappearingMessage);
+
+        bool found = false;
+
         for (UserGroupDisappearingConfig item in configs.groupConfigs) {
-          if (item.groupID == _groupID) {
-            item.config.startTime = DateTime.now()
-                .millisecondsSinceEpoch
-                .toString();
+          if (item.userID == _groupID) {
+            item.config.startTime =
+                DateTime.now().millisecondsSinceEpoch.toString();
+            found = true;
+            break; // 已找到，退出循环
           }
+        }
+
+        if (!found) {
+          configs.groupConfigs.add(
+            UserGroupDisappearingConfig(
+              groupID: _groupID,
+              config: DisappearingMessageConfig.fromJson(customInfo),
+            ),
+          );
         }
         await GetStorage().write('disappearing_message_${loginUserInfo.userID}', configs.toJson());
 

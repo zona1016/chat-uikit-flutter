@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 
 class DisappearingMessageConfig {
@@ -26,13 +27,13 @@ class DisappearingMessageConfig {
     if (hour == 0 && minute == 0) {
       switch (type) {
         case "0":
-          desc = "24小时";
+          desc = "24 ${tr('wallet.hours')}";
           break;
         case "1":
-          desc = "7天";
+          desc = "7 ${tr('wallet.days')}";
           break;
         case "2":
-          desc = "90天";
+          desc = "90 ${tr('wallet.days')}";
           break;
         case "3":
           desc = TIM_t('关闭');
@@ -42,7 +43,7 @@ class DisappearingMessageConfig {
           break;
       }
     } else {
-      desc = '$hour小时$minute分钟';
+      desc = '$hour ${tr('wallet.hours')} $minute ${tr('wallet.minutes')}';
     }
 
     return DisappearingMessageConfig(

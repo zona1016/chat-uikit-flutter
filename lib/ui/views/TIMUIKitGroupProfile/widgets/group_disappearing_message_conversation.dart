@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_statelesswidget.dart';
@@ -53,7 +54,7 @@ class GroupDisappearingMessageConversation extends TIMUIKitStatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              TIM_t("限时消息"),
+              tr('disappear.disappearing_message'),
               style: const TextStyle(fontSize: 16, color: AidaBaseColors.white),
             ),
             const Spacer(),

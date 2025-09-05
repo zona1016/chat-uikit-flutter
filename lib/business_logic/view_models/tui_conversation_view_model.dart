@@ -138,8 +138,9 @@ class TUIConversationViewModel extends ChangeNotifier {
       onConversationChanged: (conversationList) {
         _onConversationListChanged(conversationList);
       },
-      onNewConversation: (conversationList) {
+      onNewConversation: (conversationList) async {
         _addNewConversation(conversationList);
+        getDisappearingDuration(list: conversationList);
       },
       onTotalUnreadMessageCountChanged: (totalUnread) {
         _totalUnReadCount = totalUnread;
@@ -470,10 +471,29 @@ class TUIConversationViewModel extends ChangeNotifier {
       print("获取好友信息失败: ${userInfo.code}, ${userInfo.desc}");
     }
     final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
-    UserDisappearingConfigs result = UserDisappearingConfigs(
-        loginUserID: loginUserInfo.userID, groupConfigs: configs);
-    await GetStorage().write('disappearing_message_${loginUserInfo.userID}', result.toJson());
 
+    // 🔑 先读取旧的存储
+    final storageKey = 'disappearing_message_${loginUserInfo.userID}';
+    final oldData = await GetStorage().read(storageKey);
+    UserDisappearingConfigs oldConfigs = oldData != null
+        ? UserDisappearingConfigs.fromJson(oldData)
+        : UserDisappearingConfigs(loginUserID: loginUserInfo.userID, groupConfigs: []);
+
+    // 🔑 合并新旧配置（覆盖相同 userID/groupID，保留其它的）
+    Map<String, UserGroupDisappearingConfig> merged = {
+      for (var item in oldConfigs.groupConfigs)
+        (item.userID ?? item.groupID)!: item,
+      for (var item in configs) (item.userID ?? item.groupID)!: item,
+    };
+
+    final result = UserDisappearingConfigs(
+        loginUserID: loginUserInfo.userID,
+        groupConfigs: merged.values.toList());
+
+    // ✅ 写入存储
+    await GetStorage().write(storageKey, result.toJson());
+
+    if (_timer != null) return;
     // 添加定时器
     _timer = Timer.periodic(const Duration(minutes: 5), (timer) async {
       // 在这里写你需要循环执行的逻辑
@@ -496,6 +516,7 @@ class TUIConversationViewModel extends ChangeNotifier {
           }
 
           if (result?.code == 0) {
+            notifyListeners();
             item.config.startTime =
                 DateTime.now().millisecondsSinceEpoch.toString();
           }
