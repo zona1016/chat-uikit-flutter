@@ -21,7 +21,6 @@ class GroupDisappearingMessageConversation extends TIMUIKitStatelessWidget {
     final model = Provider.of<TUIGroupProfileModel>(context);
     DisappearingMessageConfig config;
     if (model.groupInfo?.customInfo != null && model.groupInfo?.customInfo!['disappearing'] != null) {
-      print(model.groupInfo?.customInfo!['disappearing']);
       Map<String, dynamic> tempMap = jsonDecode(model.groupInfo!.customInfo!['disappearing']!);
       Map<String, String> customData = tempMap.map((key, value) => MapEntry(key, value.toString()));
       config = DisappearingMessageConfig.fromJson(customData);

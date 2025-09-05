@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/profile_life_cycle.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_profile_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_self_info_view_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/view_models/user_disappearing_configs.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -538,6 +540,17 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                                           Map<String, String> result = {
                                             'disap': jsonEncode(customData)
                                           };
+                                          final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
+                                          final disappearingMessage = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
+                                          UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(disappearingMessage);
+                                          for (UserGroupDisappearingConfig item in configs.groupConfigs) {
+                                            if (item.userID == userInfo.userID) {
+                                              item.config.startTime = DateTime.now()
+                                                  .millisecondsSinceEpoch
+                                                  .toString();
+                                            }
+                                          }
+                                          await GetStorage().write('disappearing_message_${loginUserInfo.userID}', configs.toJson());
                                           final res = await _controller.model
                                               .updateCustomInfo(
                                                   widget.userID, result);

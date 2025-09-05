@@ -2,15 +2,18 @@
 
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/group_profile_life_cycle.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/view_models/user_disappearing_configs.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/conversation/conversation_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/core/core_services_implements.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/group/group_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/message/message_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
+import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/logger.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 
@@ -405,6 +408,18 @@ class TUIGroupProfileModel extends ChangeNotifier {
       );
       final response = await _groupServices.setGroupInfo(info: info);
       if (response.code == 0) {
+        final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
+        final disappearingMessage = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
+        UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(disappearingMessage);
+        for (UserGroupDisappearingConfig item in configs.groupConfigs) {
+          if (item.groupID == _groupID) {
+            item.config.startTime = DateTime.now()
+                .millisecondsSinceEpoch
+                .toString();
+          }
+        }
+        await GetStorage().write('disappearing_message_${loginUserInfo.userID}', configs.toJson());
+
         _groupInfo!.customInfo = customInfo;
         notifyListeners();
       }
