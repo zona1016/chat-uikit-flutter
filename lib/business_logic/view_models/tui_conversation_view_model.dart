@@ -500,9 +500,9 @@ class TUIConversationViewModel extends ChangeNotifier {
       final result = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
       UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(result);
       for (UserGroupDisappearingConfig item in configs.groupConfigs) {
+        final startTimeMs = int.tryParse(item.config.startTime) ?? 0;
         if (DateTime.now().millisecondsSinceEpoch >=
-            int.parse(item.config.startTime) +
-                item.config.totalDuration.inMilliseconds) {
+            startTimeMs + item.config.totalDuration.inMilliseconds) {
           // 添加到本地
           V2TimCallback? result;
           if (item.userID != null && item.userID!.isNotEmpty) {

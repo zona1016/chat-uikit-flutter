@@ -329,6 +329,7 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
               convID: widget.conversationID,
               convType: convType,
               atUserIDList: getUserIdFromMemberInfoMap(),
+              isSelfDestruct: widget.model.selfDestructMode,
             ),
             context);
       } else {
@@ -400,14 +401,16 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
                 text: text,
                 convID: widget.conversationID,
                 convType: convType,
-                atUserIDList: getUserIdFromMemberInfoMap()),
+                atUserIDList: getUserIdFromMemberInfoMap(),
+                isSelfDestruct: widget.model.selfDestructMode),
             context);
       } else if (mentionedMembersMap.isNotEmpty) {
         widget.model.sendTextAtMessage(
             text: text,
             convType: widget.conversationType,
             convID: widget.conversationID,
-            atUserList: getUserIdFromMemberInfoMap());
+            atUserList: getUserIdFromMemberInfoMap(),
+            isSelfDestruct: widget.model.selfDestructMode);
       } else {
         MessageUtils.handleMessageError(
             widget.model.sendTextMessage(

@@ -769,7 +769,8 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
       {required String text,
       required String convID,
       required ConvType convType,
-      required List<String> atUserList}) async {
+      required List<String> atUserList,
+      bool isSelfDestruct = false}) async {
     if (text.isEmpty) {
       return null;
     }
@@ -802,6 +803,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
           convID: convID,
           id: textATMessageInfo.id as String,
           convType: ConvType.group,
+          cloudCustomData: jsonEncode({"isSelfDestruct": isSelfDestruct}),
           offlinePushInfo: tools.buildMessagePushInfo(
               textATMessageInfo.messageInfo!, convID, convType));
     }
@@ -882,7 +884,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
           convID: convID,
           id: textMessageInfo.id as String,
           convType: convType,
-          cloudCustomData: '{"isSelfDestruct": $isSelfDestruct}',
+          cloudCustomData: jsonEncode({"isSelfDestruct": isSelfDestruct}),
           messageInfo: lifeCycleMsg ?? messageInfoWithSender,
           offlinePushInfo: tools.buildMessagePushInfo(
               textMessageInfo.messageInfo!, convID, convType));
@@ -926,7 +928,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
         convID: convID,
         id: soundMessageInfo.id as String,
         convType: convType,
-        cloudCustomData: '{"isSelfDestruct": $isSelfDestruct}',
+        cloudCustomData: jsonEncode({"isSelfDestruct": isSelfDestruct}),
         offlinePushInfo: tools.buildMessagePushInfo(
             soundMessageInfo.messageInfo!, convID, convType),
       );
@@ -939,6 +941,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
     required String convID,
     required ConvType convType,
     List<String>? atUserIDList,
+    bool isSelfDestruct = false,
   }) async {
     if (text.isEmpty) {
       return null;
@@ -971,7 +974,8 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
                 : _repliedMessage?.sender,
             "messageType": _repliedMessage?.elemType,
             "version": 1
-          }
+          },
+          "isSelfDestruct": isSelfDestruct
         };
         messageInfoWithSender.cloudCustomData = json.encode(cloudCustomData);
         V2TimMessage? lifeCycleMsg;
@@ -1092,7 +1096,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
         messageInfo: lifeCycleMsg ?? messageInfoWithSender,
         id: imageMessageInfo.id as String,
         convType: convType,
-        cloudCustomData: '{"isSelfDestruct": $isSelfDestruct}',
+        cloudCustomData: jsonEncode({"isSelfDestruct": isSelfDestruct}),
         offlinePushInfo: tools.buildMessagePushInfo(
             imageMessageInfo.messageInfo!, convID, convType),
       );
@@ -1144,7 +1148,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
         messageInfo: lifeCycleMsg ?? messageInfoWithSender,
         id: videoMessageInfo.id as String,
         convType: convType,
-        cloudCustomData: '{"isSelfDestruct": $isSelfDestruct}',
+        cloudCustomData: jsonEncode({"isSelfDestruct": isSelfDestruct}),
         offlinePushInfo: tools.buildMessagePushInfo(
             videoMessageInfo.messageInfo!, convID, convType),
       );
@@ -1213,7 +1217,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
         messageInfo: lifeCycleMsg ?? messageInfoWithSender,
         id: fileMessageInfo.id as String,
         convType: convType,
-        cloudCustomData: '{"isSelfDestruct": $isSelfDestruct}',
+        cloudCustomData: jsonEncode({"isSelfDestruct": isSelfDestruct}),
         offlinePushInfo: tools.buildMessagePushInfo(
             fileMessageInfo.messageInfo!, convID, convType),
       );
@@ -1386,16 +1390,38 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
     V2TimValueCallback<V2TimMessage>? res;
     if (messageType == MessageElemType.V2TIM_ELEM_TYPE_TEXT) {
       String text = message.textElem!.text!;
-      if (_repliedMessage != null) {
+      
+      // Check if original message was self-destruct
+      bool isSelfDestruct = false;
+      try {
+        if (message.cloudCustomData?.isNotEmpty ?? false) {
+          final customData = jsonDecode(message.cloudCustomData!);
+          isSelfDestruct = customData['isSelfDestruct'] == true;
+        }
+      } catch (e) {
+        // Ignore JSON decode errors
+      }
+      
+      if (atUserIDList != null && atUserIDList.isNotEmpty) {
+        // Text message with mentions
+        res = await sendTextAtMessage(
+          text: text,
+          convID: convID,
+          convType: convType,
+          atUserList: atUserIDList,
+          isSelfDestruct: isSelfDestruct,
+        );
+      } else if (_repliedMessage != null) {
         res = await sendReplyMessage(
           text: text,
           convID: convID,
           convType: convType,
           atUserIDList: atUserIDList,
+          isSelfDestruct: isSelfDestruct,
         );
       } else {
         res = await sendTextMessage(
-            text: text, convID: convID, convType: convType);
+            text: text, convID: convID, convType: convType, isSelfDestruct: isSelfDestruct);
       }
     }
     if (messageType == MessageElemType.V2TIM_ELEM_TYPE_SOUND) {
@@ -1473,7 +1499,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
           convID: convID,
           id: textMessageInfo.id as String,
           convType: convType,
-          cloudCustomData: '{"isSelfDestruct": $isSelfDestruct}',
+          cloudCustomData: jsonEncode({"isSelfDestruct": isSelfDestruct}),
           offlinePushInfo: tools.buildMessagePushInfo(
               textMessageInfo.messageInfo!, convID, convType));
     }
