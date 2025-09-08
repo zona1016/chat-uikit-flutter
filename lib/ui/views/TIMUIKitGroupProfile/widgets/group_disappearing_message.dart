@@ -234,7 +234,7 @@ class _GroupDisappearingMessageState
                             24,
                             (index) => Center(
                               child: Text(
-                                "$index",
+                                "$index ${tr('meeting.hours')}",
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 20),
                               ),
@@ -255,7 +255,7 @@ class _GroupDisappearingMessageState
                             59,
                             (index) => Center(
                               child: Text(
-                                "${index + 1}",
+                                "${index + 1} ${tr('meeting.minutes')}",
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 20),
                               ),

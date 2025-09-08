@@ -29,7 +29,7 @@ class UserDisappearingConfigs {
 class UserGroupDisappearingConfig {
   String? userID;
   String? groupID;
-  final DisappearingMessageConfig config; // 单个对象
+  DisappearingMessageConfig config; // 单个对象
 
   UserGroupDisappearingConfig({
     this.userID,

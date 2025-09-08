@@ -15,6 +15,7 @@ import 'package:tencent_cloud_chat_uikit/data_services/message/message_services.
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/logger.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 
@@ -395,7 +396,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
     return res;
   }
 
-  disappearing(Map<String, String>? groupCustomInfo) async {
+  disappearing(Map<String, String>? groupCustomInfo, context) async {
     if (_groupInfo != null) {
       groupCustomInfo?['disappearing_message_time'] =
           DateTime.now().millisecondsSinceEpoch.toString();
@@ -416,9 +417,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
         bool found = false;
 
         for (UserGroupDisappearingConfig item in configs.groupConfigs) {
-          if (item.userID == _groupID) {
-            item.config.startTime =
-                DateTime.now().millisecondsSinceEpoch.toString();
+          if (item.groupID == _groupID) {
+            item.config = DisappearingMessageConfig.fromJson(groupCustomInfo!);
             found = true;
             break; // 已找到，退出循环
           }
@@ -435,6 +435,19 @@ class TUIGroupProfileModel extends ChangeNotifier {
         await GetStorage().write('disappearing_message_${loginUserInfo.userID}', configs.toJson());
 
         _groupInfo!.customInfo = customInfo;
+        MessageUtils.handleMessageError(
+            TUIChatSeparateViewModel()
+                .sendCustomMessage(
+              data: jsonEncode({
+                "type":
+                "disappearing_message",
+                "disappearing_message":
+                jsonEncode(groupCustomInfo)
+              }),
+              convID: _groupID,
+              convType: ConvType.group,
+            ),
+            context);
         notifyListeners();
       }
     }

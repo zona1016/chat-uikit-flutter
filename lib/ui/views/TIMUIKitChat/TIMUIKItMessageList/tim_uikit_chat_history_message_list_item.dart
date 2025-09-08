@@ -205,7 +205,7 @@ class TIMUIKitHistoryMessageListItem extends StatefulWidget {
   final MessageItemBuilder? messageItemBuilder;
 
   /// Control avatar hide or show
-  final bool showAvatar;
+  bool showAvatar;
 
   /// message sending status
   final bool showMessageSending;
@@ -273,7 +273,7 @@ class TIMUIKitHistoryMessageListItem extends StatefulWidget {
   /// If provided, the default message action functionality will appear in the right-click context menu instead.
   final Widget? Function(V2TimMessage message)? customMessageHoverBarOnDesktop;
 
-  const TIMUIKitHistoryMessageListItem(
+  TIMUIKitHistoryMessageListItem(
       {Key? key,
       required this.message,
       @Deprecated("Nickname will not show in one-to-one chat, if you tend to control it in group chat, please use `isShowSelfNameInGroup` and `isShowOthersNameInGroup` from `config: TIMUIKitChatConfig` instead") this.showNickName = false,
@@ -1000,6 +1000,8 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
         ? jsonDecode(message.cloudCustomData!)
         : {};
     final isSelfDestruct = customData['isSelfDestruct'] ?? false;
+    bool disappearingMessage = (widget.message.customElem?.data != null &&
+        widget.message.customElem!.data!.contains('disappearing_message'));
     return Column(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1057,7 +1059,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                 },
                 child: Icon(Icons.error, color: theme.cautionColor, size: 18),
               )),
-        if (model.chatConfig.isShowReadingStatus &&
+        if (model.chatConfig.isShowReadingStatus && !disappearingMessage &&
             widget.showMessageReadRecipt &&
             model.conversationType == ConvType.c2c &&
             isSelf && (!isSelfDestruct || (message.isPeerRead == null || !message.isPeerRead!)) &&
@@ -1070,7 +1072,7 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
               style: TextStyle(color: theme.chatMessageItemUnreadStatusTextColor, fontSize: 12),
             ),
           ),
-        if (model.chatConfig.isShowGroupReadingStatus &&
+        if (model.chatConfig.isShowGroupReadingStatus && !disappearingMessage &&
             model.chatConfig.isShowGroupMessageReadReceipt &&
             model.conversationType == ConvType.group &&
             isSelf && !MessageReceiptUtils.isGroupMessageReadByAll(message: message, context: context) &&
@@ -1149,6 +1151,8 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
       }
     }
 
+    widget.showAvatar = (widget.message.customElem?.data != null &&
+        widget.message.customElem!.data!.contains('disappearing_message')) ? false : widget.showAvatar;
     return LayoutBuilder(
       builder: (context, constraints) => Container(
         padding: model.chatConfig.isAidTeam ? const EdgeInsets.symmetric(horizontal: 16).copyWith(
@@ -1295,7 +1299,8 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                                 if (isSelf) renderHoverTipAndReadStatus(model, isSelf, message, isPeerRead, theme, isDownloadWaiting),
                                 Container(
                                   constraints: BoxConstraints(
-                                    maxWidth: model.chatConfig.isAidTeam ? (constraints.maxWidth - 32) : constraints.maxWidth * 0.77,
+                                    maxWidth: model.chatConfig.isAidTeam || ((widget.message.customElem?.data != null &&
+                                        widget.message.customElem!.data!.contains('disappearing_message')))  ? (constraints.maxWidth - 32) : constraints.maxWidth * 0.77,
                                   ),
                                   child: Builder(builder: (context) {
                                     return Column(

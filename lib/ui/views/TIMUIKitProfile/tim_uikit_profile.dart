@@ -6,12 +6,15 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/profile_life_cycle.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_profile_view_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_self_info_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/user_disappearing_configs.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_disappearing_message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
@@ -540,15 +543,22 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                                           Map<String, String> result = {
                                             'disap': jsonEncode(customData)
                                           };
-                                          final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
-                                          final disappearingMessage = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
-                                          UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(disappearingMessage);
+                                          final loginUserInfo =
+                                              TIMUIKitCore.getInstance()
+                                                  .loginInfo;
+                                          final disappearingMessage =
+                                              await GetStorage().read(
+                                                  'disappearing_message_${loginUserInfo.userID}');
+                                          UserDisappearingConfigs configs =
+                                              UserDisappearingConfigs.fromJson(
+                                                  disappearingMessage);
                                           bool found = false;
 
-                                          for (UserGroupDisappearingConfig item in configs.groupConfigs) {
-                                            if (item.userID == userInfo.userID) {
-                                              item.config.startTime =
-                                                  DateTime.now().millisecondsSinceEpoch.toString();
+                                          for (UserGroupDisappearingConfig item
+                                              in configs.groupConfigs) {
+                                            if (item.userID ==
+                                                userInfo.userID) {
+                                              item.config = DisappearingMessageConfig.fromJson(customData);
                                               found = true;
                                               break; // 已找到，退出循环
                                             }
@@ -558,14 +568,33 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                                             configs.groupConfigs.add(
                                               UserGroupDisappearingConfig(
                                                 userID: userInfo.userID,
-                                                config: DisappearingMessageConfig.fromJson(customData),
+                                                config:
+                                                    DisappearingMessageConfig
+                                                        .fromJson(customData),
                                               ),
                                             );
                                           }
-                                          await GetStorage().write('disappearing_message_${loginUserInfo.userID}', configs.toJson());
+                                          await GetStorage().write(
+                                              'disappearing_message_${loginUserInfo.userID}',
+                                              configs.toJson());
                                           final res = await _controller.model
                                               .updateCustomInfo(
                                                   widget.userID, result);
+                                          if (res.code == 0) {
+                                            MessageUtils.handleMessageError(
+                                                TUIChatSeparateViewModel()
+                                                    .sendCustomMessage(
+                                                  data: jsonEncode({
+                                                    "type":
+                                                        "disappearing_message",
+                                                    "disappearing_message":
+                                                        jsonEncode(customData)
+                                                  }),
+                                                  convID: widget.userID,
+                                                  convType: ConvType.c2c,
+                                                ),
+                                                context);
+                                          }
                                         },
                                         config: config,
                                       )));

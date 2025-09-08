@@ -496,13 +496,12 @@ class TUIConversationViewModel extends ChangeNotifier {
     if (_timer != null) return;
     // 添加定时器
     _timer = Timer.periodic(const Duration(minutes: 5), (timer) async {
-      // 在这里写你需要循环执行的逻辑
       final result = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
       UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(result);
       for (UserGroupDisappearingConfig item in configs.groupConfigs) {
-        if (DateTime.now().millisecondsSinceEpoch >=
+        if ((item.config.totalDuration != Duration.zero) && (DateTime.now().millisecondsSinceEpoch >=
             int.parse(item.config.startTime) +
-                item.config.totalDuration.inMilliseconds) {
+                item.config.totalDuration.inMilliseconds)) {
           // 添加到本地
           V2TimCallback? result;
           if (item.userID != null && item.userID!.isNotEmpty) {

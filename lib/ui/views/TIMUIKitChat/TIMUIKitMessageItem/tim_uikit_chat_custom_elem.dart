@@ -16,10 +16,13 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/base_network_image.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/calling_message_data_provider.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/group_call_message_builder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/calling_message/single_call_message_builder.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_app_bar.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/chat_base_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
@@ -142,6 +145,12 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
       return _cardItem(backgroundColor, borderRadius);
     }
 
+    /// 限时消息
+    if (widget.message.customElem?.data != null &&
+        widget.message.customElem!.data!.contains('disappearing_message')) {
+      return _disappearingMessage();
+    }
+
     return Container(
         padding: widget.textPadding ?? const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -162,6 +171,99 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
             )
           ],
         ));
+  }
+
+  _disappearingMessage() {
+    Map<String, dynamic> result = getMap(widget.message.customElem!.data!);
+    DisappearingMessageConfig config = DisappearingMessageConfig
+        .fromJson(jsonDecode(result['disappearing_message']));
+    return GestureDetector(
+      onTap: () {
+        if (widget.message.groupID != null && widget.message.groupID!.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatBaseScreen(
+                safeAreaTop: false,
+                backgroundColor: Colors.transparent,
+                backgroundImage: AidaBaseColors.baseBackgroundImage,
+                appBar: ChatBaseAppBar(
+                  title: TIM_t("群资料"),
+                ),
+                body: TIMUIKitGroupProfile(
+                  groupID: widget.message.groupID!,
+                ),
+              ),
+            ),
+          );
+        } else if (widget.message.userID != null && widget.message.userID!.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatBaseScreen(
+                safeAreaTop: false,
+                backgroundColor: Colors.transparent,
+                backgroundImage: AidaBaseColors.baseBackgroundImage,
+                appBar: ChatBaseAppBar(
+                  title: TIM_t("详细资料"),
+                ),
+                body: TIMUIKitProfile(
+                  userID: widget.message.userID!,
+                ),
+              ),
+            ),
+          );
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AidaBaseColors.whiteWithOpacity01,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text.rich(
+              TextSpan(
+                children: [
+                  const WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: Padding(
+                      padding: EdgeInsets.only(right: 6),
+                      child: Icon(
+                        Icons.access_time, // 你可以换成 Image.asset("assets/clock.png")
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  TextSpan(
+                    text: config.totalDuration != Duration.zero
+                        ? '你已开启阅后即焚消息功能。此对话中的新消息将在发送${config.desc}后自动消失（除非消息已保留）。'
+                        : '你已关闭阅后即焚消息功能。',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Text(
+              '轻触可更改。',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   _cardItem(backgroundColor, borderRadius) {
