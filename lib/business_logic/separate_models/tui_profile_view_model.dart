@@ -22,7 +22,8 @@ class TUIProfileViewModel extends ChangeNotifier {
       serviceLocator<TUIFriendShipViewModel>();
   final CoreServicesImpl _coreServices = serviceLocator<CoreServicesImpl>();
   final MessageService _messageService = serviceLocator<MessageService>();
-  final TUIChatGlobalModel _chatGlobalModel = serviceLocator<TUIChatGlobalModel>();
+  final TUIChatGlobalModel _chatGlobalModel =
+      serviceLocator<TUIChatGlobalModel>();
 
   UserProfile? _userProfile;
   ProfileLifeCycle? _lifeCycle;
@@ -66,7 +67,7 @@ class TUIProfileViewModel extends ChangeNotifier {
   }
 
   loadData({required String userID, bool isNeedConversation = true}) async {
-    if(userID.isEmpty){
+    if (userID.isEmpty) {
       return;
     }
     V2TimFriendInfo? friendUserInfo;
@@ -116,6 +117,38 @@ class TUIProfileViewModel extends ChangeNotifier {
     final res = await _conversationService.pinConversation(
         conversationID: convID, isPinned: isPined);
     _userProfile?.conversation!.isPinned = isPined;
+    notifyListeners();
+    return res;
+  }
+
+  Future<V2TimValueCallback> setConversationCustomData(String conversationID, Map<String, dynamic> customData) async {
+    // 1. 先取原来的 customData
+    String? oldData = _userProfile?.conversation?.customData;
+
+    Map<String, dynamic> merged = {};
+    if (oldData != null && oldData.isNotEmpty) {
+      try {
+        merged = Map<String, dynamic>.from(jsonDecode(oldData));
+      } catch (e) {
+        // 如果之前不是 json，就丢弃
+        merged = {};
+      }
+    }
+
+    // 2. 合并新的数据
+    merged.addAll(customData);
+
+    // 3. 转回 JSON
+    String finalData = jsonEncode(merged);
+
+    // 4. 提交到服务端
+    final res = await _conversationService.setConversationCustomData(
+      conversationID: conversationID,
+      customData: finalData,
+    );
+
+    // 5. 更新本地缓存
+    _userProfile?.conversation?.customData = finalData;
     notifyListeners();
     return res;
   }
@@ -256,7 +289,8 @@ class TUIProfileViewModel extends ChangeNotifier {
     return res;
   }
 
-  Future<V2TimCallback> updateCustomInfo(String userID, Map<String, String>? friendCustomInfo) async {
+  Future<V2TimCallback> updateCustomInfo(
+      String userID, Map<String, String>? friendCustomInfo) async {
     final res = await _friendshipServices.setFriendInfo(
         userID: userID, friendCustomInfo: friendCustomInfo);
 
@@ -284,35 +318,38 @@ class TUIProfileViewModel extends ChangeNotifier {
     try {
       // Get existing custom data
       final customData = await _getConversationCustomData(conversationID);
-      
+
       // Update the mode preference
-      customData['conversation_default_mode'] = value ? 'self_destruct' : 'normal';
-      
+      customData['conversation_default_mode'] =
+          value ? 'self_destruct' : 'normal';
+
       // Clear burn_seconds when disabling self-destruct mode
       if (!value && customData.containsKey('burn_seconds')) {
         customData.remove('burn_seconds');
-        print('Cleared burn_seconds for C2C conversation since self-destruct mode disabled');
+        print(
+            'Cleared burn_seconds for C2C conversation since self-destruct mode disabled');
       }
-      
+
       // Try to save to conversation custom data
-      final saveSuccess = await _setConversationCustomDataWithResult(conversationID, customData);
-      
+      final saveSuccess = await _setConversationCustomDataWithResult(
+          conversationID, customData);
+
       if (!saveSuccess) {
         // Conversation doesn't exist yet, store as pending
         _chatGlobalModel.setPendingConversationMode(conversationID, value);
         print('Stored pending self-destruct mode for C2C conversation: $value');
       } else {
-        print('Saved self-destruct mode to custom data for C2C conversation: $value');
+        print(
+            'Saved self-destruct mode to custom data for C2C conversation: $value');
       }
-      
+
       // Update local state
       _selfDestructMode = value;
       notifyListeners();
-      
+
       // Update the global model's self-destruct state for this conversation
       _chatGlobalModel.updateSelfDestructMode(conversationID, value);
       print('Updated global model C2C self-destruct mode: $value');
-      
     } catch (e) {
       print('Error setting self-destruct mode for C2C: $e');
     }
@@ -323,39 +360,43 @@ class TUIProfileViewModel extends ChangeNotifier {
       // Update local state
       _burnSeconds = seconds;
       notifyListeners();
-      
+
       // Get existing custom data
       final customData = await _getConversationCustomData(conversationID);
-      
+
       // Update burn_seconds in custom data
       customData['burn_seconds'] = seconds;
-      
+
       // Try to save to conversation custom data
-      final saveSuccess = await _setConversationCustomDataWithResult(conversationID, customData);
-      
+      final saveSuccess = await _setConversationCustomDataWithResult(
+          conversationID, customData);
+
       if (saveSuccess) {
-        print('Saved burn seconds to custom data for C2C conversation: $seconds');
+        print(
+            'Saved burn seconds to custom data for C2C conversation: $seconds');
       } else {
         // Conversation might not exist yet - the global model will handle pending state
-        print('Failed to save to custom data, conversation may not exist yet for C2C: $seconds');
+        print(
+            'Failed to save to custom data, conversation may not exist yet for C2C: $seconds');
       }
-      
+
       // Update the global model's burn seconds for this conversation
-      await _chatGlobalModel.setConversationBurnSeconds(conversationID, seconds);
+      await _chatGlobalModel.setConversationBurnSeconds(
+          conversationID, seconds);
       print('Updated conversation burn seconds for C2C: $seconds');
-      
     } catch (e) {
       print('Error setting burn seconds for C2C: $e');
     }
   }
 
   /// Get conversation custom data
-  Future<Map<String, dynamic>> _getConversationCustomData(String conversationID) async {
+  Future<Map<String, dynamic>> _getConversationCustomData(
+      String conversationID) async {
     try {
       final result = await TencentImSDKPlugin.v2TIMManager
           .getConversationManager()
           .getConversation(conversationID: conversationID);
-      
+
       if (result.code == 0 && result.data?.customData != null) {
         final customDataString = result.data!.customData!;
         if (customDataString.isNotEmpty) {
@@ -366,19 +407,20 @@ class TUIProfileViewModel extends ChangeNotifier {
     } catch (e) {
       print('Error getting conversation custom data: $e');
     }
-    
+
     return <String, dynamic>{};
   }
-  
+
   /// Set conversation custom data and return success status
-  Future<bool> _setConversationCustomDataWithResult(String conversationID, Map<String, dynamic> customData) async {
+  Future<bool> _setConversationCustomDataWithResult(
+      String conversationID, Map<String, dynamic> customData) async {
     try {
       final result = await TencentImSDKPlugin.v2TIMManager
           .getConversationManager()
           .setConversationCustomData(
-            conversationIDList: [conversationID],
-            customData: jsonEncode(customData),
-          );
+        conversationIDList: [conversationID],
+        customData: jsonEncode(customData),
+      );
       return result.code == 0;
     } catch (e) {
       print('Error setting conversation custom data: $e');
@@ -386,42 +428,47 @@ class TUIProfileViewModel extends ChangeNotifier {
     }
   }
 
-
   /// Load self-destruct mode state from conversation custom data
   Future<void> _loadSelfDestructMode(String conversationID) async {
     try {
       // First check if there's a pending mode in global model
       final globalMode = _chatGlobalModel.getSelfDestructMode(conversationID);
-      final pendingMode = _chatGlobalModel.getPendingConversationMode(conversationID);
-      
+      final pendingMode =
+          _chatGlobalModel.getPendingConversationMode(conversationID);
+
       if (pendingMode != null) {
         // Use pending mode if available
         _selfDestructMode = pendingMode;
-        print('Loaded pending self-destruct mode for C2C conversation: $_selfDestructMode');
+        print(
+            'Loaded pending self-destruct mode for C2C conversation: $_selfDestructMode');
         return;
       }
-      
+
       if (globalMode) {
         // Use global model state if available
         _selfDestructMode = globalMode;
-        print('Loaded global self-destruct mode for C2C conversation: $_selfDestructMode');
+        print(
+            'Loaded global self-destruct mode for C2C conversation: $_selfDestructMode');
         return;
       }
-      
+
       // Fall back to conversation custom data
       final customData = await _getConversationCustomData(conversationID);
       final mode = customData['conversation_default_mode'] as String?;
       _selfDestructMode = mode == 'self_destruct';
-      
+
       // Only update global model if we have explicit mode data - don't overwrite existing state
       if (mode != null) {
-        _chatGlobalModel.updateSelfDestructMode(conversationID, _selfDestructMode);
-        print('Updated global model with explicit mode for C2C: $_selfDestructMode');
+        _chatGlobalModel.updateSelfDestructMode(
+            conversationID, _selfDestructMode);
+        print(
+            'Updated global model with explicit mode for C2C: $_selfDestructMode');
       } else {
         print('No explicit mode found, keeping existing global state for C2C');
       }
-      
-      print('Loaded self-destruct mode from custom data for C2C conversation: $_selfDestructMode');
+
+      print(
+          'Loaded self-destruct mode from custom data for C2C conversation: $_selfDestructMode');
     } catch (e) {
       print('Error loading self-destruct mode: $e');
       _selfDestructMode = false;
@@ -431,17 +478,19 @@ class TUIProfileViewModel extends ChangeNotifier {
   loadBurnSeconds(String conversationID) async {
     try {
       // Load burn seconds from global model
-      _burnSeconds = _chatGlobalModel.getConversationBurnSeconds(conversationID);
-      
+      _burnSeconds =
+          _chatGlobalModel.getConversationBurnSeconds(conversationID);
+
       // Also try to load from conversation custom data to sync
       final customData = await _getConversationCustomData(conversationID);
       final burnSeconds = customData['burn_seconds'] as int?;
       if (burnSeconds != null) {
         _burnSeconds = burnSeconds;
         // Update global model with the loaded value
-        await _chatGlobalModel.setConversationBurnSeconds(conversationID, burnSeconds);
+        await _chatGlobalModel.setConversationBurnSeconds(
+            conversationID, burnSeconds);
       }
-      
+
       print('Loaded burn seconds for C2C conversation: $_burnSeconds');
       notifyListeners();
     } catch (e) {
@@ -449,7 +498,6 @@ class TUIProfileViewModel extends ChangeNotifier {
       _burnSeconds = _chatGlobalModel.defaultBurnSeconds;
     }
   }
-
 
   updateUserInfo(String key, dynamic value) {
     if (key == "nickName") {

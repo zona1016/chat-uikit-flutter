@@ -43,7 +43,7 @@ class GroupDisappearingMessageConversation extends TIMUIKitStatelessWidget {
               MaterialPageRoute(
                   builder: (context) => GroupDisappearingMessage(
                         onSubmitted: (customData) {
-                          model.disappearing(customData);
+                          model.disappearing(customData, context);
                         },
                         config: config,
                       )));
