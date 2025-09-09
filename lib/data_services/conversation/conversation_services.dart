@@ -33,4 +33,7 @@ abstract class ConversationService {
 
   Future<V2TimConversation?> getConversationListByConversationId(
       {required String convID});
+
+  Future<V2TimValueCallback> setConversationCustomData(
+      {required String conversationID, required String customData});
 }

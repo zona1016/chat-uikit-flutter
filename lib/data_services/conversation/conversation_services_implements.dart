@@ -102,6 +102,22 @@ class ConversationServicesImpl extends ConversationService {
   }
 
   @override
+  Future<V2TimValueCallback> setConversationCustomData(
+      {required String conversationID, required String customData}) async {
+    final result = await TencentImSDKPlugin.v2TIMManager
+        .getConversationManager()
+        .setConversationCustomData(
+        conversationIDList: [conversationID], customData: customData);
+    if (result.code != 0) {
+      _coreService.callOnCallback(TIMCallback(
+          type: TIMCallbackType.API_ERROR,
+          errorMsg: result.desc,
+          errorCode: result.code));
+    }
+    return result;
+  }
+
+  @override
   Future<void> removeConversationListener(
       {V2TimConversationListener? listener}) {
     return TencentImSDKPlugin.v2TIMManager

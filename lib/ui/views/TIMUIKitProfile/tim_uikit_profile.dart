@@ -185,7 +185,6 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
               Provider.of<TUIProfileViewModel>(context);
           _controller.model = model;
           final V2TimFriendInfo? userInfo = model.userProfile?.friendInfo;
-
           if (userInfo == null) {
             return Center(
               child: LoadingAnimationWidget.staggeredDotsWave(
@@ -241,6 +240,11 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
 
           void handleSelfDestructMode(bool value) async {
             model.setSelfDestructMode(
+                conversation.conversationID ?? "c2c_${userInfo.userID}", value);
+          }
+
+          void handleCustomData(Map<String, dynamic> value) async {
+            model.setConversationCustomData(
                 conversation.conversationID ?? "c2c_${userInfo.userID}", value);
           }
 
@@ -508,78 +512,67 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           handleDeleteFriend,
                           widget.smallCardMode))!;
                 case ProfileWidgetEnum.customBuilderThree:
-                  DisappearingMessageConfig config;
-                  if (userInfo.friendCustomInfo?['disap'] != null) {
-                    Map<String, dynamic> tempMap =
-                        jsonDecode(userInfo.friendCustomInfo!['disap']!);
-                    Map<String, String> customData = tempMap
-                        .map((key, value) => MapEntry(key, value.toString()));
-                    config = DisappearingMessageConfig.fromJson(customData);
-                  } else {
-                    config = DisappearingMessageConfig(
-                        hour: 0,
-                        minute: 0,
-                        type: '3',
-                        startTime: '',
-                        desc: TIM_t('关闭'));
+                  DisappearingMessageConfig config = _defaultConfig();
+
+                  // 1. 从会话 customData 读取
+                  final conversationCustom = _controller.model.userProfile?.conversation?.customData;
+                  if (conversationCustom != null) {
+                    final customData = Map<String, String>.from(
+                      jsonDecode(conversationCustom).map(
+                            (k, v) => MapEntry(k, v.toString()),
+                      ),
+                    );
+                    if (customData['disap'] != null) {
+                      config = _parseConfig(customData['disap']);
+                    }
                   }
+
+                  // 2. 从好友资料里读取更优配置
+                  final friendCustom = model.userProfile?.friendInfo?.userProfile?.customInfo;
+                  if (friendCustom != null &&
+                      friendCustom['disappea'] != null &&
+                      friendCustom['disappea']!.contains(
+                          'disappearing_message_${userInfo.userID}')) {
+                    final remoteMap = jsonDecode(friendCustom['disappea']!);
+                    final remoteConfig = _parseConfig(
+                      remoteMap['disappearing_message_${userInfo.userID}'],
+                    );
+                    config = _mergeConfigs(config, remoteConfig);
+                  }
+
                   return (customBuilder?.customBuilderThree != null
                       ? customBuilder?.customBuilderThree!(
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
                       : TIMUIKitProfileWidget.disappearingMessage(
-                          context, "", config, () {
+                          context, "", config, () async {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
                                       GroupDisappearingMessage(
                                         onSubmitted: (customData) async {
-                                          customData[
-                                                  'disappearing_message_time'] =
-                                              DateTime.now()
-                                                  .millisecondsSinceEpoch
-                                                  .toString();
-                                          Map<String, String> result = {
-                                            'disap': jsonEncode(customData)
-                                          };
-                                          final loginUserInfo =
-                                              TIMUIKitCore.getInstance()
-                                                  .loginInfo;
-                                          final disappearingMessage =
-                                              await GetStorage().read(
-                                                  'disappearing_message_${loginUserInfo.userID}');
-                                          UserDisappearingConfigs configs =
-                                              UserDisappearingConfigs.fromJson(
-                                                  disappearingMessage);
-                                          bool found = false;
+                                          customData['disappearing_message_time'] =
+                                              DateTime.now().millisecondsSinceEpoch.toString();
+                                          final result = {'disap': jsonEncode(customData)};
+                                          handleCustomData(result);
+                                          final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
+                                          await _saveConfig(userInfo.userID, customData, context);
+                                          // 和聊天绑定 自己用
+                                          handleCustomData(result);
+                                          // 放到个人信息中 他人用
+                                          final res =
+                                              await TIMUIKitCore.getInstance()
+                                                  .setSelfInfo(
+                                                      userFullInfo:
+                                                          V2TimUserFullInfo(
+                                                              customInfo: {
+                                                'disappea': jsonEncode({
+                                                  "disappearing_message_${loginUserInfo.userID}":
+                                                      jsonEncode(customData)
+                                                })
+                                              }));
 
-                                          for (UserGroupDisappearingConfig item
-                                              in configs.groupConfigs) {
-                                            if (item.userID ==
-                                                userInfo.userID) {
-                                              item.config = DisappearingMessageConfig.fromJson(customData);
-                                              found = true;
-                                              break; // 已找到，退出循环
-                                            }
-                                          }
-
-                                          if (!found) {
-                                            configs.groupConfigs.add(
-                                              UserGroupDisappearingConfig(
-                                                userID: userInfo.userID,
-                                                config:
-                                                    DisappearingMessageConfig
-                                                        .fromJson(customData),
-                                              ),
-                                            );
-                                          }
-                                          await GetStorage().write(
-                                              'disappearing_message_${loginUserInfo.userID}',
-                                              configs.toJson());
-                                          final res = await _controller.model
-                                              .updateCustomInfo(
-                                                  widget.userID, result);
                                           if (res.code == 0) {
                                             MessageUtils.handleMessageError(
                                                 TUIChatSeparateViewModel()
@@ -645,6 +638,71 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
           }
         },
       ),
+    );
+  }
+
+  DisappearingMessageConfig _defaultConfig() {
+    return DisappearingMessageConfig(
+      hour: 0,
+      minute: 0,
+      type: '3',
+      startTime: '',
+      desc: TIM_t('关闭'),
+    );
+  }
+
+  DisappearingMessageConfig _parseConfig(String? jsonStr) {
+    if (jsonStr == null || jsonStr.isEmpty) return _defaultConfig();
+    try {
+      return DisappearingMessageConfig.fromJson(jsonDecode(jsonStr));
+    } catch (_) {
+      return _defaultConfig();
+    }
+  }
+
+  DisappearingMessageConfig _mergeConfigs(
+      DisappearingMessageConfig local,
+      DisappearingMessageConfig remote,
+      ) {
+    if (remote.startTime.isEmpty) return local;
+    if (int.parse(remote.startTime) > int.parse(local.startTime)) {
+      return remote;
+    }
+    return local;
+  }
+
+  Future<void> _saveConfig(
+      String userID,
+      Map<String, dynamic> customData,
+      BuildContext context,
+      ) async {
+    final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
+
+    // 保存到本地
+    final disappearingMessage = await GetStorage().read(
+      'disappearing_message_${loginUserInfo.userID}',
+    );
+    UserDisappearingConfigs configs =
+    UserDisappearingConfigs.fromJson(disappearingMessage);
+
+    bool found = false;
+    for (var item in configs.groupConfigs) {
+      if (item.userID == userID) {
+        item.config = DisappearingMessageConfig.fromJson(customData);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      configs.groupConfigs.add(UserGroupDisappearingConfig(
+        userID: userID,
+        config: DisappearingMessageConfig.fromJson(customData),
+      ));
+    }
+
+    await GetStorage().write(
+      'disappearing_message_${loginUserInfo.userID}',
+      configs.toJson(),
     );
   }
 }

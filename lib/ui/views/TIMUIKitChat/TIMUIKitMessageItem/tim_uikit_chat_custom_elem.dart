@@ -241,8 +241,8 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
                   ),
                   TextSpan(
                     text: config.totalDuration != Duration.zero
-                        ? '你已开启阅后即焚消息功能。此对话中的新消息将在发送${config.desc}后自动消失（除非消息已保留）。'
-                        : '你已关闭阅后即焚消息功能。',
+                        ? tr('disappear.disappearing_on', args:[config.desc])
+                        : tr('disappear.disappearing_off'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -252,9 +252,9 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
                 ],
               ),
             ),
-            const Text(
-              '轻触可更改。',
-              style: TextStyle(
+            Text(
+              tr('disappear.disappearing_tap_to_change'),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,

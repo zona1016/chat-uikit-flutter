@@ -6,7 +6,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:provider/provider.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/conversation_life_cycle.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_profile_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_self_info_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/user_disappearing_configs.dart';
@@ -391,39 +393,37 @@ class TUIConversationViewModel extends ChangeNotifier {
       }
     }
 
+    final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
     // 1. 获取用户信息
-    final userInfo = await TencentImSDKPlugin.v2TIMManager
-        .getFriendshipManager()
-        .getFriendsInfo(userIDList: userIDs);
+    final userInfo = await TIMUIKitCore.getInstance().getUsersInfo(userIDList: userIDs);
     if (userInfo.code == 0) {
-      for (var item in userInfo.data ?? []) {
-        V2TimFriendInfo? friendInfo = item.friendInfo;
-        if (friendInfo != null &&
-            friendInfo.friendCustomInfo != null &&
-            friendInfo.friendCustomInfo!['disap'] != null &&
-            friendInfo.friendCustomInfo!['disap']!.isNotEmpty) {
-          final userConfig = DisappearingMessageConfig.fromJson(
-              jsonDecode(friendInfo.friendCustomInfo!['disap']!));
-          if (userConfig.totalDuration.inSeconds > 0) {
-            if (minSeconds == 0) {
-              minSeconds = userConfig.totalDuration.inSeconds;
-            } else {
-              minSeconds = min(minSeconds, userConfig.totalDuration.inSeconds);
-            }
-
-            if (DateTime.now().millisecondsSinceEpoch >=
-                int.parse(userConfig.startTime) +
-                    userConfig.totalDuration.inMilliseconds) {
-              // 添加到本地
-              final result = await clearHistoryMessage(
-                  convID: friendInfo.userID, convType: 1);
-              if (result?.code == 0) {
-                userConfig.startTime =
-                    DateTime.now().millisecondsSinceEpoch.toString();
+      for (V2TimUserFullInfo userFullInfo in userInfo.data ?? []) {
+        if (userFullInfo.customInfo != null && userFullInfo.customInfo!['disappea'] != null) {
+          String disappea = userFullInfo.customInfo!['disappea']!;
+          if (jsonDecode(disappea)['disappearing_message_${loginUserInfo.userID}'] != null) {
+            final userConfig = DisappearingMessageConfig.fromJson(
+                jsonDecode(jsonDecode(disappea)['disappearing_message_${loginUserInfo.userID}']!));
+            if (userConfig.totalDuration.inSeconds > 0) {
+              if (minSeconds == 0) {
+                minSeconds = userConfig.totalDuration.inSeconds;
+              } else {
+                minSeconds = min(minSeconds, userConfig.totalDuration.inSeconds);
               }
+
+              if (DateTime.now().millisecondsSinceEpoch >=
+                  int.parse(userConfig.startTime) +
+                      userConfig.totalDuration.inMilliseconds) {
+                // 添加到本地
+                final result = await clearHistoryMessage(
+                    convID: userFullInfo.userID ?? '', convType: 1);
+                if (result?.code == 0) {
+                  userConfig.startTime =
+                      DateTime.now().millisecondsSinceEpoch.toString();
+                }
+              }
+              configs.add(UserGroupDisappearingConfig(
+                  userID: userFullInfo.userID ?? '', config: userConfig));
             }
-            configs.add(UserGroupDisappearingConfig(
-                userID: friendInfo.userID, config: userConfig));
           }
         }
       }
@@ -470,7 +470,6 @@ class TUIConversationViewModel extends ChangeNotifier {
     } else {
       print("获取好友信息失败: ${userInfo.code}, ${userInfo.desc}");
     }
-    final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
 
     // 🔑 先读取旧的存储
     final storageKey = 'disappearing_message_${loginUserInfo.userID}';
