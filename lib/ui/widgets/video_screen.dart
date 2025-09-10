@@ -21,11 +21,12 @@ import 'package:universal_html/html.dart' as html;
 import 'package:video_player/video_player.dart';
 
 class VideoScreen extends StatefulWidget {
-  const VideoScreen({required this.message, required this.heroTag, required this.videoElement, Key? key}) : super(key: key);
+  const VideoScreen({required this.message, required this.heroTag, required this.videoElement, this.onVideoCompleted, Key? key}) : super(key: key);
 
   final V2TimMessage message;
   final dynamic heroTag;
   final V2TimVideoElem videoElement;
+  final VoidCallback? onVideoCompleted;
 
   @override
   State<StatefulWidget> createState() => _VideoScreenState();
@@ -242,6 +243,14 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
                     widget.videoElement.localVideoUrl!,
                   ));
     await player.initialize();
+    
+    // Add listener for video completion
+    player.addListener(() {
+      if (player.value.isCompleted && widget.onVideoCompleted != null) {
+        widget.onVideoCompleted!();
+      }
+    });
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       double w = getVideoWidth();
       double h = getVideoHeight();

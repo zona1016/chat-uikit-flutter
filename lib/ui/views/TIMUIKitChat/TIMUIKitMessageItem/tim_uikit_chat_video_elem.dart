@@ -197,7 +197,6 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
   }
 
   _openMessage() {
-    _viewMessage();
     setState(() {
       isOpen = true;
     });
@@ -357,6 +356,7 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
                       message: widget.message,
                       heroTag: heroTag,
                       videoElement: stateElement,
+                      onVideoCompleted: _viewMessage,
                     ),
                   ),
                 );
