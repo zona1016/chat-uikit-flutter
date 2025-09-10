@@ -7,13 +7,15 @@ class DisappearingMessageConfig {
   String type; // "0"=24小时, "1"=7天, "2"=90天, "3"=已关闭
   String startTime; // 秒
   String desc;
+  String userName;
 
   DisappearingMessageConfig({
     required this.hour,
     required this.minute,
     required this.type,
     required this.startTime,
-    this.desc = ''
+    this.desc = '',
+    this.userName = ''
   });
 
   /// 从 JSON 创建
@@ -22,6 +24,7 @@ class DisappearingMessageConfig {
     final minute = int.tryParse(json['disappearing_message_minute']?.toString() ?? '0') ?? 0;
     final type = json['disappearing_message_type']?.toString() ?? "";
     final startTime = json['disappearing_message_time']?.toString() ?? "";
+    final userName = json['disappearing_message_name']?.toString() ?? "";
 
     String desc = "";
     if (hour == 0 && minute == 0) {
@@ -51,7 +54,8 @@ class DisappearingMessageConfig {
       minute: minute,
       type: type,
       startTime: startTime,
-      desc: desc
+      desc: desc,
+      userName: userName
     );
   }
 
@@ -62,6 +66,7 @@ class DisappearingMessageConfig {
       "disappearing_message_minute": minute.toString(),
       "disappearing_message_type": type,
       "disappearing_message_time": startTime.toString(),
+      "disappearing_message_name": userName.toString(),
     };
   }
 

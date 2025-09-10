@@ -58,6 +58,7 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
   // 你可以在这里声明需要刷新的状态
   bool _isLoading = false;
   String _path = '';
+  String showNam = '';
 
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
@@ -145,12 +146,6 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
       return _cardItem(backgroundColor, borderRadius);
     }
 
-    /// 限时消息
-    if (widget.message.customElem?.data != null &&
-        widget.message.customElem!.data!.contains('disappearing_message')) {
-      return _disappearingMessage();
-    }
-
     return Container(
         padding: widget.textPadding ?? const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -175,11 +170,12 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
 
   _disappearingMessage() {
     Map<String, dynamic> result = getMap(widget.message.customElem!.data!);
-    DisappearingMessageConfig config = DisappearingMessageConfig
-        .fromJson(jsonDecode(result['disappearing_message']));
+    DisappearingMessageConfig config = DisappearingMessageConfig.fromJson(
+        jsonDecode(result['disappearing_message']));
     return GestureDetector(
       onTap: () {
-        if (widget.message.groupID != null && widget.message.groupID!.isNotEmpty) {
+        if (widget.message.groupID != null &&
+            widget.message.groupID!.isNotEmpty) {
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -196,7 +192,8 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
               ),
             ),
           );
-        } else if (widget.message.userID != null && widget.message.userID!.isNotEmpty) {
+        } else if (widget.message.userID != null &&
+            widget.message.userID!.isNotEmpty) {
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -233,7 +230,8 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
                     child: Padding(
                       padding: EdgeInsets.only(right: 6),
                       child: Icon(
-                        Icons.access_time, // 你可以换成 Image.asset("assets/clock.png")
+                        Icons.access_time,
+                        // 你可以换成 Image.asset("assets/clock.png")
                         size: 18,
                         color: Colors.white,
                       ),
@@ -241,8 +239,23 @@ class _TIMUIKitCustomElemState extends TIMUIKitState<TIMUIKitCustomElem> {
                   ),
                   TextSpan(
                     text: config.totalDuration != Duration.zero
-                        ? tr('disappear.disappearing_on', args:[config.desc])
-                        : tr('disappear.disappearing_off'),
+                        ? tr('disappear.disappearing_on', args: [
+                            widget.message.friendRemark ??
+                                widget.message.nameCard ??
+                                widget.message.nickName ??
+                                widget.message.sender ??
+                                widget.message.sender ??
+                                '',
+                            config.desc
+                          ])
+                        : tr('disappear.disappearing_off', args: [
+                            widget.message.friendRemark ??
+                                widget.message.nameCard ??
+                                widget.message.nickName ??
+                                widget.message.sender ??
+                                widget.message.sender ??
+                                ''
+                          ]),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,

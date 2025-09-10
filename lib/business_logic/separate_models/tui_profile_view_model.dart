@@ -147,6 +147,7 @@ class TUIProfileViewModel extends ChangeNotifier {
       customData: finalData,
     );
 
+    print(finalData);
     // 5. 更新本地缓存
     _userProfile?.conversation?.customData = finalData;
     notifyListeners();
