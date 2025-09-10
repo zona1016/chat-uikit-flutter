@@ -69,6 +69,10 @@ class SearchMessageTipNotice {
       {required this.selectedConversation, required this.message});
 }
 
+class DisappearingMessageNotice {
+  DisappearingMessageNotice();
+}
+
 class AidTeamTipNotice {
   final V2TimMessage message;
 

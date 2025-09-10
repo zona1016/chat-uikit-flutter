@@ -14,6 +14,7 @@ import 'package:tencent_cloud_chat_uikit/data_services/group/group_services.dart
 import 'package:tencent_cloud_chat_uikit/data_services/message/message_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/logger.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/disappearing_message.dart';
@@ -398,8 +399,11 @@ class TUIGroupProfileModel extends ChangeNotifier {
 
   disappearing(Map<String, String>? groupCustomInfo, context) async {
     if (_groupInfo != null) {
+      final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
       groupCustomInfo?['disappearing_message_time'] =
           DateTime.now().millisecondsSinceEpoch.toString();
+      groupCustomInfo?['disappearing_message_name'] = loginUserInfo.loginUser?.nickName ?? '';
+
       final customInfo = Map<String, String>.from(_groupInfo!.customInfo ?? {});
       customInfo['disappearing'] = jsonEncode(groupCustomInfo);
 
@@ -409,6 +413,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
         customInfo: customInfo,
       );
       final response = await _groupServices.setGroupInfo(info: info);
+      eventCenter.post(DisappearingMessageNotice());
+      // 刷新UI
       if (response.code == 0) {
         final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
         final disappearingMessage = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
@@ -435,19 +441,6 @@ class TUIGroupProfileModel extends ChangeNotifier {
         await GetStorage().write('disappearing_message_${loginUserInfo.userID}', configs.toJson());
 
         _groupInfo!.customInfo = customInfo;
-        MessageUtils.handleMessageError(
-            TUIChatSeparateViewModel()
-                .sendCustomMessage(
-              data: jsonEncode({
-                "type":
-                "disappearing_message",
-                "disappearing_message":
-                jsonEncode(groupCustomInfo)
-              }),
-              convID: _groupID,
-              convType: ConvType.group,
-            ),
-            context);
         notifyListeners();
       }
     }

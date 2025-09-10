@@ -14,6 +14,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/view_models/user_disappe
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/group_disappearing_message.dart';
@@ -526,16 +527,16 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                       config = _parseConfig(customData['disap']);
                     }
                   }
-
+                  final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
                   // 2. 从好友资料里读取更优配置
                   final friendCustom = model.userProfile?.friendInfo?.userProfile?.customInfo;
                   if (friendCustom != null &&
                       friendCustom['disappea'] != null &&
                       friendCustom['disappea']!.contains(
-                          'disappearing_message_${userInfo.userID}')) {
+                          'disappearing_message_${loginUserInfo.userID}')) {
                     final remoteMap = jsonDecode(friendCustom['disappea']!);
                     final remoteConfig = _parseConfig(
-                      remoteMap['disappearing_message_${userInfo.userID}'],
+                      remoteMap['disappearing_message_${loginUserInfo.userID}'],
                     );
                     config = _mergeConfigs(config, remoteConfig);
                   }
@@ -554,9 +555,9 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                                         onSubmitted: (customData) async {
                                           customData['disappearing_message_time'] =
                                               DateTime.now().millisecondsSinceEpoch.toString();
+                                          customData['disappearing_message_name'] = loginUserInfo.loginUser?.nickName ?? '';
                                           final result = {'disap': jsonEncode(customData)};
                                           handleCustomData(result);
-                                          final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
                                           await _saveConfig(userInfo.userID, customData, context);
                                           // 和聊天绑定 自己用
                                           handleCustomData(result);
@@ -568,26 +569,12 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                                                           V2TimUserFullInfo(
                                                               customInfo: {
                                                 'disappea': jsonEncode({
-                                                  "disappearing_message_${loginUserInfo.userID}":
+                                                  "disappearing_message_${userInfo.userID}":
                                                       jsonEncode(customData)
                                                 })
                                               }));
 
-                                          if (res.code == 0) {
-                                            MessageUtils.handleMessageError(
-                                                TUIChatSeparateViewModel()
-                                                    .sendCustomMessage(
-                                                  data: jsonEncode({
-                                                    "type":
-                                                        "disappearing_message",
-                                                    "disappearing_message":
-                                                        jsonEncode(customData)
-                                                  }),
-                                                  convID: widget.userID,
-                                                  convType: ConvType.c2c,
-                                                ),
-                                                context);
-                                          }
+                                          eventCenter.post(DisappearingMessageNotice());
                                         },
                                         config: config,
                                       )));
