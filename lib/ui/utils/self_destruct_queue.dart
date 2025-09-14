@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
+import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 
 class SelfDestructQueue {
@@ -11,14 +14,15 @@ class SelfDestructQueue {
 
   final Map<String, Timer> _burnTimers = {};
   final Map<String, int> _remainingSeconds = {};
-  final Set<String> _viewedMessages = {};
+  final Map<String, V2TimMessage> _messages = {}; // Store complete message data
+  final Map<String, String> _conversationBurnSeconds = {}; // Cache conversation burn seconds
+  
   static const Map<String, int> burnSecondsOptions = {
     '15s': 15,
     '30s': 30,
     '1min': 60,
   };
   
-  int _currentBurnSeconds = 15;
   late TUIChatSeparateViewModel chatModel;
 
   // 用于UI更新的回调
@@ -46,32 +50,79 @@ class SelfDestructQueue {
     _messageDeletedListeners.remove(listener);
   }
 
-  /// 查看消息并开始倒计时
-  void viewMessage(String msgID, V2TimMessage message, {int? conversationBurnSeconds}) {
-    if (conversationBurnSeconds != null) {
-      _currentBurnSeconds = conversationBurnSeconds;
-    }
-    if (_viewedMessages.contains(msgID)) {
-      return; // 已经查看过了
-    }
-
-    _viewedMessages.add(msgID);
-
+  /// Process message for self-destruct (centralized logic)
+  void processMessage(String msgID, V2TimMessage message) {
+    if (msgID.isEmpty) return;
+    
+    // Store message data
+    _messages[msgID] = message;
+    
     try {
       Map<String, dynamic> customData = jsonDecode(message.cloudCustomData ?? "{}");
+      bool isSelfDestruct = customData['isSelfDestruct'] == true;
       
-      if (customData['isSelfDestruct'] == true) {
-        // Use conversation-specific burn seconds if provided, otherwise use current default
-        final burnSeconds = conversationBurnSeconds ?? _currentBurnSeconds;
-        _startCountdown(msgID, burnSeconds);
+      if (!isSelfDestruct) return;
+      
+      final conversationID = _getConversationID(message);
+      
+      // For messages I sent, start countdown when read by all
+      if (message.isSelf == true) {
+        _handleSelfMessage(msgID, message, conversationID);
+      } else {
+        // For received messages, they start countdown when viewed
+        _saveMessageState(msgID, message, conversationID, false);
       }
     } catch (e) {
-      print('解析消息失败: $e');
+      debugPrint('处理自毁消息失败: $e');
+    }
+  }
+  
+  /// Handle viewing a received message
+  void viewMessage(String msgID) {
+    final message = _messages[msgID];
+    if (message == null || message.isSelf == true) return;
+    
+    final conversationID = _getConversationID(message);
+    
+    // Try to get burn seconds with retry if default is returned
+    _getBurnSecondsWithRetry(msgID, message, conversationID);
+  }
+  
+  /// Get burn seconds with retry mechanism
+  void _getBurnSecondsWithRetry(String msgID, V2TimMessage message, String conversationID) {
+    final burnSeconds = _getConversationBurnSeconds(conversationID);
+    
+    // If we get the default 15s, it might mean the conversation data isn't loaded yet
+    if (burnSeconds == 15) {
+      debugPrint('Got default 15s for $conversationID, retrying in 500ms...');
+      // Retry after a short delay
+      Timer(const Duration(milliseconds: 500), () {
+        final retryBurnSeconds = _getConversationBurnSeconds(conversationID);
+        debugPrint('Retry result for $conversationID: $retryBurnSeconds seconds');
+        _startCountdown(msgID, retryBurnSeconds);
+        _saveMessageState(msgID, message, conversationID, true);
+      });
+    } else {
+      _startCountdown(msgID, burnSeconds);
+      _saveMessageState(msgID, message, conversationID, true);
+    }
+  }
+  
+  /// Handle when my message is read by all
+  void handleMessageReadByAll(String msgID) {
+    final message = _messages[msgID];
+    if (message == null || message.isSelf != true) return;
+    
+    // If not already counting down, start it
+    if (!_burnTimers.containsKey(msgID)) {
+      final conversationID = _getConversationID(message);
+      _getBurnSecondsWithRetry(msgID, message, conversationID);
     }
   }
 
   /// 开始倒计时
   void _startCountdown(String msgID, int seconds) {
+    debugPrint('Starting countdown for $msgID with $seconds seconds');
     _remainingSeconds[msgID] = seconds;
     
     _burnTimers[msgID] = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -101,10 +152,13 @@ class SelfDestructQueue {
       
       _burnTimers.remove(msgID);
       _remainingSeconds.remove(msgID);
-      _viewedMessages.remove(msgID);
+      _messages.remove(msgID);
+      
+      // Clean up persistent storage
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('self_destruct_$msgID');
       
       // 通知UI删除消息
-      // onMessageDeleted?.call(msgID);
       for (final listener in _messageDeletedListeners) {
         listener(msgID);
       }
@@ -115,23 +169,214 @@ class SelfDestructQueue {
     }
   }
 
-  /// 获取剩余时间
+
+  /// Get conversation ID from message
+  String _getConversationID(V2TimMessage message) {
+    return message.groupID != null ? 
+           'group_${message.groupID}' : 
+           'c2c_${message.userID ?? message.sender}';
+  }
+  
+  /// Get burn seconds for conversation with fallback
+  int _getConversationBurnSeconds(String conversationID) {
+    // Check cache first
+    final cached = _conversationBurnSeconds[conversationID];
+    if (cached != null) {
+      debugPrint('Using cached burn seconds for $conversationID: $cached');
+      return int.tryParse(cached) ?? burnSecondsOptions['30s']!;
+    }
+    
+    // Try to get from global model
+    try {
+      final globalModel = serviceLocator<TUIChatGlobalModel>();
+      final burnSeconds = globalModel.getConversationBurnSeconds(conversationID);
+      
+      debugPrint('Got burn seconds from global model for $conversationID: $burnSeconds');
+      
+      // Cache the result
+      _conversationBurnSeconds[conversationID] = burnSeconds.toString();
+      return burnSeconds;
+    } catch (e) {
+      debugPrint('Error getting burn seconds for $conversationID: $e');
+      // Fallback to default
+      final defaultValue = burnSecondsOptions['30s']!;
+      _conversationBurnSeconds[conversationID] = defaultValue.toString();
+      return defaultValue;
+    }
+  }
+  
+  /// Handle self messages (messages I sent)
+  void _handleSelfMessage(String msgID, V2TimMessage message, String conversationID) {
+    // For self messages, we need to check if it's read by all to start countdown
+    // This will be handled by handleMessageReadByAll() when called from message receipt
+    _saveMessageState(msgID, message, conversationID, false);
+  }
+  
+  /// Save message state persistently
+  void _saveMessageState(String msgID, V2TimMessage message, String conversationID, bool isViewed) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final messageState = {
+        'msgID': msgID,
+        'conversationID': conversationID,
+        'isSelf': message.isSelf ?? false,
+        'isViewed': isViewed,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      };
+      await prefs.setString('self_destruct_$msgID', jsonEncode(messageState));
+    } catch (e) {
+      debugPrint('保存消息状态失败: $e');
+    }
+  }
+  
+  /// Load conversation burn seconds in background
+  void preloadConversationBurnSeconds(String conversationID) {
+    if (_conversationBurnSeconds.containsKey(conversationID)) return;
+    
+    Future.microtask(() {
+      // Try to trigger global model to load conversation data
+      try {
+        final globalModel = serviceLocator<TUIChatGlobalModel>();
+        // This will attempt to load from SDK if not cached
+        globalModel.getConversationBurnSeconds(conversationID);
+        debugPrint('Preloaded burn seconds for $conversationID');
+      } catch (e) {
+        debugPrint('Failed to preload burn seconds for $conversationID: $e');
+      }
+      
+      // Cache the result in our local cache
+      _getConversationBurnSeconds(conversationID);
+    });
+  }
+  
+  /// Check if message is self-destruct
+  bool isSelfDestructMessage(String msgID) {
+    final message = _messages[msgID];
+    if (message == null) return false;
+    
+    try {
+      final customData = jsonDecode(message.cloudCustomData ?? "{}");
+      return customData['isSelfDestruct'] == true;
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  /// Get remaining seconds (main method for UI)
   int getRemainingSeconds(String msgID) {
-    return _remainingSeconds[msgID] ?? _currentBurnSeconds;
+    return _remainingSeconds[msgID] ?? 0;
   }
-
-  /// 检查消息是否已查看
+  
+  /// Check if message is being viewed/countdown started
   bool isMessageViewed(String msgID) {
-    return _viewedMessages.contains(msgID);
+    return _burnTimers.containsKey(msgID) || _remainingSeconds.containsKey(msgID);
+  }
+  
+  /// Clear cached burn seconds for a conversation (used when global model loads new data)
+  void clearConversationCache(String conversationID) {
+    _conversationBurnSeconds.remove(conversationID);
+    debugPrint('Cleared conversation cache for $conversationID');
+  }
+  
+  /// Get expected burn seconds for a conversation (for UI display, doesn't start countdown)
+  int getExpectedBurnSeconds(String conversationID) {
+    return _getConversationBurnSeconds(conversationID);
   }
 
-  /// 设置自毁时间
-  void setBurnSeconds(int seconds) {
-    _currentBurnSeconds = seconds;
+  /// Load message states from persistent storage (call when app starts/conversation loads)
+  Future<void> loadSavedStates() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys().where((key) => key.startsWith('self_destruct_')).toList();
+      
+      for (final key in keys) {
+        final stateJson = prefs.getString(key);
+        if (stateJson == null) continue;
+        
+        try {
+          final state = jsonDecode(stateJson);
+          final msgID = state['msgID'] as String;
+          final conversationID = state['conversationID'] as String;
+          final isViewed = state['isViewed'] as bool;
+          final timestamp = state['timestamp'] as int;
+          // final isSelf = state['isSelf'] as bool;
+          
+          // Check if message is too old (older than max burn seconds)
+          final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+          if (age > 60000) { // More than 1 minute old
+            await prefs.remove(key);
+            continue;
+          }
+          
+          // If message was viewed, restore countdown
+          if (isViewed) {
+            final burnSeconds = _getConversationBurnSeconds(conversationID);
+            final elapsed = age ~/ 1000; // Convert to seconds
+            final remaining = burnSeconds - elapsed;
+            
+            if (remaining > 0) {
+              _remainingSeconds[msgID] = remaining;
+              _startCountdownFromRemaining(msgID, remaining);
+            } else {
+              // Message should have been deleted, clean up
+              await prefs.remove(key);
+            }
+          }
+        } catch (e) {
+          debugPrint('恢复消息状态失败: $e');
+          await prefs.remove(key);
+        }
+      }
+    } catch (e) {
+      debugPrint('加载保存状态失败: $e');
+    }
   }
-
-  /// 获取当前自毁时间
-  int get currentBurnSeconds => _currentBurnSeconds;
+  
+  /// Start countdown from remaining seconds (for recovery)
+  void _startCountdownFromRemaining(String msgID, int remainingSeconds) {
+    _remainingSeconds[msgID] = remainingSeconds;
+    
+    _burnTimers[msgID] = Timer.periodic(const Duration(seconds: 1), (timer) {
+      int remaining = _remainingSeconds[msgID]! - 1;
+      _remainingSeconds[msgID] = remaining;
+      
+      // Notify UI
+      for (final listener in _countdownListeners) {
+        listener(msgID, remaining);
+      }
+      
+      if (remaining <= 0) {
+        timer.cancel();
+        _deleteMessage(msgID);
+      }
+    });
+  }
+  
+  /// Clean up old saved states
+  Future<void> cleanupOldStates() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys().where((key) => key.startsWith('self_destruct_')).toList();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      
+      for (final key in keys) {
+        final stateJson = prefs.getString(key);
+        if (stateJson == null) continue;
+        
+        try {
+          final state = jsonDecode(stateJson);
+          final timestamp = state['timestamp'] as int;
+          if ((now - timestamp) > 300000) { // Older than 5 minutes
+            await prefs.remove(key);
+          }
+        } catch (e) {
+          await prefs.remove(key);
+        }
+      }
+    } catch (e) {
+      debugPrint('清理旧状态失败: $e');
+    }
+  }
 
   void dispose() {
     for (var timer in _burnTimers.values) {
@@ -139,6 +384,7 @@ class SelfDestructQueue {
     }
     _burnTimers.clear();
     _remainingSeconds.clear();
-    _viewedMessages.clear();
+    _messages.clear();
+    _conversationBurnSeconds.clear();
   }
 }

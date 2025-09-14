@@ -5,6 +5,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_chat_global_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 
 /// Utility class for handling message read receipt operations
 class MessageReceiptUtils {
@@ -128,7 +129,9 @@ class MessageReceiptUtils {
           
           int? burnSeconds;
           if (globalModel != null) {
-            final conversationID = 'group_${message.groupID}';
+            final conversationID = message.groupID != null ? 
+                                   'group_${message.groupID}' : 
+                                   'c2c_${message.userID ?? message.sender}';
             burnSeconds = globalModel.getConversationBurnSeconds(conversationID);
           }
           

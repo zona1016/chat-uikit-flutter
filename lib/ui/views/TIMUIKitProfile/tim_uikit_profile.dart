@@ -592,6 +592,9 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           isFriend, userInfo, conversation)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
                       : Text(TIM_t("如使用自定义区域，请在profileWidgetBuilder传入对应组件")))!;
+                default:
+                  // Return empty container for unknown widget types to prevent null rendering issues
+                  return Container();
               }
             }).toList();
           }

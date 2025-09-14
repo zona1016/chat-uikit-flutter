@@ -72,6 +72,9 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
     // Initialize burn seconds setting
     loadBurnSecondsFromStorage();
     
+    // Initialize self-destruct queue
+    _initializeSelfDestructQueue();
+    
     advancedMsgListener = V2TimAdvancedMsgListener(
       onRecvC2CReadReceipt: (List<V2TimMessageReceipt> receiptList) {
         _onReceiveC2CReadReceipt(receiptList);
@@ -644,9 +647,8 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
           // debugPrint('Deleting self-destruct message ${element.msgID}');
           // _messageService.deleteMessages(msgIDs: [element.msgID!]);
           // return false; // Remove from list
-          final conversationID = convID;
-          final burnSeconds = getConversationBurnSeconds(conversationID);
-          _selfDestructQueue.viewMessage(element.msgID!, element, conversationBurnSeconds: burnSeconds);
+          _selfDestructQueue.processMessage(element.msgID!, element);
+          _selfDestructQueue.handleMessageReadByAll(element.msgID!);
         }
 
         // Mark as read
@@ -1295,14 +1297,52 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
       _pendingConversationBurnSeconds[conversationID] = seconds;
     }
     
+    // Clear self-destruct queue cache to force refresh with new value
+    try {
+      final queue = SelfDestructQueue();
+      queue.clearConversationCache(conversationID);
+      debugPrint('Cleared self-destruct queue cache for updated burn seconds: $conversationID');
+    } catch (e) {
+      debugPrint('Failed to clear self-destruct queue cache for updated burn seconds: $e');
+    }
+    
     notifyListeners();
   }
   
   /// Get burn seconds for a specific conversation (returns default if not set)
+  /// Handles conversation IDs with or without prefixes (group_, c2c_)
   int getConversationBurnSeconds(String conversationID) {
-    return _conversationBurnSeconds[conversationID] ?? 
-           _pendingConversationBurnSeconds[conversationID] ?? 
-           _defaultBurnSeconds;
+    // Try direct lookup first
+    int? burnSeconds = _conversationBurnSeconds[conversationID] ?? 
+                      _pendingConversationBurnSeconds[conversationID];
+    
+    if (burnSeconds != null) {
+      return burnSeconds;
+    }
+    
+    // If not found, try with/without prefixes
+    List<String> candidateIds = [conversationID];
+    
+    if (conversationID.startsWith('group_') || conversationID.startsWith('c2c_')) {
+      // Remove prefix and try raw ID
+      String rawId = conversationID.substring(conversationID.indexOf('_') + 1);
+      candidateIds.add(rawId);
+    } else {
+      // Add prefixes and try both
+      candidateIds.add('group_$conversationID');
+      candidateIds.add('c2c_$conversationID');
+    }
+    
+    // Try all candidate IDs
+    for (String candidateId in candidateIds) {
+      burnSeconds = _conversationBurnSeconds[candidateId] ?? 
+                   _pendingConversationBurnSeconds[candidateId];
+      if (burnSeconds != null) {
+        return burnSeconds;
+      }
+    }
+    
+    return _defaultBurnSeconds;
   }
   
   /// Get current default burn seconds setting
@@ -1330,6 +1370,15 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
         if (burnSeconds != null) {
           _conversationBurnSeconds[conversationID] = burnSeconds;
           debugPrint('Loaded conversation burn seconds: $conversationID -> ${burnSeconds}s');
+          
+          // Clear self-destruct queue cache to force refresh
+          try {
+            final queue = SelfDestructQueue();
+            queue.clearConversationCache(conversationID);
+            debugPrint('Cleared self-destruct queue cache for $conversationID');
+          } catch (e) {
+            debugPrint('Failed to clear self-destruct queue cache: $e');
+          }
         }
       }
     } catch (e) {
@@ -1345,5 +1394,18 @@ class TUIChatGlobalModel extends ChangeNotifier implements TIMUIKitClass {
       await setConversationBurnSeconds(conversationID, pendingBurnSeconds);
       debugPrint('Applied pending conversation burn seconds: $conversationID -> ${pendingBurnSeconds}s');
     }
+  }
+  
+  /// Initialize self-destruct queue with saved states
+  void _initializeSelfDestructQueue() {
+    Future.microtask(() async {
+      try {
+        final queue = SelfDestructQueue();
+        await queue.loadSavedStates();
+        await queue.cleanupOldStates();
+      } catch (e) {
+        debugPrint('Failed to initialize self-destruct queue: $e');
+      }
+    });
   }
 }

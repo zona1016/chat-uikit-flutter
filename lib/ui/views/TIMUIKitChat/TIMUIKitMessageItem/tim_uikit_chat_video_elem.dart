@@ -50,7 +50,7 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
 
   final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
   bool _isViewed = false;
-  int _remainingSeconds = SelfDestructQueue().currentBurnSeconds;
+  int _remainingSeconds = 0;
 
   bool isSelfDestruct = false;
   bool isOpen = false;
@@ -182,16 +182,33 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
     downloadMessageDetailAndSave();
 
     // debugPrint('CUSTOM DATA VIDEO ' + (widget.message.cloudCustomData ?? 'NOTHING'));
-    final customData = (widget.message.cloudCustomData?.trim().isNotEmpty ?? false)
-        ? jsonDecode(widget.message.cloudCustomData!)
-        : {};
+    // Process message with centralized queue
+    if (widget.message.msgID != null) {
+      _selfDestructQueue.processMessage(widget.message.msgID!, widget.message);
+      
+      // Preload conversation burn seconds
+      final conversationID = widget.message.groupID != null ? 
+                            'group_${widget.message.groupID}' : 
+                            'c2c_${widget.message.userID ?? widget.message.sender}';
+      _selfDestructQueue.preloadConversationBurnSeconds(conversationID);
+    }
+    
     setState(() {
-      isSelfDestruct = customData['isSelfDestruct'] ?? false;
+      isSelfDestruct = _selfDestructQueue.isSelfDestructMessage(widget.message.msgID ?? '');
       if (widget.message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC) {
         _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
         isOpen = _isViewed;
-        _remainingSeconds =
-            _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+        
+        // Get current remaining seconds, or expected burn seconds if not started yet
+        int remainingSeconds = _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+        if (remainingSeconds == 0 && isSelfDestruct) {
+          // If countdown not started yet, show expected burn seconds instead of 0
+          final conversationID = widget.message.groupID != null ? 
+                                'group_${widget.message.groupID}' : 
+                                'c2c_${widget.message.userID ?? widget.message.sender}';
+          remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+        }
+        _remainingSeconds = remainingSeconds;
       }
     });
   }
@@ -235,18 +252,22 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
 
   void _viewMessage() {
     if (!_isViewed && widget.message.msgID != null) {
-      final globalModel = serviceLocator<TUIChatGlobalModel>();
-      final conversationID = widget.message.groupID != null ? 
-                           'group_${widget.message.groupID}' : 
-                           'c2c_${TencentUtils.checkString(widget.message.userID) ?? TencentUtils.checkString(widget.message.sender)}';
-      final burnSeconds = globalModel.getConversationBurnSeconds(conversationID);
+      _selfDestructQueue.viewMessage(widget.message.msgID!);
       
       setState(() {
         _isViewed = true;
-        _remainingSeconds = burnSeconds;
+        
+        // Get current remaining seconds, or expected burn seconds if not started yet
+        int remainingSeconds = _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+        if (remainingSeconds == 0 && isSelfDestruct) {
+          // If countdown not started yet (due to retry delay), show expected burn seconds
+          final conversationID = widget.message.groupID != null ? 
+                                'group_${widget.message.groupID}' : 
+                                'c2c_${widget.message.userID ?? widget.message.sender}';
+          remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+        }
+        _remainingSeconds = remainingSeconds;
       });
-      _selfDestructQueue.viewMessage(widget.message.msgID!, widget.message,
-          conversationBurnSeconds: burnSeconds);
     }
   }
 
@@ -256,7 +277,8 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
       chatModel: widget.chatModel,
       onSelfDestructTrigger: (msgID, message, {conversationBurnSeconds}) {
         if (isSelfDestruct) {
-          _selfDestructQueue.viewMessage(msgID, message, conversationBurnSeconds: conversationBurnSeconds);
+          final queue = SelfDestructQueue();
+          queue.handleMessageReadByAll(msgID);
         }
       },
     );

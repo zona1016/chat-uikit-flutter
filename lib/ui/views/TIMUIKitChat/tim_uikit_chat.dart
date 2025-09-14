@@ -827,6 +827,9 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
         model.setSelfDestructModeSilently(shouldActivateSelfDestruct);
         chatGlobalModel.updateSelfDestructMode(conversationID, shouldActivateSelfDestruct);
         
+        // Also load burn seconds from the same custom data
+        chatGlobalModel.loadConversationBurnSeconds(conversationID, jsonEncode(customData));
+        
         debugPrint('Applied saved conversation mode: $conversationID -> $shouldActivateSelfDestruct');
         return;
       }
