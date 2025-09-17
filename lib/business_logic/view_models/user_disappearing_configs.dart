@@ -24,6 +24,24 @@ class UserDisappearingConfigs {
         'loginUserID': loginUserID,
         'groupConfigs': groupConfigs.map((e) => e.toJson()).toList(),
       };
+
+  /// 根据 groupID 获取 config
+  DisappearingMessageConfig? getConfigByGroupID(String groupID) {
+    try {
+      return groupConfigs.firstWhere((e) => e.groupID == groupID).config;
+    } catch (e) {
+      return null; // 没有找到返回 null
+    }
+  }
+
+  /// 根据 userID 获取 config
+  DisappearingMessageConfig? getConfigByUserID(String userID) {
+    try {
+      return groupConfigs.firstWhere((e) => e.userID == userID).config;
+    } catch (e) {
+      return null; // 没有找到返回 null
+    }
+  }
 }
 
 class UserGroupDisappearingConfig {
