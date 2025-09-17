@@ -383,7 +383,6 @@ class TUIConversationViewModel extends ChangeNotifier {
     List<String> groupIDs = [];
     List<UserGroupDisappearingConfig> configs = [];
 
-    int minSeconds = 0;
     for (var item in list) {
       if (item?.userID != null) {
         userIDs.add(item!.userID!);
@@ -404,13 +403,7 @@ class TUIConversationViewModel extends ChangeNotifier {
             final userConfig = DisappearingMessageConfig.fromJson(
                 jsonDecode(jsonDecode(disappea)['disappearing_message_${loginUserInfo.userID}']!));
             if (userConfig.totalDuration.inSeconds > 0) {
-              if (minSeconds == 0) {
-                minSeconds = userConfig.totalDuration.inSeconds;
-              } else {
-                minSeconds = min(minSeconds, userConfig.totalDuration.inSeconds);
-              }
-
-              if (DateTime.now().millisecondsSinceEpoch >=
+              if (DateTime.now().millisecondsSinceEpoch <=
                   int.parse(userConfig.startTime) +
                       userConfig.totalDuration.inMilliseconds) {
                 // 添加到本地
@@ -446,12 +439,7 @@ class TUIConversationViewModel extends ChangeNotifier {
           final userConfig = DisappearingMessageConfig.fromJson(
               jsonDecode(group.customInfo!['disappearing']!));
           if (userConfig.totalDuration.inSeconds > 0) {
-            if (minSeconds == 0) {
-              minSeconds = userConfig.totalDuration.inSeconds;
-            } else {
-              minSeconds = min(minSeconds, userConfig.totalDuration.inSeconds);
-            }
-            if (DateTime.now().millisecondsSinceEpoch >=
+            if (DateTime.now().millisecondsSinceEpoch <=
                 int.parse(userConfig.startTime) +
                     userConfig.totalDuration.inMilliseconds) {
               // 添加到本地
@@ -498,7 +486,7 @@ class TUIConversationViewModel extends ChangeNotifier {
       final result = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
       UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(result);
       for (UserGroupDisappearingConfig item in configs.groupConfigs) {
-        if ((item.config.totalDuration != Duration.zero) && (DateTime.now().millisecondsSinceEpoch >=
+        if ((item.config.totalDuration != Duration.zero) && (DateTime.now().millisecondsSinceEpoch <=
             int.parse(item.config.startTime) +
                 item.config.totalDuration.inMilliseconds)) {
           // 添加到本地

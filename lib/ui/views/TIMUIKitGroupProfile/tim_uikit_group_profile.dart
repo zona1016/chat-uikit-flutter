@@ -310,6 +310,15 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
                       : Text(TIM_t("如使用自定义区域，请在profileWidgetBuilder传入对应组件")))!;
                 case GroupProfileWidgetEnum.customBuilderTwo:
+                  bool isChannel =
+                  (TencentUtils.aidTeam == widget.groupID ||
+                      TencentUtils.india == widget.groupID ||
+                      TencentUtils.korea == widget.groupID ||
+                      TencentUtils.english == widget.groupID ||
+                      TencentUtils.chinese == widget.groupID ||
+                      TencentUtils.french == widget.groupID ||
+                      TencentUtils.german == widget.groupID);
+                  if (isChannel) return Container();
                   return (customBuilder?.customBuilderTwo != null
                       ? customBuilder?.customBuilderTwo!(groupInfo, memberList)
                       // Please define the corresponding custom widget in `profileWidgetBuilder` before using it here.
