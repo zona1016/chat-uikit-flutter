@@ -9,6 +9,7 @@ import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
+import 'package:tencent_cloud_chat_uikit/ui/widgets/image_hero.dart';
 
 class MultiImageScreen extends StatefulWidget {
   final List<V2TimMessage> images;
@@ -29,135 +30,138 @@ class MultiImageScreen extends StatefulWidget {
 class _MultiImageScreenState extends State<MultiImageScreen> {
   late int _currentIndex;
   late ExtendedPageController _pageController;
-
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    _pageController = ExtendedPageController(initialPage: widget.initialIndex);
-    serviceLocator<CoreServicesImpl>().onCallback = (TIMCallback callbackValue) {
-
+    _pageController = ExtendedPageController(initialPage: widget.initialIndex, pageSpacing: 50, shouldIgnorePointerWhenScrolling: true);
+    serviceLocator<CoreServicesImpl>().onCallback =
+        (TIMCallback callbackValue) {
       if (callbackValue.type == TIMCallbackType.INFO &&
-          (callbackValue.infoCode == 6660406 || callbackValue.infoCode == 6660407)) {
-        TUIToast.show(content: callbackValue.infoRecommendText ?? '', gravity: TUIGravity.top);
+          (callbackValue.infoCode == 6660406 ||
+              callbackValue.infoCode == 6660407)) {
+        TUIToast.show(
+            content: callbackValue.infoRecommendText ?? '',
+            gravity: TUIGravity.top);
       }
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: GestureDetector(
-        onTap: () {
-          Navigator.pop(context);
+    return Material(
+      color: Colors.black,
+      child: ExtendedImageGesturePageView.builder(
+        controller: _pageController,
+        itemCount: widget.images.length,
+        physics: const BouncingScrollPhysics(),
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
         },
-        child: ExtendedImageGesturePageView.builder(
-          controller: _pageController,
-          itemCount: widget.images.length,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          itemBuilder: (context, index) {
-            final message = widget.images[index];
-            final imageElem = message.imageElem;
-            final smallImg = getImageFromList(V2TimImageTypesEnum.small, imageElem?.imageList);
-            final originalImg = getImageFromList(V2TimImageTypesEnum.original, imageElem?.imageList);
-
-            Widget imageWidget;
-
-            try {
-              // ✅ 第一优先：自己发送的图片本地路径
-              if (imageElem?.path != null &&
-                  imageElem!.path!.isNotEmpty &&
-                  File(imageElem.path!).existsSync()) {
-                imageWidget = ExtendedImage.file(
-                  File(imageElem.path!),
-                  fit: BoxFit.contain,
-                  mode: ExtendedImageMode.gesture,
-                  initGestureConfigHandler: _initGestureConfig,
-                );
-              }
-              // ✅ 第二优先：SDK 下载缓存路径
-              else if ((TencentUtils.checkString(smallImg?.localUrl) != null &&
-                  File(smallImg!.localUrl!).existsSync()) ||
-                  (TencentUtils.checkString(originalImg?.localUrl) != null &&
-                      File(originalImg!.localUrl!).existsSync())) {
-                final path = File(smallImg?.localUrl ?? originalImg!.localUrl!);
-                imageWidget = ExtendedImage.file(
-                  path,
-                  fit: BoxFit.contain,
-                  mode: ExtendedImageMode.gesture,
-                  initGestureConfigHandler: _initGestureConfig,
-                );
-              }
-              // ✅ 第三优先：远程图片 URL
-              else if ((smallImg?.url ?? originalImg?.url) != null &&
-                  (smallImg?.url ?? originalImg?.url)!.isNotEmpty) {
-                imageWidget = ExtendedImage.network(
-                  smallImg?.url ?? originalImg!.url!,
-                  cache: true,
-                  fit: BoxFit.contain,
-                  mode: ExtendedImageMode.gesture,
-                  initGestureConfigHandler: _initGestureConfig,
-                  loadStateChanged: _loadStateChanged,
-                );
-              } else {
-                // ❌ 全部失败，展示错误提示
-                imageWidget = const Center(
-                  child: Icon(Icons.broken_image, color: Colors.white),
-                );
-              }
-            } catch (e) {
-              imageWidget = const Center(
-                child: Icon(Icons.error_outline, color: Colors.white),
+        itemBuilder: (context, index) {
+          final message = widget.images[index];
+          final imageElem = message.imageElem;
+          final smallImg = getImageFromList(
+              V2TimImageTypesEnum.small, imageElem?.imageList);
+          final originalImg = getImageFromList(
+              V2TimImageTypesEnum.original, imageElem?.imageList);
+      
+          Widget imageWidget;
+      
+          try {
+            // ✅ 第一优先：自己发送的图片本地路径
+            if (imageElem?.path != null &&
+                imageElem!.path!.isNotEmpty &&
+                File(imageElem.path!).existsSync()) {
+              imageWidget = ExtendedImage.file(
+                File(imageElem.path!),
+                fit: BoxFit.contain,
+                mode: ExtendedImageMode.gesture,
+                enableSlideOutPage: true,
+                initGestureConfigHandler: _initGestureConfig,
               );
             }
-
-            return Stack(
-              children: [
-                Center(child: imageWidget),
-                Positioned(
-                  bottom: 40,
-                  left: 16,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-                Positioned(
-                  bottom: 40,
-                  right: 16,
-                  child: IconButton(
-                    icon: const Icon(Icons.download, color: Colors.white),
-                    onPressed: () async {
-                      print('--------');
-                      await widget.downloadFn(message);
-                      print('--------');
-                    },
-                  ),
-                ),
-              ],
+            // ✅ 第二优先：SDK 下载缓存路径
+            else if ((TencentUtils.checkString(smallImg?.localUrl) != null &&
+                    File(smallImg!.localUrl!).existsSync()) ||
+                (TencentUtils.checkString(originalImg?.localUrl) != null &&
+                    File(originalImg!.localUrl!).existsSync())) {
+              final path = File(smallImg?.localUrl ?? originalImg!.localUrl!);
+              imageWidget = ExtendedImage.file(
+                path,
+                fit: BoxFit.contain,
+                mode: ExtendedImageMode.gesture,
+                enableSlideOutPage: true,
+                initGestureConfigHandler: _initGestureConfig,
+              );
+            }
+            // ✅ 第三优先：远程图片 URL
+            else if ((smallImg?.url ?? originalImg?.url) != null &&
+                (smallImg?.url ?? originalImg?.url)!.isNotEmpty) {
+              imageWidget = ExtendedImage.network(
+                smallImg?.url ?? originalImg!.url!,
+                cache: true,
+                fit: BoxFit.contain,
+                mode: ExtendedImageMode.gesture,
+                enableSlideOutPage: true,
+                initGestureConfigHandler: _initGestureConfig,
+                loadStateChanged: _loadStateChanged,
+              );
+            } else {
+              // ❌ 全部失败，展示错误提示
+              imageWidget = const Center(
+                child: Icon(Icons.broken_image, color: Colors.white),
+              );
+            }
+          } catch (e) {
+            imageWidget = const Center(
+              child: Icon(Icons.error_outline, color: Colors.white),
             );
-          },
-        ),
+          }
+      
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(child: imageWidget),
+              Positioned(
+                bottom: 40,
+                left: 16,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              Positioned(
+                bottom: 40,
+                right: 16,
+                child: IconButton(
+                  icon: const Icon(Icons.download, color: Colors.white),
+                  onPressed: () async {
+                    print('--------');
+                    await widget.downloadFn(message);
+                    print('--------');
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   GestureConfig _initGestureConfig(ExtendedImageState state) {
     return GestureConfig(
-      minScale: 1.0,
-      animationMinScale: 0.8,
-      maxScale: 3.0,
-      animationMaxScale: 3.5,
-      speed: 1.0,
+      minScale: 1,
+      animationMinScale: 1,
+      maxScale: 6,
+      animationMaxScale: 6.5,
       inertialSpeed: 100.0,
       initialScale: 1.0,
       inPageView: true,
-      hitTestBehavior: HitTestBehavior.opaque,
+      initialAlignment: InitialAlignment.center,
     );
   }
 
@@ -172,7 +176,8 @@ class _MultiImageScreenState extends State<MultiImageScreen> {
     }
   }
 
-  V2TimImage? getImageFromList(V2TimImageTypesEnum imgType, List<V2TimImage?>? imageList) {
+  V2TimImage? getImageFromList(
+      V2TimImageTypesEnum imgType, List<V2TimImage?>? imageList) {
     return MessageUtils.getImageFromImgList(
       imageList,
       HistoryMessageDartConstant.imgPriorMap[imgType] ??
