@@ -377,14 +377,14 @@ class TUIConversationViewModel extends ChangeNotifier {
   }
 
   // 定时删除聊天历史消息 相关方法
-  Future<void> getDisappearingDuration(
-      {required List<V2TimConversation?> list}) async {
+  Future<void> getDisappearingDuration({
+    required List<V2TimConversation?> list,
+  }) async {
     List<String> userIDs = [];
     List<String> groupIDs = [];
     List<UserGroupDisappearingConfig> configs = [];
 
     for (var item in list) {
-      // 本地如果有 不通过服务器获取
       if (item?.userID != null) {
         userIDs.add(item!.userID!);
       }
@@ -394,35 +394,35 @@ class TUIConversationViewModel extends ChangeNotifier {
     }
 
     final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
-    // 🔑 先读取旧的存储
     final storageKey = 'disappearing_message_${loginUserInfo.userID}';
-    final oldData = await GetStorage().read(storageKey);
-    UserDisappearingConfigs oldConfigs = oldData != null
-        ? UserDisappearingConfigs.fromJson(oldData)
-        : UserDisappearingConfigs(
-            loginUserID: loginUserInfo.userID, groupConfigs: []);
 
+    // 读取旧数据
+    final oldJson = await GetStorage().read(storageKey);
+    UserDisappearingConfigs oldConfigs = oldJson != null
+        ? UserDisappearingConfigs.fromJson(oldJson)
+        : UserDisappearingConfigs(
+        loginUserID: loginUserInfo.userID, groupConfigs: []);
+
+    print(oldConfigs.toJson());
+    print('-----------------');
+    print(oldConfigs.groupConfigs.length);
     // 1. 获取用户信息
     final userInfo =
-        await TIMUIKitCore.getInstance().getUsersInfo(userIDList: userIDs);
+    await TIMUIKitCore.getInstance().getUsersInfo(userIDList: userIDs);
     if (userInfo.code == 0) {
       for (V2TimUserFullInfo userFullInfo in userInfo.data ?? []) {
         if (userFullInfo.customInfo != null &&
             userFullInfo.customInfo!['disappea'] != null) {
           String disappea = userFullInfo.customInfo!['disappea']!;
-          if (jsonDecode(
-                  disappea)['disappearing_message_${loginUserInfo.userID}'] !=
-              null) {
-            final userConfig = DisappearingMessageConfig.fromJson(jsonDecode(
-                jsonDecode(disappea)[
-                    'disappearing_message_${loginUserInfo.userID}']!));
+          final parsed = jsonDecode(disappea);
+          if (parsed['disappearing_message_${loginUserInfo.userID}'] != null) {
+            final userConfig = DisappearingMessageConfig.fromJson(
+                jsonDecode(parsed['disappearing_message_${loginUserInfo.userID}']!));
             if (userConfig.totalDuration.inSeconds > 0 &&
-                oldConfigs.getConfigByUserID(userFullInfo.userID ?? '') ==
-                    null) {
+                oldConfigs.getConfigByUserID(userFullInfo.userID ?? '') == null) {
               if (DateTime.now().millisecondsSinceEpoch >=
                   int.parse(userConfig.startTime) +
                       userConfig.totalDuration.inMilliseconds) {
-                // 添加到本地
                 final result = await clearHistoryMessage(
                     convID: userFullInfo.userID ?? '', convType: 1);
                 if (result?.code == 0) {
@@ -440,7 +440,6 @@ class TUIConversationViewModel extends ChangeNotifier {
       print("获取好友信息失败: ${userInfo.code}, ${userInfo.desc}");
     }
 
-    // 获取已经设置的用户和
     // 2. 获取群组信息
     final groupInfo = await TencentImSDKPlugin.v2TIMManager
         .getGroupManager()
@@ -459,9 +458,8 @@ class TUIConversationViewModel extends ChangeNotifier {
             if (DateTime.now().millisecondsSinceEpoch >=
                 int.parse(userConfig.startTime) +
                     userConfig.totalDuration.inMilliseconds) {
-              // 添加到本地
               final result =
-                  await clearHistoryMessage(convID: group.groupID, convType: 2);
+              await clearHistoryMessage(convID: group.groupID, convType: 2);
               if (result?.code == 0) {
                 userConfig.startTime =
                     DateTime.now().millisecondsSinceEpoch.toString();
@@ -473,47 +471,39 @@ class TUIConversationViewModel extends ChangeNotifier {
         }
       }
     } else {
-      print("获取好友信息失败: ${userInfo.code}, ${userInfo.desc}");
+      print("获取群组信息失败: ${groupInfo.code}, ${groupInfo.desc}");
     }
 
-    // 🔑 合并新旧配置（覆盖相同 userID/groupID，保留其它的）
-    Map<String, UserGroupDisappearingConfig> merged = {
-      for (var item in oldConfigs.groupConfigs)
-        (item.userID ?? item.groupID)!: item,
-      for (var item in configs) (item.userID ?? item.groupID)!: item,
-    };
+    print('#########');
+    print(configs.length);
+    // 🔑 合并并保存
+    await saveConfigs(
+      loginUserID: loginUserInfo.userID,
+      newConfigs: configs,
+    );
 
-    final result = UserDisappearingConfigs(
-        loginUserID: loginUserInfo.userID,
-        groupConfigs: merged.values.toList());
-
-    // ✅ 写入存储
-    await GetStorage().write(storageKey, result.toJson());
-
+    // 定时器逻辑
     if (_timer != null) return;
-    // 添加定时器
     _timer = Timer.periodic(const Duration(minutes: 5), (timer) async {
-      final result = await GetStorage()
-          .read('disappearing_message_${loginUserInfo.userID}');
+      final oldJson = await GetStorage().read(storageKey);
+      if (oldJson == null) return;
+
       UserDisappearingConfigs configs =
-          UserDisappearingConfigs.fromJson(result);
+      UserDisappearingConfigs.fromJson(oldJson);
+
       for (UserGroupDisappearingConfig item in configs.groupConfigs) {
         if ((item.config.totalDuration != Duration.zero) &&
             (DateTime.now().millisecondsSinceEpoch >=
                 int.parse(item.config.startTime) +
                     item.config.totalDuration.inMilliseconds)) {
-          // 添加到本地
           V2TimCallback? result;
           if (item.userID != null && item.userID!.isNotEmpty) {
-            result =
-                await clearHistoryMessage(convID: item.userID!, convType: 1);
+            result = await clearHistoryMessage(convID: item.userID!, convType: 1);
           }
-
           if (item.groupID != null && item.groupID!.isNotEmpty) {
             result =
-                await clearHistoryMessage(convID: item.groupID!, convType: 2);
+            await clearHistoryMessage(convID: item.groupID!, convType: 2);
           }
-
           if (result?.code == 0) {
             notifyListeners();
             item.config.startTime =
@@ -521,8 +511,41 @@ class TUIConversationViewModel extends ChangeNotifier {
           }
         }
       }
-      await GetStorage().write(
-          'disappearing_message_${loginUserInfo.userID}', configs.toJson());
+
+      // 保存更新后的
+      await saveConfigs(
+        loginUserID: loginUserInfo.userID,
+        newConfigs: configs.groupConfigs,
+      );
     });
   }
+
+  /// 统一的保存逻辑：读 → 合并 → 写
+  Future<void> saveConfigs({
+    required String loginUserID,
+    required List<UserGroupDisappearingConfig> newConfigs,
+  }) async {
+    final storageKey = 'disappearing_message_$loginUserID';
+    final oldJson = await GetStorage().read(storageKey);
+    final oldConfigs = oldJson != null
+        ? UserDisappearingConfigs.fromJson(oldJson)
+        : UserDisappearingConfigs(loginUserID: loginUserID, groupConfigs: []);
+
+    final merged = {
+      for (var item in oldConfigs.groupConfigs)
+        ((item.userID?.isNotEmpty ?? false) ? item.userID! : item.groupID!): item,
+      for (var item in newConfigs)
+        ((item.userID?.isNotEmpty ?? false) ? item.userID! : item.groupID!): item,
+    };
+
+    final result = UserDisappearingConfigs(
+      loginUserID: loginUserID,
+      groupConfigs: merged.values.toList(),
+    );
+
+    print('!!!!!!!!!!!!!!!!!!');
+    print(result.groupConfigs.length);
+    await GetStorage().write(storageKey, result.toJson());
+  }
+
 }
