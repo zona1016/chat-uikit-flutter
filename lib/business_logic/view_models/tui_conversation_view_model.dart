@@ -415,11 +415,11 @@ class TUIConversationViewModel extends ChangeNotifier {
             userFullInfo.customInfo!['disappea'] != null) {
           String disappea = userFullInfo.customInfo!['disappea']!;
           final parsed = jsonDecode(disappea);
+          DisappearingMessageConfig? old = oldConfigs.getConfigByUserID(userFullInfo.userID ?? '');
           if (parsed['disappearing_message_${loginUserInfo.userID}'] != null) {
             final userConfig = DisappearingMessageConfig.fromJson(
                 jsonDecode(parsed['disappearing_message_${loginUserInfo.userID}']!));
-            if (userConfig.totalDuration.inSeconds > 0 &&
-                oldConfigs.getConfigByUserID(userFullInfo.userID ?? '') == null) {
+            if (userConfig.totalDuration.inSeconds > 0 && old == null) {
               if (DateTime.now().millisecondsSinceEpoch >=
                   int.parse(userConfig.startTime) +
                       userConfig.totalDuration.inMilliseconds) {
@@ -432,6 +432,14 @@ class TUIConversationViewModel extends ChangeNotifier {
               }
               configs.add(UserGroupDisappearingConfig(
                   userID: userFullInfo.userID ?? '', config: userConfig));
+            }
+
+            if (old != null) {
+              old.hour = userConfig.hour;
+              old.minute = userConfig.minute;
+              old.type = userConfig.type;
+              old.desc = userConfig.desc;
+              old.userName = userConfig.userName;
             }
           }
         }
@@ -453,8 +461,8 @@ class TUIConversationViewModel extends ChangeNotifier {
             group.customInfo!['disappearing']!.isNotEmpty) {
           final userConfig = DisappearingMessageConfig.fromJson(
               jsonDecode(group.customInfo!['disappearing']!));
-          if (userConfig.totalDuration.inSeconds > 0 &&
-              oldConfigs.getConfigByGroupID(group.groupID ?? '') == null) {
+          DisappearingMessageConfig? old = oldConfigs.getConfigByGroupID(group.groupID ?? '');
+          if (userConfig.totalDuration.inSeconds > 0 && old == null) {
             if (DateTime.now().millisecondsSinceEpoch >=
                 int.parse(userConfig.startTime) +
                     userConfig.totalDuration.inMilliseconds) {
@@ -467,6 +475,14 @@ class TUIConversationViewModel extends ChangeNotifier {
             }
             configs.add(UserGroupDisappearingConfig(
                 groupID: group.groupID, config: userConfig));
+          }
+
+          if (old != null) {
+            old.hour = userConfig.hour;
+            old.minute = userConfig.minute;
+            old.type = userConfig.type;
+            old.desc = userConfig.desc;
+            old.userName = userConfig.userName;
           }
         }
       }
