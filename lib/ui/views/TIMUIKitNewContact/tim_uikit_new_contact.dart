@@ -5,6 +5,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/life_cycle/new_contact_l
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_friendship_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
@@ -59,7 +60,7 @@ class _TIMUIKitNewContactState extends TIMUIKitState<TIMUIKitNewContact> {
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
     return Material(
-      color: theme.wideBackgroundColor,
+      color: AidaBaseColors.whiteWithOpacity01,
       child: InkWell(
         onTap: () {},
         child: Container(
@@ -75,17 +76,17 @@ class _TIMUIKitNewContactState extends TIMUIKitState<TIMUIKitNewContact> {
                 child: SizedBox(
                   height: isDesktopScreen ? 30 : 40,
                   width: isDesktopScreen ? 30 : 40,
-                  child: Avatar(faceUrl: faceUrl, showName: showName),
+                  child: Avatar(
+                    faceUrl: faceUrl,
+                    showName: showName,
+                    borderRadius:
+                        BorderRadius.circular(isDesktopScreen ? 30 : 40),
+                  ),
                 ),
               ),
               Expanded(
                   child: Container(
                 padding: const EdgeInsets.only(top: 10, bottom: 20),
-                decoration: BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(
-                            color: theme.weakDividerColor ??
-                                CommonColor.weakDividerColor))),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -101,7 +102,7 @@ class _TIMUIKitNewContactState extends TIMUIKitState<TIMUIKitNewContact> {
                           Text(
                             showName,
                             style: TextStyle(
-                                color: theme.darkTextColor,
+                                color: AidaBaseColors.white,
                                 fontSize: isDesktopScreen ? 14 : 18),
                           ),
                           if (applicationText.isNotEmpty && isDesktopScreen)
@@ -126,7 +127,7 @@ class _TIMUIKitNewContactState extends TIMUIKitState<TIMUIKitNewContact> {
                               horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
-                              color: theme.primaryColor,
+                              color: AidaBaseColors.primaryColor,
                               border: Border.all(
                                   width: 1,
                                   color: theme.weakTextColor ??
@@ -158,7 +159,7 @@ class _TIMUIKitNewContactState extends TIMUIKitState<TIMUIKitNewContact> {
                           child: Container(
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
-                                color: Colors.white,
+                                color: AidaBaseColors.secondPrimaryColor,
                                 border: Border.all(
                                     width: 1,
                                     color: theme.weakTextColor ??
@@ -168,7 +169,7 @@ class _TIMUIKitNewContactState extends TIMUIKitState<TIMUIKitNewContact> {
                             child: Text(
                               TIM_t("拒绝"),
                               style: TextStyle(
-                                color: theme.primaryColor,
+                                color: AidaBaseColors.white,
                                 fontSize: isDesktopScreen ? 12 : null,
                               ),
                             ),

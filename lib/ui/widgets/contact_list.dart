@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:lpinyin/lpinyin.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/color.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitNewContact/tim_uikit_unread_count.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_friendship_view_model.dart';
@@ -233,8 +234,8 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                           fontSize: isDesktopScreen ? 14 : 18),
                     ),
                     Expanded(child: Container()),
-                    // if (item.id == "newContact")
-                    //   const TIMUIKitUnreadCount(),
+                    if (memberInfo.id == "newContact")
+                      const TIMUIKitUnreadCount(),
                     // Container(
                     //   margin: const EdgeInsets.only(right: 16),
                     //   child: const Icon(
