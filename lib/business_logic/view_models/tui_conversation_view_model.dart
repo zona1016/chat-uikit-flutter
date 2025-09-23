@@ -490,8 +490,6 @@ class TUIConversationViewModel extends ChangeNotifier {
       print("获取群组信息失败: ${groupInfo.code}, ${groupInfo.desc}");
     }
 
-    print('#########');
-    print(configs.length);
     // 🔑 合并并保存
     await saveConfigs(
       loginUserID: loginUserInfo.userID,
