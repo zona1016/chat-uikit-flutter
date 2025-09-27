@@ -69,8 +69,8 @@ class SelfDestructQueue {
       if (message.isSelf == true) {
         _handleSelfMessage(msgID, message, conversationID);
       } else {
-        // For received messages, they start countdown when viewed
-        _saveMessageState(msgID, message, conversationID, false);
+        // For received messages, check if they should already be viewed (state recovery)
+        _handleReceivedMessage(msgID, message, conversationID);
       }
     } catch (e) {
       debugPrint('处理自毁消息失败: $e');
@@ -81,6 +81,14 @@ class SelfDestructQueue {
   void viewMessage(String msgID) {
     final message = _messages[msgID];
     if (message == null || message.isSelf == true) return;
+    
+    debugPrint('viewMessage called for $msgID, timer exists: ${_burnTimers.containsKey(msgID)}');
+    
+    // Skip if timer already exists
+    if (_burnTimers.containsKey(msgID)) {
+      debugPrint('Timer already exists for received message $msgID, skipping');
+      return;
+    }
     
     final conversationID = _getConversationID(message);
     
@@ -113,6 +121,8 @@ class SelfDestructQueue {
     final message = _messages[msgID];
     if (message == null || message.isSelf != true) return;
     
+    debugPrint('handleMessageReadByAll called for $msgID, timer exists: ${_burnTimers.containsKey(msgID)}');
+    
     // If not already counting down, start it
     if (!_burnTimers.containsKey(msgID)) {
       final conversationID = _getConversationID(message);
@@ -122,15 +132,29 @@ class SelfDestructQueue {
 
   /// 开始倒计时
   void _startCountdown(String msgID, int seconds) {
+    // Prevent duplicate timers
+    if (_burnTimers.containsKey(msgID)) {
+      debugPrint('Timer already exists for $msgID, skipping duplicate');
+      return;
+    }
+    
     debugPrint('Starting countdown for $msgID with $seconds seconds');
     _remainingSeconds[msgID] = seconds;
     
     _burnTimers[msgID] = Timer.periodic(const Duration(seconds: 1), (timer) {
-      int remaining = _remainingSeconds[msgID]! - 1;
+      // Safety check - if remaining seconds was cleaned up by another timer, stop this one
+      final currentRemaining = _remainingSeconds[msgID];
+      if (currentRemaining == null) {
+        debugPrint('Remaining seconds for $msgID was null, stopping timer');
+        timer.cancel();
+        _burnTimers.remove(msgID);
+        return;
+      }
+      
+      int remaining = currentRemaining - 1;
       _remainingSeconds[msgID] = remaining;
       
       // 通知UI更新倒计时
-      // onCountdownUpdate?.call(msgID, remaining);
       for (final listener in _countdownListeners) {
         listener(msgID, remaining);
       }
@@ -145,14 +169,19 @@ class SelfDestructQueue {
   /// 删除消息
   Future<void> _deleteMessage(String msgID) async {
     try {
+      debugPrint('Deleting self-destruct message: $msgID');
+      
+      // Cancel and remove timer first to prevent race conditions
+      final timer = _burnTimers.remove(msgID);
+      timer?.cancel();
+      
+      _remainingSeconds.remove(msgID);
+      _messages.remove(msgID);
+      
       chatModel.deleteMsg(msgID);
       await TencentImSDKPlugin.v2TIMManager
           .getMessageManager()
           .deleteMessages(msgIDs: [msgID]);
-      
-      _burnTimers.remove(msgID);
-      _remainingSeconds.remove(msgID);
-      _messages.remove(msgID);
       
       // Clean up persistent storage
       final prefs = await SharedPreferences.getInstance();
@@ -205,11 +234,76 @@ class SelfDestructQueue {
     }
   }
   
+  /// Handle received messages with state recovery
+  void _handleReceivedMessage(String msgID, V2TimMessage message, String conversationID) {
+    // Check if this message should already be considered "viewed" based on various indicators
+    bool shouldBeViewed = _shouldMessageBeViewed(message);
+    
+    if (shouldBeViewed && !_burnTimers.containsKey(msgID)) {
+      // Message should be viewed but no countdown exists - restart countdown
+      debugPrint('Detected previously viewed message without countdown, restarting: $msgID');
+      final burnSeconds = _getConversationBurnSeconds(conversationID);
+      _startCountdown(msgID, burnSeconds);
+      _saveMessageState(msgID, message, conversationID, true);
+    } else {
+      // Normal case - save state but don't start countdown until user views
+      _saveMessageState(msgID, message, conversationID, false);
+    }
+  }
+  
+  /// Determine if a received message should already be considered "viewed"
+  bool _shouldMessageBeViewed(V2TimMessage message) {
+    // For received messages, use time-based heuristic for now
+    // This helps recover from app restarts where state was lost
+    if (message.timestamp != null) {
+      final messageAge = DateTime.now().millisecondsSinceEpoch - (message.timestamp! * 1000);
+      if (messageAge > 300000) { // More than 5 minutes old
+        debugPrint('Message ${message.msgID} is old (${messageAge}ms), assuming viewed');
+        return true;
+      }
+    }
+    
+    // Note: We could check other indicators here like conversation activity,
+    // but time-based approach is simplest and works for most recovery cases
+    
+    return false;
+  }
+  
   /// Handle self messages (messages I sent)
   void _handleSelfMessage(String msgID, V2TimMessage message, String conversationID) {
-    // For self messages, we need to check if it's read by all to start countdown
-    // This will be handled by handleMessageReadByAll() when called from message receipt
-    _saveMessageState(msgID, message, conversationID, false);
+    // Check if this self message should already have countdown started
+    if (_shouldSelfMessageHaveCountdown(message) && !_burnTimers.containsKey(msgID)) {
+      debugPrint('Detected self message that should be counting down, starting: $msgID');
+      final burnSeconds = _getConversationBurnSeconds(conversationID);
+      _startCountdown(msgID, burnSeconds);
+      _saveMessageState(msgID, message, conversationID, true);
+    } else {
+      // Normal case - save state and wait for read receipt
+      _saveMessageState(msgID, message, conversationID, false);
+    }
+  }
+  
+  /// Determine if a self message should already have countdown started
+  bool _shouldSelfMessageHaveCountdown(V2TimMessage message) {
+    // For C2C messages, check if peer has read it
+    if (message.groupID == null) {
+      if (message.isPeerRead == true) {
+        debugPrint('Self message ${message.msgID} is read by peer');
+        return true;
+      }
+    }
+    
+    // For group messages, this is more complex - we'd need to check read receipts
+    // For now, use a time-based heuristic for older messages
+    if (message.timestamp != null) {
+      final messageAge = DateTime.now().millisecondsSinceEpoch - (message.timestamp! * 1000);
+      if (messageAge > 120000) { // More than 2 minutes old
+        debugPrint('Self message ${message.msgID} is old (${messageAge}ms), assuming read');
+        return true;
+      }
+    }
+    
+    return false;
   }
   
   /// Save message state persistently
@@ -269,7 +363,24 @@ class SelfDestructQueue {
   
   /// Check if message is being viewed/countdown started
   bool isMessageViewed(String msgID) {
-    return _burnTimers.containsKey(msgID) || _remainingSeconds.containsKey(msgID);
+    // Check if there's an active countdown
+    if (_burnTimers.containsKey(msgID) || _remainingSeconds.containsKey(msgID)) {
+      return true;
+    }
+    
+    // Check if message should be considered viewed based on its state
+    final message = _messages[msgID];
+    if (message != null) {
+      if (message.isSelf == true) {
+        // For self messages, check if they should have countdown
+        return _shouldSelfMessageHaveCountdown(message);
+      } else {
+        // For received messages, check if they should be viewed
+        return _shouldMessageBeViewed(message);
+      }
+    }
+    
+    return false;
   }
   
   /// Clear cached burn seconds for a conversation (used when global model loads new data)
@@ -281,6 +392,30 @@ class SelfDestructQueue {
   /// Get expected burn seconds for a conversation (for UI display, doesn't start countdown)
   int getExpectedBurnSeconds(String conversationID) {
     return _getConversationBurnSeconds(conversationID);
+  }
+  
+  /// Force check if a message needs countdown recovery (for edge cases)
+  void checkMessageRecovery(String msgID) {
+    final message = _messages[msgID];
+    if (message == null) return;
+    
+    bool shouldHaveCountdown = false;
+    
+    if (message.isSelf == true) {
+      // For self messages, check if they should be counting down
+      shouldHaveCountdown = _shouldSelfMessageHaveCountdown(message);
+    } else {
+      // For received messages, check if they should be viewed
+      shouldHaveCountdown = _shouldMessageBeViewed(message);
+    }
+    
+    if (shouldHaveCountdown && !_burnTimers.containsKey(msgID)) {
+      debugPrint('Manual recovery check: restarting countdown for $msgID (isSelf: ${message.isSelf})');
+      final conversationID = _getConversationID(message);
+      final burnSeconds = _getConversationBurnSeconds(conversationID);
+      _startCountdown(msgID, burnSeconds);
+      _saveMessageState(msgID, message, conversationID, true);
+    }
   }
 
   /// Load message states from persistent storage (call when app starts/conversation loads)
@@ -334,10 +469,26 @@ class SelfDestructQueue {
   
   /// Start countdown from remaining seconds (for recovery)
   void _startCountdownFromRemaining(String msgID, int remainingSeconds) {
+    // Prevent duplicate timers
+    if (_burnTimers.containsKey(msgID)) {
+      debugPrint('Timer already exists for $msgID during recovery, skipping duplicate');
+      return;
+    }
+    
+    debugPrint('Starting recovery countdown for $msgID with $remainingSeconds seconds');
     _remainingSeconds[msgID] = remainingSeconds;
     
     _burnTimers[msgID] = Timer.periodic(const Duration(seconds: 1), (timer) {
-      int remaining = _remainingSeconds[msgID]! - 1;
+      // Safety check - if remaining seconds was cleaned up by another timer, stop this one
+      final currentRemaining = _remainingSeconds[msgID];
+      if (currentRemaining == null) {
+        debugPrint('Remaining seconds for $msgID was null during recovery, stopping timer');
+        timer.cancel();
+        _burnTimers.remove(msgID);
+        return;
+      }
+      
+      int remaining = currentRemaining - 1;
       _remainingSeconds[msgID] = remaining;
       
       // Notify UI

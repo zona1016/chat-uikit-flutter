@@ -105,6 +105,11 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
         _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
         isOpen = _isViewed;
         
+        // Check if this message should already have countdown based on read status
+        if (isSelfDestruct && !_selfDestructQueue.getRemainingSeconds(widget.message.msgID!).isNegative) {
+          _checkAndStartCountdownIfNeeded();
+        }
+        
         // Get current remaining seconds, or expected burn seconds if not started yet
         int remainingSeconds = _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
         if (remainingSeconds == 0 && isSelfDestruct) {
@@ -184,6 +189,54 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
         }
         _remainingSeconds = remainingSeconds;
       });
+    }
+  }
+
+  /// Check if countdown should be started based on message read status
+  void _checkAndStartCountdownIfNeeded() {
+    if (widget.message.msgID == null) return;
+    
+    // Skip if countdown already active
+    if (_selfDestructQueue.getRemainingSeconds(widget.message.msgID!) > 0) return;
+    
+    bool shouldStartCountdown = false;
+    
+    if (widget.message.isSelf == true) {
+      // For self messages, check if peer has read it (C2C) or if it's old (group)
+      if (widget.message.groupID == null) {
+        // C2C message - check peer read status
+        shouldStartCountdown = widget.message.isPeerRead == true;
+        if (shouldStartCountdown) {
+          debugPrint('Self message ${widget.message.msgID} is read by peer, starting countdown');
+        }
+      } else {
+        // Group message - use time-based heuristic
+        if (widget.message.timestamp != null) {
+          final messageAge = DateTime.now().millisecondsSinceEpoch - (widget.message.timestamp! * 1000);
+          shouldStartCountdown = messageAge > 60000; // More than 1 minute old
+          if (shouldStartCountdown) {
+            debugPrint('Self group message ${widget.message.msgID} is old, starting countdown');
+          }
+        }
+      }
+    } else {
+      // For received messages, use time-based heuristic
+      if (widget.message.timestamp != null) {
+        final messageAge = DateTime.now().millisecondsSinceEpoch - (widget.message.timestamp! * 1000);
+        shouldStartCountdown = messageAge > 300000; // More than 5 minutes old
+        if (shouldStartCountdown) {
+          debugPrint('Received message ${widget.message.msgID} is old, should be counted down');
+        }
+      }
+    }
+    
+    if (shouldStartCountdown) {
+      // Start countdown immediately
+      if (widget.message.isSelf == true) {
+        _selfDestructQueue.handleMessageReadByAll(widget.message.msgID!);
+      } else {
+        _selfDestructQueue.viewMessage(widget.message.msgID!);
+      }
     }
   }
 
