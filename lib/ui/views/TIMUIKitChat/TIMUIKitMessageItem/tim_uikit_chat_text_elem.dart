@@ -81,29 +81,44 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
       _selfDestructQueue.preloadConversationBurnSeconds(conversationID);
     }
     
+    // Basic initialization in setState
     setState(() {
       isSelfDestruct = _selfDestructQueue.isSelfDestructMessage(widget.message.msgID ?? '');
-      if (widget.message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC) {
-        _isViewed = _selfDestructQueue.isMessageViewed(widget.message.msgID!);
-        isOpen = _isViewed;
-        
-        // Check if this message should already have countdown based on read status
-        if (isSelfDestruct && !_selfDestructQueue.getRemainingSeconds(widget.message.msgID!).isNegative) {
-          _checkAndStartCountdownIfNeeded();
-        }
-        
-        // Get current remaining seconds, or expected burn seconds if not started yet
-        int remainingSeconds = _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
-        if (remainingSeconds == 0 && isSelfDestruct) {
-          // If countdown not started yet, show expected burn seconds instead of 0
-          final conversationID = widget.message.groupID != null ? 
-                                'group_${widget.message.groupID}' : 
-                                'c2c_${widget.message.userID ?? widget.message.sender}';
-          remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
-        }
-        _remainingSeconds = remainingSeconds;
-      }
+      _remainingSeconds = 0; // Initialize with 0, will be updated later
     });
+    
+    // Complex logic after setState to avoid widget loading issues
+    if (widget.message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC && 
+        widget.message.msgID != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final msgID = widget.message.msgID!;
+          _isViewed = _selfDestructQueue.isMessageViewed(msgID);
+          isOpen = _isViewed;
+          
+          // Check if this message should already have countdown based on read status
+          if (isSelfDestruct && !_selfDestructQueue.getRemainingSeconds(msgID).isNegative) {
+            _checkAndStartCountdownIfNeeded();
+          }
+          
+          // Get current remaining seconds, or expected burn seconds if not started yet
+          int remainingSeconds = _selfDestructQueue.getRemainingSeconds(msgID);
+          if (remainingSeconds == 0 && isSelfDestruct) {
+            // If countdown not started yet, show expected burn seconds instead of 0
+            final conversationID = widget.message.groupID != null ? 
+                                  'group_${widget.message.groupID}' : 
+                                  'c2c_${widget.message.userID ?? widget.message.sender}';
+            remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+          }
+          
+          if (mounted) {
+            setState(() {
+              _remainingSeconds = remainingSeconds;
+            });
+          }
+        }
+      });
+    }
   }
 
   @override
@@ -170,31 +185,14 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
       if (widget.message.groupID == null) {
         // C2C message - check peer read status
         shouldStartCountdown = widget.message.isPeerRead == true;
-        if (shouldStartCountdown) {
-          debugPrint('Self message ${widget.message.msgID} is read by peer, starting countdown');
-        }
       } else {
-        // Group message - use time-based heuristic or check if we have read receipts
-        if (widget.message.timestamp != null) {
-          final messageAge = DateTime.now().millisecondsSinceEpoch - (widget.message.timestamp! * 1000);
-          shouldStartCountdown = messageAge > 60000; // More than 1 minute old
-          if (shouldStartCountdown) {
-            debugPrint('Self group message ${widget.message.msgID} is old, starting countdown');
-          }
-        }
-      }
-    } else {
-      // For received messages, use time-based heuristic for now
-      if (widget.message.timestamp != null) {
-        final messageAge = DateTime.now().millisecondsSinceEpoch - (widget.message.timestamp! * 1000);
-        shouldStartCountdown = messageAge > 300000; // More than 5 minutes old
-        if (shouldStartCountdown) {
-          debugPrint('Received message ${widget.message.msgID} is old, should be counted down');
-        }
+        // Group message - check if all members have read it
+        shouldStartCountdown = _isGroupMessageReadByAll();
       }
     }
     
     if (shouldStartCountdown) {
+      debugPrint('Self group message ${widget.message.msgID} is read by all, starting countdown');
       // Start countdown immediately
       if (widget.message.isSelf == true) {
         _selfDestructQueue.handleMessageReadByAll(widget.message.msgID!);

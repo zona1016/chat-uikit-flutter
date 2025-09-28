@@ -14,6 +14,7 @@ import 'package:tencent_cloud_chat_uikit/business_logic/view_models/user_disappe
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/dialog.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/event_center.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
@@ -529,16 +530,28 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                   }
                   final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
                   // 2. 从好友资料里读取更优配置
-                  final friendCustom = model.userProfile?.friendInfo?.userProfile?.customInfo;
+                  Map<String, String>? friendCustom;
+                  try {
+                    friendCustom = model.userProfile?.friendInfo?.userProfile?.customInfo;
+                  } catch (e) {
+                    debugPrint('Error accessing friend custom info: $e');
+                    friendCustom = null;
+                  }
+                  
                   if (friendCustom != null &&
                       friendCustom['disappea'] != null &&
                       friendCustom['disappea']!.contains(
                           'disappearing_message_${loginUserInfo.userID}')) {
-                    final remoteMap = jsonDecode(friendCustom['disappea']!);
-                    final remoteConfig = _parseConfig(
-                      remoteMap['disappearing_message_${loginUserInfo.userID}'],
-                    );
-                    config = _mergeConfigs(config, remoteConfig);
+                    try {
+                      final remoteMap = jsonDecode(friendCustom['disappea']!);
+                      final remoteConfig = _parseConfig(
+                        remoteMap['disappearing_message_${loginUserInfo.userID}'],
+                      );
+                      config = _mergeConfigs(config, remoteConfig);
+                    } catch (e) {
+                      debugPrint('Error parsing friend custom data: $e');
+                      // Continue with default config if parsing fails
+                    }
                   }
 
                   return (customBuilder?.customBuilderThree != null

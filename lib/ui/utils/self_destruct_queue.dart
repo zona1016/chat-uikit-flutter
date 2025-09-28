@@ -253,19 +253,19 @@ class SelfDestructQueue {
   
   /// Determine if a received message should already be considered "viewed"
   bool _shouldMessageBeViewed(V2TimMessage message) {
-    // For received messages, use time-based heuristic for now
-    // This helps recover from app restarts where state was lost
-    if (message.timestamp != null) {
-      final messageAge = DateTime.now().millisecondsSinceEpoch - (message.timestamp! * 1000);
-      if (messageAge > 300000) { // More than 5 minutes old
-        debugPrint('Message ${message.msgID} is old (${messageAge}ms), assuming viewed');
+    // For received messages, do NOT auto-start based on time
+    // Self-destruct messages should only start countdown when explicitly viewed by user
+    
+    // Check persistent storage for previously viewed state
+    if (message.msgID != null) {
+      final isViewed = isMessageViewed(message.msgID!);
+      if (isViewed) {
+        debugPrint('Message ${message.msgID} was previously viewed (from storage)');
         return true;
       }
     }
     
-    // Note: We could check other indicators here like conversation activity,
-    // but time-based approach is simplest and works for most recovery cases
-    
+    // If not found in storage, default to not viewed
     return false;
   }
   
@@ -291,14 +291,14 @@ class SelfDestructQueue {
         debugPrint('Self message ${message.msgID} is read by peer');
         return true;
       }
-    }
-    
-    // For group messages, this is more complex - we'd need to check read receipts
-    // For now, use a time-based heuristic for older messages
-    if (message.timestamp != null) {
-      final messageAge = DateTime.now().millisecondsSinceEpoch - (message.timestamp! * 1000);
-      if (messageAge > 120000) { // More than 2 minutes old
-        debugPrint('Self message ${message.msgID} is old (${messageAge}ms), assuming read');
+    } else {
+      // For group messages, check if read by all members
+      // Note: This requires access to chat model for read receipt utils
+      // Since we don't have direct access here, we'll need to rely on
+      // the message elements to properly trigger countdown via handleMessageReadByAll()
+      // For now, only start if explicitly marked as viewed in storage
+      if (message.msgID != null && isMessageViewed(message.msgID!)) {
+        debugPrint('Self group message ${message.msgID} is marked as viewed in storage');
         return true;
       }
     }
