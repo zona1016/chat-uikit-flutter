@@ -383,6 +383,7 @@ class TUIConversationViewModel extends ChangeNotifier {
     List<String> userIDs = [];
     List<String> groupIDs = [];
     List<UserGroupDisappearingConfig> configs = [];
+    List<UserGroupDisappearingConfig> deleteConfigs = [];
 
     for (var item in list) {
       if (item?.userID != null) {
@@ -403,9 +404,6 @@ class TUIConversationViewModel extends ChangeNotifier {
         : UserDisappearingConfigs(
         loginUserID: loginUserInfo.userID, groupConfigs: []);
 
-    print(oldConfigs.toJson());
-    print('-----------------');
-    print(oldConfigs.groupConfigs.length);
     // 1. 获取用户信息
     final userInfo =
     await TIMUIKitCore.getInstance().getUsersInfo(userIDList: userIDs);
@@ -431,6 +429,11 @@ class TUIConversationViewModel extends ChangeNotifier {
                 }
               }
               configs.add(UserGroupDisappearingConfig(
+                  userID: userFullInfo.userID ?? '', config: userConfig));
+            }
+
+            if (userConfig.type == '3' && old != null) {
+              deleteConfigs.add(UserGroupDisappearingConfig(
                   userID: userFullInfo.userID ?? '', config: userConfig));
             }
 
@@ -477,6 +480,11 @@ class TUIConversationViewModel extends ChangeNotifier {
                 groupID: group.groupID, config: userConfig));
           }
 
+          if (userConfig.type == '3' && old != null) {
+            deleteConfigs.add(UserGroupDisappearingConfig(
+                groupID: group.groupID, config: userConfig));
+          }
+
           if (old != null) {
             old.hour = userConfig.hour;
             old.minute = userConfig.minute;
@@ -494,6 +502,7 @@ class TUIConversationViewModel extends ChangeNotifier {
     await saveConfigs(
       loginUserID: loginUserInfo.userID,
       newConfigs: configs,
+      deleteConfigs: deleteConfigs
     );
 
     // 定时器逻辑
@@ -530,6 +539,7 @@ class TUIConversationViewModel extends ChangeNotifier {
       await saveConfigs(
         loginUserID: loginUserInfo.userID,
         newConfigs: configs.groupConfigs,
+        deleteConfigs: []
       );
     });
   }
@@ -538,6 +548,7 @@ class TUIConversationViewModel extends ChangeNotifier {
   Future<void> saveConfigs({
     required String loginUserID,
     required List<UserGroupDisappearingConfig> newConfigs,
+    required List<UserGroupDisappearingConfig> deleteConfigs,
   }) async {
     final storageKey = 'disappearing_message_$loginUserID';
     final oldJson = await GetStorage().read(storageKey);
@@ -545,6 +556,14 @@ class TUIConversationViewModel extends ChangeNotifier {
         ? UserDisappearingConfigs.fromJson(oldJson)
         : UserDisappearingConfigs(loginUserID: loginUserID, groupConfigs: []);
 
+    // 移除 deleteConfigs 对应的本地配置
+    for (var deleteConfig in deleteConfigs) {
+      oldConfigs.groupConfigs.removeWhere(
+            (c) => c.groupID == deleteConfig.groupID,
+      );
+    }
+
+    // 添加/更新新的配置
     final merged = {
       for (var item in oldConfigs.groupConfigs)
         ((item.userID?.isNotEmpty ?? false) ? item.userID! : item.groupID!): item,
