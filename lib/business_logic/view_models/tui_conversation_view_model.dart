@@ -39,6 +39,7 @@ List<T> removeDuplicates<T>(
 }
 
 class TUIConversationViewModel extends ChangeNotifier {
+
   final TUISelfInfoViewModel selfInfoViewModel =
       serviceLocator<TUISelfInfoViewModel>();
   final ConversationService _conversationService =
@@ -576,9 +577,42 @@ class TUIConversationViewModel extends ChangeNotifier {
       groupConfigs: merged.values.toList(),
     );
 
-    print('!!!!!!!!!!!!!!!!!!');
-    print(result.groupConfigs.length);
     await GetStorage().write(storageKey, result.toJson());
   }
 
+  clearAllHistory() async {
+    List<String> userIDs = [];
+    List<String> groupIDs = [];
+
+    for (var item in conversationList) {
+      if (item?.userID != null) {
+        userIDs.add(item!.userID!);
+      }
+      if (item?.groupID != null) {
+        final isChannelOrTeam = (TencentUtils.india ==
+            item!.groupID! ||
+            TencentUtils.korea == item.groupID! ||
+            TencentUtils.english == item.groupID! ||
+            TencentUtils.chinese == item.groupID! ||
+            TencentUtils.french == item.groupID! ||
+            TencentUtils.german == item.groupID! ||
+            TencentUtils.aidTeam == item!.groupID!);
+        if (isChannelOrTeam) continue;
+        groupIDs.add(item.groupID!);
+      }
+    }
+    for (int i = 0; i < userIDs.length; i++) {
+      String userID = userIDs[i];
+      await clearHistoryMessage(
+      convID: userID, convType: 1);
+    }
+
+    for (int i = 0; i < groupIDs.length; i++) {
+      String groupID = groupIDs[i];
+      await clearHistoryMessage(
+      convID: groupID, convType: 2);
+    }
+    await loadData(count: 40);
+    notifyListeners();
+  }
 }

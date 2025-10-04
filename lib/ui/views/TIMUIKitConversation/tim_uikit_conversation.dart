@@ -40,6 +40,9 @@ typedef ConversationItemSecondaryMenuBuilder = Widget Function(
     V2TimConversation conversationItem, VoidCallback onClose);
 
 class TIMUIKitConversation extends StatefulWidget {
+  /// check clear history
+  final bool needClearHistory;
+
   /// the callback after clicking conversation item
   final ValueChanged<V2TimConversation>? onTapItem;
 
@@ -79,6 +82,7 @@ class TIMUIKitConversation extends StatefulWidget {
 
   const TIMUIKitConversation(
       {Key? key,
+        this.needClearHistory = false,
         this.lifeCycle,
         this.onTapItem,
         this.onTapItemWithMode,
@@ -175,6 +179,9 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     _timuiKitConversationController = controller;
     _timuiKitConversationController.model = model;
     _autoScrollController = AutoScrollController();
+    if (widget.needClearHistory) {
+      model.clearAllHistory();
+    }
   }
 
   List<V2TimConversation?> getFilteredConversation() {
@@ -253,6 +260,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   }
 
   handleUnReadData(List<V2TimConversation?> filteredConversationList, TUIConversationViewModel model) async {
+
     if (handleData) return;
     handleData = true;
     for (var aidTeamConversation in filteredConversationList) {
