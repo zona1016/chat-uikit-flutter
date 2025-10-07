@@ -52,10 +52,8 @@ class _MultiImageScreenState extends State<MultiImageScreen> {
     return Material(
       color: Colors.black,
       child: GestureDetector(
-        onVerticalDragEnd: (details) {
-          if (details.primaryVelocity != null && details.primaryVelocity! > 100) {
-            Navigator.pop(context);
-          }
+        onTap: () {
+          Navigator.pop(context);
         },
         child: ExtendedImageGesturePageView.builder(
         controller: _pageController,
