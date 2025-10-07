@@ -51,7 +51,13 @@ class _MultiImageScreenState extends State<MultiImageScreen> {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.black,
-      child: ExtendedImageGesturePageView.builder(
+      child: GestureDetector(
+        onVerticalDragEnd: (details) {
+          if (details.primaryVelocity != null && details.primaryVelocity! > 100) {
+            Navigator.pop(context);
+          }
+        },
+        child: ExtendedImageGesturePageView.builder(
         controller: _pageController,
         itemCount: widget.images.length,
         physics: const BouncingScrollPhysics(),
@@ -128,26 +134,71 @@ class _MultiImageScreenState extends State<MultiImageScreen> {
               Positioned(
                 bottom: 40,
                 left: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                      BoxShadow(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, -1),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ),
               ),
               Positioned(
                 bottom: 40,
                 right: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.download, color: Colors.white),
-                  onPressed: () async {
-                    print('--------');
-                    await widget.downloadFn(message);
-                    print('--------');
-                  },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                      BoxShadow(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, -1),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.download, color: Colors.white),
+                    onPressed: () async {
+                      debugPrint('Starting image download...');
+                      await widget.downloadFn(message);
+                      debugPrint('Image download completed.');
+                    },
+                  ),
                 ),
               ),
             ],
           );
         },
+      ),
       ),
     );
   }
