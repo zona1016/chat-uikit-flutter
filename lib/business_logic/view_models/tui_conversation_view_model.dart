@@ -39,7 +39,6 @@ List<T> removeDuplicates<T>(
 }
 
 class TUIConversationViewModel extends ChangeNotifier {
-
   final TUISelfInfoViewModel selfInfoViewModel =
       serviceLocator<TUISelfInfoViewModel>();
   final ConversationService _conversationService =
@@ -403,21 +402,22 @@ class TUIConversationViewModel extends ChangeNotifier {
     UserDisappearingConfigs oldConfigs = oldJson != null
         ? UserDisappearingConfigs.fromJson(oldJson)
         : UserDisappearingConfigs(
-        loginUserID: loginUserInfo.userID, groupConfigs: []);
+            loginUserID: loginUserInfo.userID, groupConfigs: []);
 
     // 1. 获取用户信息
     final userInfo =
-    await TIMUIKitCore.getInstance().getUsersInfo(userIDList: userIDs);
+        await TIMUIKitCore.getInstance().getUsersInfo(userIDList: userIDs);
     if (userInfo.code == 0) {
       for (V2TimUserFullInfo userFullInfo in userInfo.data ?? []) {
         if (userFullInfo.customInfo != null &&
             userFullInfo.customInfo!['disappea'] != null) {
           String disappea = userFullInfo.customInfo!['disappea']!;
           final parsed = jsonDecode(disappea);
-          DisappearingMessageConfig? old = oldConfigs.getConfigByUserID(userFullInfo.userID ?? '');
+          DisappearingMessageConfig? old =
+              oldConfigs.getConfigByUserID(userFullInfo.userID ?? '');
           if (parsed['disappearing_message_${loginUserInfo.userID}'] != null) {
-            final userConfig = DisappearingMessageConfig.fromJson(
-                jsonDecode(parsed['disappearing_message_${loginUserInfo.userID}']!));
+            final userConfig = DisappearingMessageConfig.fromJson(jsonDecode(
+                parsed['disappearing_message_${loginUserInfo.userID}']!));
             if (userConfig.totalDuration.inSeconds > 0 && old == null) {
               if (DateTime.now().millisecondsSinceEpoch >=
                   int.parse(userConfig.startTime) +
@@ -465,13 +465,14 @@ class TUIConversationViewModel extends ChangeNotifier {
             group.customInfo!['disappearing']!.isNotEmpty) {
           final userConfig = DisappearingMessageConfig.fromJson(
               jsonDecode(group.customInfo!['disappearing']!));
-          DisappearingMessageConfig? old = oldConfigs.getConfigByGroupID(group.groupID ?? '');
+          DisappearingMessageConfig? old =
+              oldConfigs.getConfigByGroupID(group.groupID ?? '');
           if (userConfig.totalDuration.inSeconds > 0 && old == null) {
             if (DateTime.now().millisecondsSinceEpoch >=
                 int.parse(userConfig.startTime) +
                     userConfig.totalDuration.inMilliseconds) {
               final result =
-              await clearHistoryMessage(convID: group.groupID, convType: 2);
+                  await clearHistoryMessage(convID: group.groupID, convType: 2);
               if (result?.code == 0) {
                 userConfig.startTime =
                     DateTime.now().millisecondsSinceEpoch.toString();
@@ -501,10 +502,9 @@ class TUIConversationViewModel extends ChangeNotifier {
 
     // 🔑 合并并保存
     await saveConfigs(
-      loginUserID: loginUserInfo.userID,
-      newConfigs: configs,
-      deleteConfigs: deleteConfigs
-    );
+        loginUserID: loginUserInfo.userID,
+        newConfigs: configs,
+        deleteConfigs: deleteConfigs);
 
     // 定时器逻辑
     if (_timer != null) return;
@@ -513,7 +513,7 @@ class TUIConversationViewModel extends ChangeNotifier {
       if (oldJson == null) return;
 
       UserDisappearingConfigs configs =
-      UserDisappearingConfigs.fromJson(oldJson);
+          UserDisappearingConfigs.fromJson(oldJson);
 
       for (UserGroupDisappearingConfig item in configs.groupConfigs) {
         if ((item.config.totalDuration != Duration.zero) &&
@@ -522,11 +522,12 @@ class TUIConversationViewModel extends ChangeNotifier {
                     item.config.totalDuration.inMilliseconds)) {
           V2TimCallback? result;
           if (item.userID != null && item.userID!.isNotEmpty) {
-            result = await clearHistoryMessage(convID: item.userID!, convType: 1);
+            result =
+                await clearHistoryMessage(convID: item.userID!, convType: 1);
           }
           if (item.groupID != null && item.groupID!.isNotEmpty) {
             result =
-            await clearHistoryMessage(convID: item.groupID!, convType: 2);
+                await clearHistoryMessage(convID: item.groupID!, convType: 2);
           }
           if (result?.code == 0) {
             notifyListeners();
@@ -538,10 +539,9 @@ class TUIConversationViewModel extends ChangeNotifier {
 
       // 保存更新后的
       await saveConfigs(
-        loginUserID: loginUserInfo.userID,
-        newConfigs: configs.groupConfigs,
-        deleteConfigs: []
-      );
+          loginUserID: loginUserInfo.userID,
+          newConfigs: configs.groupConfigs,
+          deleteConfigs: []);
     });
   }
 
@@ -560,16 +560,18 @@ class TUIConversationViewModel extends ChangeNotifier {
     // 移除 deleteConfigs 对应的本地配置
     for (var deleteConfig in deleteConfigs) {
       oldConfigs.groupConfigs.removeWhere(
-            (c) => c.groupID == deleteConfig.groupID,
+        (c) => c.groupID == deleteConfig.groupID,
       );
     }
 
     // 添加/更新新的配置
     final merged = {
       for (var item in oldConfigs.groupConfigs)
-        ((item.userID?.isNotEmpty ?? false) ? item.userID! : item.groupID!): item,
+        ((item.userID?.isNotEmpty ?? false) ? item.userID! : item.groupID!):
+            item,
       for (var item in newConfigs)
-        ((item.userID?.isNotEmpty ?? false) ? item.userID! : item.groupID!): item,
+        ((item.userID?.isNotEmpty ?? false) ? item.userID! : item.groupID!):
+            item,
     };
 
     final result = UserDisappearingConfigs(
@@ -589,30 +591,20 @@ class TUIConversationViewModel extends ChangeNotifier {
         userIDs.add(item!.userID!);
       }
       if (item?.groupID != null) {
-        final isChannelOrTeam = (TencentUtils.india ==
-            item!.groupID! ||
-            TencentUtils.korea == item.groupID! ||
-            TencentUtils.english == item.groupID! ||
-            TencentUtils.chinese == item.groupID! ||
-            TencentUtils.french == item.groupID! ||
-            TencentUtils.german == item.groupID! ||
-            TencentUtils.aidTeam == item!.groupID!);
-        if (isChannelOrTeam) continue;
-        groupIDs.add(item.groupID!);
+        groupIDs.add(item!.groupID!);
       }
     }
+
     for (int i = 0; i < userIDs.length; i++) {
       String userID = userIDs[i];
-      await clearHistoryMessage(
-      convID: userID, convType: 1);
+      await clearHistoryMessage(convID: userID, convType: 1);
+      conversationList.removeWhere((item) => item?.userID == userID);
     }
 
     for (int i = 0; i < groupIDs.length; i++) {
       String groupID = groupIDs[i];
-      await clearHistoryMessage(
-      convID: groupID, convType: 2);
+      await clearHistoryMessage(convID: groupID, convType: 2);
     }
-    await loadData(count: 40);
     notifyListeners();
   }
 }

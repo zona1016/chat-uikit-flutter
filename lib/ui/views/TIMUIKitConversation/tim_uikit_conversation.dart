@@ -31,10 +31,11 @@ typedef ConversationItemBuilder = Widget Function(
     V2TimConversation conversationItem,
     [V2TimUserStatus? onlineStatus]);
 
-typedef ConversationTapCallback = void Function(V2TimConversation conversation, bool selfDestructMode);
+typedef ConversationTapCallback = void Function(
+    V2TimConversation conversation, bool selfDestructMode);
 
 typedef ConversationItemSlideBuilder = List<ConversationItemSlidePanel>
-Function(V2TimConversation conversationItem);
+    Function(V2TimConversation conversationItem);
 
 typedef ConversationItemSecondaryMenuBuilder = Widget Function(
     V2TimConversation conversationItem, VoidCallback onClose);
@@ -82,19 +83,19 @@ class TIMUIKitConversation extends StatefulWidget {
 
   const TIMUIKitConversation(
       {Key? key,
-        this.needClearHistory = false,
-        this.lifeCycle,
-        this.onTapItem,
-        this.onTapItemWithMode,
-        this.controller,
-        this.itemSecondaryMenuBuilder,
-        this.itemBuilder,
-        this.isShowDraft = true,
-        this.itemSlideBuilder,
-        this.conversationCollector,
-        this.emptyBuilder,
-        this.lastMessageBuilder,
-        this.isShowOnlineStatus = true})
+      this.needClearHistory = false,
+      this.lifeCycle,
+      this.onTapItem,
+      this.onTapItemWithMode,
+      this.controller,
+      this.itemSecondaryMenuBuilder,
+      this.itemBuilder,
+      this.isShowDraft = true,
+      this.itemSlideBuilder,
+      this.conversationCollector,
+      this.emptyBuilder,
+      this.lastMessageBuilder,
+      this.isShowOnlineStatus = true})
       : super(key: key);
 
   @override
@@ -160,13 +161,13 @@ class ConversationItemSlidePanel extends TIMUIKitStatelessWidget {
 
 class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   final TUIConversationViewModel model =
-  serviceLocator<TUIConversationViewModel>();
+      serviceLocator<TUIConversationViewModel>();
   final TUIGroupProfileModel groupProfileModel = TUIGroupProfileModel();
   final TUIProfileViewModel profileViewModel = TUIProfileViewModel();
   late TIMUIKitConversationController _timuiKitConversationController;
   final TUIThemeViewModel themeViewModel = serviceLocator<TUIThemeViewModel>();
   final TUIFriendShipViewModel friendShipViewModel =
-  serviceLocator<TUIFriendShipViewModel>();
+      serviceLocator<TUIFriendShipViewModel>();
   late AutoScrollController _autoScrollController;
 
   bool handleData = false;
@@ -201,6 +202,22 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
   // 处理数据
   channelData(List<V2TimConversation?> filteredConversationList) async {
+    if (widget.needClearHistory) {
+      for (V2TimConversation? item in filteredConversationList) {
+        if (item != null) {
+          final isChannelOrTeam = (TencentUtils.india == item.groupID ||
+              TencentUtils.korea == item.groupID ||
+              TencentUtils.english == item.groupID ||
+              TencentUtils.chinese == item.groupID ||
+              TencentUtils.french == item.groupID ||
+              TencentUtils.german == item.groupID ||
+              TencentUtils.aidTeam == item.groupID);
+          if (isChannelOrTeam) continue;
+          _timuiKitConversationController.deleteConversation(
+              conversationID: item.conversationID);
+        }
+      }
+    }
     index = 0;
     filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
@@ -209,7 +226,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       showName: tr('wallet.aid_team'),
     );
 
-    filteredConversationList =  updateAidTeamConversation(
+    filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.english,
       insertIndex: index,
@@ -217,7 +234,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.englishFaceUrl,
     );
 
-    filteredConversationList =  updateAidTeamConversation(
+    filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.german,
       insertIndex: index,
@@ -225,7 +242,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.germanFaceUrl,
     );
 
-    filteredConversationList =  updateAidTeamConversation(
+    filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.french,
       insertIndex: index,
@@ -233,7 +250,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.frenchFaceUrl,
     );
 
-    filteredConversationList =  updateAidTeamConversation(
+    filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.korea,
       insertIndex: index,
@@ -241,7 +258,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.koreaFaceUrl,
     );
 
-    filteredConversationList =  updateAidTeamConversation(
+    filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.chinese,
       insertIndex: index,
@@ -249,52 +266,52 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
       faceUrl: TencentUtils.chineseFaceUrl,
     );
 
-    filteredConversationList =  updateAidTeamConversation(
+    filteredConversationList = updateAidTeamConversation(
       filteredConversationList,
       TencentUtils.india,
       insertIndex: index,
       showName: tr('general.indian_channel'),
       faceUrl: TencentUtils.indiaFaceUrl,
     );
-
   }
 
-  handleUnReadData(List<V2TimConversation?> filteredConversationList, TUIConversationViewModel model) async {
-
+  handleUnReadData(List<V2TimConversation?> filteredConversationList,
+      TUIConversationViewModel model) async {
     if (handleData) return;
     handleData = true;
     for (var aidTeamConversation in filteredConversationList) {
       if (aidTeamConversation != null) {
-        final isChannelOrTeam = (TencentUtils.india ==
-            aidTeamConversation.groupID ||
-            TencentUtils.korea == aidTeamConversation.groupID ||
-            TencentUtils.english == aidTeamConversation.groupID ||
-            TencentUtils.chinese == aidTeamConversation.groupID ||
-            TencentUtils.french == aidTeamConversation.groupID ||
-            TencentUtils.german == aidTeamConversation.groupID ||
-            TencentUtils.aidTeam == aidTeamConversation.groupID);
+        final isChannelOrTeam =
+            (TencentUtils.india == aidTeamConversation.groupID ||
+                TencentUtils.korea == aidTeamConversation.groupID ||
+                TencentUtils.english == aidTeamConversation.groupID ||
+                TencentUtils.chinese == aidTeamConversation.groupID ||
+                TencentUtils.french == aidTeamConversation.groupID ||
+                TencentUtils.german == aidTeamConversation.groupID ||
+                TencentUtils.aidTeam == aidTeamConversation.groupID);
         if (!isChannelOrTeam) return;
         // 全部设置为已读
         await TencentImSDKPlugin.v2TIMManager
             .getConversationManager()
             .cleanConversationUnreadMessageCount(
-          conversationID: 'group_' + aidTeamConversation.groupID.toString(),
-          cleanTimestamp: DateTime.now().millisecondsSinceEpoch + 100000, // 稍微靠未来一点
-          cleanSequence: 999999999,     // 一般不会到这个值
-        );
+              conversationID: 'group_' + aidTeamConversation.groupID.toString(),
+              cleanTimestamp:
+                  DateTime.now().millisecondsSinceEpoch + 100000, // 稍微靠未来一点
+              cleanSequence: 999999999, // 一般不会到这个值
+            );
       }
     }
   }
 
   List<V2TimConversation?> updateAidTeamConversation(
-      List<V2TimConversation?> conversationList,
-      String aidTeamId, {
-        int insertIndex = 0,
-        String? showName,
-        String? faceUrl,
-      })  {
+    List<V2TimConversation?> conversationList,
+    String aidTeamId, {
+    int insertIndex = 0,
+    String? showName,
+    String? faceUrl,
+  }) {
     V2TimConversation? aidTeamConversation = conversationList.firstWhereOrNull(
-          (conversation) => conversation?.groupID == aidTeamId,
+      (conversation) => conversation?.groupID == aidTeamId,
     );
 
     if (aidTeamConversation != null) {
@@ -332,7 +349,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   void onTapConvItem(V2TimConversation conversation) async {
     // debugPrint('onTapConvItem called for: ${conversation.conversationID}');
     // debugPrint('Available callbacks - onTapItemWithMode: ${widget.onTapItemWithMode != null}, onTapItem: ${widget.onTapItem != null}');
-    
+
     // Call the appropriate callback - mode checking moved to chat screen
     if (widget.onTapItemWithMode != null) {
       // debugPrint('Calling onTapItemWithMode callback');
@@ -344,11 +361,10 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     } else {
       // debugPrint('No callback provided!');
     }
-    
+
     model.setSelectedConversation(conversation);
     // debugPrint('onTapConvItem completed');
   }
-
 
   _clearHistory(V2TimConversation conversationItem) {
     _timuiKitConversationController.clearHistoryMessage(
@@ -420,8 +436,8 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   }
 
   List<ConversationItemSlidePanel> _defaultSlideBuilder(
-      V2TimConversation conversationItem,
-      ) {
+    V2TimConversation conversationItem,
+  ) {
     final theme = themeViewModel.theme;
     return [
       if (!PlatformUtils().isWeb)
@@ -441,7 +457,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           _pinConversation(conversationItem);
         },
         backgroundColor:
-        theme.conversationItemSliderPinBgColor ?? CommonColor.infoColor,
+            theme.conversationItemSliderPinBgColor ?? CommonColor.infoColor,
         foregroundColor: theme.conversationItemSliderTextColor,
         label: conversationItem.isPinned! ? TIM_t("取消置顶") : TIM_t("置顶"),
       ),
@@ -450,7 +466,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           _deleteConversation(conversationItem);
         },
         backgroundColor:
-        theme.conversationItemSliderDeleteBgColor ?? Colors.red,
+            theme.conversationItemSliderDeleteBgColor ?? Colors.red,
         foregroundColor: theme.conversationItemSliderTextColor,
         label: TIM_t("删除"),
       )
@@ -487,18 +503,18 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           ChangeNotifierProvider.value(value: profileViewModel)
         ],
         builder: (BuildContext context, Widget? w) {
-
           final _model = Provider.of<TUIConversationViewModel>(context);
           bool haveMoreData = _model.haveMoreData;
           final _friendShipViewModel =
-          Provider.of<TUIFriendShipViewModel>(context);
+              Provider.of<TUIFriendShipViewModel>(context);
           _model.lifeCycle = widget.lifeCycle;
 
           if (TencentUtils.checkString(_model.scrollToConversation) != null) {
             _onScrollToConversation(_model.scrollToConversation!);
             _model.clearScrollToConversation();
           }
-          List<V2TimConversation?> filteredConversationList = getFilteredConversation();
+          List<V2TimConversation?> filteredConversationList =
+              getFilteredConversation();
 
           handleUnReadData(filteredConversationList, _model);
 
@@ -517,137 +533,142 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
           Widget conversationList() {
             return filteredConversationList.isNotEmpty
                 ? ListView.builder(
-                controller: _autoScrollController,
-                shrinkWrap: true,
-                itemCount: filteredConversationList.length,
-                itemBuilder: (context, index) {
-                  if (index == filteredConversationList.length - 1) {
-                    if (haveMoreData) {
-                      _timuiKitConversationController.loadData();
-                    }
-                  }
+                    controller: _autoScrollController,
+                    shrinkWrap: true,
+                    itemCount: filteredConversationList.length,
+                    itemBuilder: (context, index) {
+                      if (index == filteredConversationList.length - 1) {
+                        if (haveMoreData) {
+                          _timuiKitConversationController.loadData();
+                        }
+                      }
 
-                  final conversationItem = filteredConversationList[index];
+                      final conversationItem = filteredConversationList[index];
 
-                  // Optimized O(1) lookup instead of O(n) firstWhere
-                  final V2TimUserStatus? onlineStatus = conversationItem?.userID != null 
-                      ? userStatusMap[conversationItem!.userID!] ?? V2TimUserStatus(statusType: 0)
-                      : V2TimUserStatus(statusType: 0);
+                      // Optimized O(1) lookup instead of O(n) firstWhere
+                      final V2TimUserStatus? onlineStatus =
+                          conversationItem?.userID != null
+                              ? userStatusMap[conversationItem!.userID!] ??
+                                  V2TimUserStatus(statusType: 0)
+                              : V2TimUserStatus(statusType: 0);
 
-                  if (widget.itemBuilder != null) {
-                    return widget.itemBuilder!(
-                        conversationItem!, onlineStatus);
-                  }
+                      if (widget.itemBuilder != null) {
+                        return widget.itemBuilder!(
+                            conversationItem!, onlineStatus);
+                      }
 
-                  final slideChildren =
-                  _getSlideBuilder()(conversationItem!);
+                      final slideChildren =
+                          _getSlideBuilder()(conversationItem!);
 
-                  final isCurrent = conversationItem.conversationID ==
-                      model.selectedConversation?.conversationID;
+                      final isCurrent = conversationItem.conversationID ==
+                          model.selectedConversation?.conversationID;
 
-                  final isPined = conversationItem.isPinned ?? false;
+                      final isPined = conversationItem.isPinned ?? false;
 
-                  Widget conversationLineItem() {
-                    return Material(
-                      color: (isCurrent && isDesktopScreen)
-                          ? theme.conversationItemChooseBgColor
-                          : isPined
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.transparent,
-                      child: GestureDetector(
-                        child: TIMUIKitConversationItem(
-                            convID: conversationItem.groupID ?? '',
-                            isCurrent: isCurrent,
-                            isShowDraft: widget.isShowDraft,
-                            lastMessageBuilder: widget.lastMessageBuilder,
-                            faceUrl: conversationItem.faceUrl ?? "",
-                            nickName: conversationItem.showName ?? "",
-                            isDisturb: conversationItem.recvOpt != 0,
-                            lastMsg: conversationItem.lastMessage,
-                            isPined: isPined,
-                            groupAtInfoList:
-                            conversationItem.groupAtInfoList ?? [],
-                            unreadCount: conversationItem.unreadCount ?? 0,
-                            draftText: conversationItem.draftText,
-                            onlineStatus: (widget.isShowOnlineStatus &&
-                                conversationItem.userID != null &&
-                                conversationItem.userID!.isNotEmpty)
-                                ? onlineStatus
-                                : null,
-                            draftTimestamp: conversationItem.draftTimestamp,
-                            convType: conversationItem.type),
-                        onTap: () async {
-                          // debugPrint('Conversation item tapped: ${conversationItem.conversationID}');
-                          conversationItem.unreadCount = 0;
-                          final res = await TencentImSDKPlugin.v2TIMManager.getLoginUser();
-                          if (res.code == 0) {
-                            final key = '${TencentUtils.unreadMark}_${res.data}_${conversationItem.groupID}';
-                            await GetStorage().write(key, DateTime.now().millisecondsSinceEpoch);
-                          }
-                          // debugPrint('Calling onTapConvItem...');
-                          onTapConvItem(conversationItem);
-                        },
-                      ),
-                    );
-                  }
+                      Widget conversationLineItem() {
+                        return Material(
+                          color: (isCurrent && isDesktopScreen)
+                              ? theme.conversationItemChooseBgColor
+                              : isPined
+                                  ? Colors.white.withOpacity(0.1)
+                                  : Colors.transparent,
+                          child: GestureDetector(
+                            child: TIMUIKitConversationItem(
+                                convID: conversationItem.groupID ?? '',
+                                isCurrent: isCurrent,
+                                isShowDraft: widget.isShowDraft,
+                                lastMessageBuilder: widget.lastMessageBuilder,
+                                faceUrl: conversationItem.faceUrl ?? "",
+                                nickName: conversationItem.showName ?? "",
+                                isDisturb: conversationItem.recvOpt != 0,
+                                lastMsg: conversationItem.lastMessage,
+                                isPined: isPined,
+                                groupAtInfoList:
+                                    conversationItem.groupAtInfoList ?? [],
+                                unreadCount: conversationItem.unreadCount ?? 0,
+                                draftText: conversationItem.draftText,
+                                onlineStatus: (widget.isShowOnlineStatus &&
+                                        conversationItem.userID != null &&
+                                        conversationItem.userID!.isNotEmpty)
+                                    ? onlineStatus
+                                    : null,
+                                draftTimestamp: conversationItem.draftTimestamp,
+                                convType: conversationItem.type),
+                            onTap: () async {
+                              // debugPrint('Conversation item tapped: ${conversationItem.conversationID}');
+                              conversationItem.unreadCount = 0;
+                              final res = await TencentImSDKPlugin.v2TIMManager
+                                  .getLoginUser();
+                              if (res.code == 0) {
+                                final key =
+                                    '${TencentUtils.unreadMark}_${res.data}_${conversationItem.groupID}';
+                                await GetStorage().write(
+                                    key, DateTime.now().millisecondsSinceEpoch);
+                              }
+                              // debugPrint('Calling onTapConvItem...');
+                              onTapConvItem(conversationItem);
+                            },
+                          ),
+                        );
+                      }
 
-                  final isChannelOrTeam = (TencentUtils.india ==
-                      conversationItem.groupID ||
-                      TencentUtils.korea == conversationItem.groupID ||
-                      TencentUtils.english == conversationItem.groupID ||
-                      TencentUtils.chinese == conversationItem.groupID ||
-                      TencentUtils.french == conversationItem.groupID ||
-                      TencentUtils.german == conversationItem.groupID ||
-                      TencentUtils.aidTeam == conversationItem.groupID);
+                      final isChannelOrTeam = (TencentUtils.india ==
+                              conversationItem.groupID ||
+                          TencentUtils.korea == conversationItem.groupID ||
+                          TencentUtils.english == conversationItem.groupID ||
+                          TencentUtils.chinese == conversationItem.groupID ||
+                          TencentUtils.french == conversationItem.groupID ||
+                          TencentUtils.german == conversationItem.groupID ||
+                          TencentUtils.aidTeam == conversationItem.groupID);
 
-                  return TUIKitScreenUtils.getDeviceWidget(
-                      context: context,
-                      desktopWidget: AutoScrollTag(
-                        key: ValueKey(conversationItem.conversationID),
-                        controller: _autoScrollController,
-                        index: index,
-                        child: InkWell(
-                          onSecondaryTapDown: (details) {
-                            TUIKitWidePopup.showPopupWindow(
-                                operationKey: TUIKitWideModalOperationKey
-                                    .conversationSecondaryMenu,
-                                isDarkBackground: false,
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(4)),
-                                context: context,
-                                offset: Offset(
-                                    min(
-                                        details.globalPosition.dx,
-                                        MediaQuery.of(context).size.width -
-                                            80),
-                                    min(
-                                        details.globalPosition.dy,
-                                        MediaQuery.of(context).size.height -
-                                            130)),
-                                child: (onClose) => _getSecondaryMenu(
-                                    conversationItem, onClose));
-                          },
-                          child: conversationLineItem(),
-                        ),
-                      ),
-                      defaultWidget: AutoScrollTag(
-                        key: ValueKey(conversationItem.conversationID),
-                        controller: _autoScrollController,
-                        index: index,
-                        child: Slidable(
-                            enabled: !isChannelOrTeam,
-                            groupTag: 'conversation-list',
-                            child: conversationLineItem(),
-                            endActionPane: ActionPane(
-                                extentRatio:
-                                slideChildren.length > 2 ? 0.77 : 0.5,
-                                motion: const DrawerMotion(),
-                                children: slideChildren)),
-                      ));
-                })
+                      return TUIKitScreenUtils.getDeviceWidget(
+                          context: context,
+                          desktopWidget: AutoScrollTag(
+                            key: ValueKey(conversationItem.conversationID),
+                            controller: _autoScrollController,
+                            index: index,
+                            child: InkWell(
+                              onSecondaryTapDown: (details) {
+                                TUIKitWidePopup.showPopupWindow(
+                                    operationKey: TUIKitWideModalOperationKey
+                                        .conversationSecondaryMenu,
+                                    isDarkBackground: false,
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(4)),
+                                    context: context,
+                                    offset: Offset(
+                                        min(
+                                            details.globalPosition.dx,
+                                            MediaQuery.of(context).size.width -
+                                                80),
+                                        min(
+                                            details.globalPosition.dy,
+                                            MediaQuery.of(context).size.height -
+                                                130)),
+                                    child: (onClose) => _getSecondaryMenu(
+                                        conversationItem, onClose));
+                              },
+                              child: conversationLineItem(),
+                            ),
+                          ),
+                          defaultWidget: AutoScrollTag(
+                            key: ValueKey(conversationItem.conversationID),
+                            controller: _autoScrollController,
+                            index: index,
+                            child: Slidable(
+                                enabled: !isChannelOrTeam,
+                                groupTag: 'conversation-list',
+                                child: conversationLineItem(),
+                                endActionPane: ActionPane(
+                                    extentRatio:
+                                        slideChildren.length > 2 ? 0.77 : 0.5,
+                                    motion: const DrawerMotion(),
+                                    children: slideChildren)),
+                          ));
+                    })
                 : (widget.emptyBuilder != null
-                ? widget.emptyBuilder!()
-                : Container());
+                    ? widget.emptyBuilder!()
+                    : Container());
           }
 
           return TUIKitScreenUtils.getDeviceWidget(
