@@ -42,7 +42,7 @@ typedef ConversationItemSecondaryMenuBuilder = Widget Function(
 
 class TIMUIKitConversation extends StatefulWidget {
   /// check clear history
-  final bool needClearHistory;
+  bool needClearHistory;
 
   /// the callback after clicking conversation item
   final ValueChanged<V2TimConversation>? onTapItem;
@@ -81,7 +81,7 @@ class TIMUIKitConversation extends StatefulWidget {
   /// Control if shows the identifier that the conversation has a draft text, inputted in previous.
   final bool isShowDraft;
 
-  const TIMUIKitConversation(
+  TIMUIKitConversation(
       {Key? key,
       this.needClearHistory = false,
       this.lifeCycle,
@@ -182,6 +182,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     _autoScrollController = AutoScrollController();
     if (widget.needClearHistory) {
       model.clearAllHistory();
+      widget.needClearHistory = false;
     }
   }
 
