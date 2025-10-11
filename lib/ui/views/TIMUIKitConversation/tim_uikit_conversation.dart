@@ -182,7 +182,6 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
     _autoScrollController = AutoScrollController();
     if (widget.needClearHistory) {
       model.clearAllHistory();
-      widget.needClearHistory = false;
     }
   }
 
@@ -204,6 +203,7 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
   // 处理数据
   channelData(List<V2TimConversation?> filteredConversationList) async {
     if (widget.needClearHistory) {
+      widget.needClearHistory = false;
       for (V2TimConversation? item in filteredConversationList) {
         if (item != null) {
           final isChannelOrTeam = (TencentUtils.india == item.groupID ||
