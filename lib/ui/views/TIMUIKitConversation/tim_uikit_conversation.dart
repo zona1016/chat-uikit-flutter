@@ -42,7 +42,7 @@ typedef ConversationItemSecondaryMenuBuilder = Widget Function(
 
 class TIMUIKitConversation extends StatefulWidget {
   /// check clear history
-  bool needClearHistory;
+  final bool needClearHistory;
 
   /// the callback after clicking conversation item
   final ValueChanged<V2TimConversation>? onTapItem;
@@ -172,14 +172,17 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
   bool handleData = false;
   int index = 0;
+  bool needClearHistory = false;
 
   @override
   void initState() {
+    print('------------');
     super.initState();
     final controller = getController();
     _timuiKitConversationController = controller;
     _timuiKitConversationController.model = model;
     _autoScrollController = AutoScrollController();
+    needClearHistory = widget.needClearHistory;
     if (widget.needClearHistory) {
       model.clearAllHistory();
     }
@@ -202,8 +205,8 @@ class _TIMUIKitConversationState extends TIMUIKitState<TIMUIKitConversation> {
 
   // 处理数据
   channelData(List<V2TimConversation?> filteredConversationList) async {
-    if (widget.needClearHistory) {
-      widget.needClearHistory = false;
+    if (needClearHistory) {
+      needClearHistory = false;
       for (V2TimConversation? item in filteredConversationList) {
         if (item != null) {
           final isChannelOrTeam = (TencentUtils.india == item.groupID ||
