@@ -230,145 +230,146 @@ class _MessageReadReceiptState extends TIMUIKitState<MessageReadReceipt> {
     Widget pageBody() {
       return Container(
         color: isDesktopScreen ? null : Colors.transparent,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(MessageUtils.getDisplayName(widget.messageItem), style: const TextStyle(color: AidaBaseColors.white),),
-                      const SizedBox(
-                        width: 8,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(MessageUtils.getDisplayName(widget.messageItem), style: const TextStyle(color: AidaBaseColors.white),),
+                        const SizedBox(
+                          width: 8,
+                        ),
+                        Text(
+                          TimeAgo().getTimeForMessage(
+                              widget.messageItem.timestamp ?? 0),
+                          softWrap: true,
+                          style:
+                              const TextStyle(fontSize: 12, color: AidaBaseColors.whiteGray),
+                        )
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 6,
+                    ),
+                    _getMsgItem(widget.messageItem)
+                  ],
+                ),
+              ),
+              Container(
+                height: 8,
+                color: AidaBaseColors.whiteWithOpacity01,
+              ),
+              Row(
+                // direction: Axis.horizontal,
+                children: <Widget>[
+                  Expanded(
+                    flex: 1,
+                    child: InkWell(
+                      onTap: () {
+                        currentIndex = 0;
+                        setState(() {});
+                      },
+                      child: Container(
+                        height: isDesktopScreen ? 40 : 50.0,
+                        alignment: Alignment.bottomCenter,
+                        padding:
+                            EdgeInsets.only(bottom: isDesktopScreen ? 8 : 12),
+                        decoration: BoxDecoration(
+                            color: AidaBaseColors.whiteWithOpacity01,
+                            border: Border(
+                                bottom: BorderSide(
+                                    width: 2,
+                                    color: currentIndex == 0
+                                        ? AidaBaseColors.primaryColor
+                                        : AidaBaseColors.whiteWithOpacity01))),
+                        child: Text(
+                          TIM_t_para("{{option1}}人已读", "$option1人已读")(
+                              option1: option1),
+                          style: TextStyle(
+                            color: currentIndex != 0
+                                ? AidaBaseColors.weakTextColor
+                                : AidaBaseColors.white,
+                            fontSize: isDesktopScreen ? 14 : 18,
+                          ),
+                        ),
                       ),
-                      Text(
-                        TimeAgo().getTimeForMessage(
-                            widget.messageItem.timestamp ?? 0),
-                        softWrap: true,
-                        style:
-                            const TextStyle(fontSize: 12, color: AidaBaseColors.whiteGray),
-                      )
-                    ],
+                    ),
                   ),
-                  const SizedBox(
-                    height: 6,
+                  Expanded(
+                    flex: 1,
+                    child: InkWell(
+                      onTap: () {
+                        currentIndex = 1;
+                        setState(() {});
+                      },
+                      child: Container(
+                        alignment: Alignment.bottomCenter,
+                        height: isDesktopScreen ? 40 : 50.0,
+                        padding:
+                            EdgeInsets.only(bottom: isDesktopScreen ? 8 : 12),
+                        decoration: BoxDecoration(
+                            color: AidaBaseColors.whiteWithOpacity01,
+                            border: Border(
+                                bottom: BorderSide(
+                                    width: 2,
+                                    color: currentIndex == 1
+                                        ? AidaBaseColors.primaryColor
+                                        : AidaBaseColors.whiteWithOpacity01))),
+                        child: Text(
+                          TIM_t_para("{{option2}}人未读", "$option2人未读")(
+                              option2: option2),
+                          style: TextStyle(
+                            color: currentIndex != 1
+                                ? AidaBaseColors.weakTextColor
+                                : AidaBaseColors.white,
+                            fontSize: isDesktopScreen ? 14 : 18,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  _getMsgItem(widget.messageItem)
                 ],
               ),
-            ),
-            Container(
-              height: 8,
-              color: AidaBaseColors.whiteWithOpacity01,
-            ),
-            Row(
-              // direction: Axis.horizontal,
-              children: <Widget>[
-                Expanded(
-                  flex: 1,
-                  child: InkWell(
-                    onTap: () {
-                      currentIndex = 0;
-                      setState(() {});
-                    },
-                    child: Container(
-                      height: isDesktopScreen ? 40 : 50.0,
-                      alignment: Alignment.bottomCenter,
-                      padding:
-                          EdgeInsets.only(bottom: isDesktopScreen ? 8 : 12),
-                      decoration: BoxDecoration(
-                          color: AidaBaseColors.whiteWithOpacity01,
-                          border: Border(
-                              bottom: BorderSide(
-                                  width: 2,
-                                  color: currentIndex == 0
-                                      ? AidaBaseColors.primaryColor
-                                      : AidaBaseColors.whiteWithOpacity01))),
-                      child: Text(
-                        TIM_t_para("{{option1}}人已读", "$option1人已读")(
-                            option1: option1),
-                        style: TextStyle(
-                          color: currentIndex != 0
-                              ? AidaBaseColors.weakTextColor
-                              : AidaBaseColors.white,
-                          fontSize: isDesktopScreen ? 14 : 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: InkWell(
-                    onTap: () {
-                      currentIndex = 1;
-                      setState(() {});
-                    },
-                    child: Container(
-                      alignment: Alignment.bottomCenter,
-                      height: isDesktopScreen ? 40 : 50.0,
-                      padding:
-                          EdgeInsets.only(bottom: isDesktopScreen ? 8 : 12),
-                      decoration: BoxDecoration(
-                          color: AidaBaseColors.whiteWithOpacity01,
-                          border: Border(
-                              bottom: BorderSide(
-                                  width: 2,
-                                  color: currentIndex == 1
-                                      ? AidaBaseColors.primaryColor
-                                      : AidaBaseColors.whiteWithOpacity01))),
-                      child: Text(
-                        TIM_t_para("{{option2}}人未读", "$option2人未读")(
-                            option2: option2),
-                        style: TextStyle(
-                          color: currentIndex != 1
-                              ? AidaBaseColors.weakTextColor
-                              : AidaBaseColors.white,
-                          fontSize: isDesktopScreen ? 14 : 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              height: 1,
-              decoration: BoxDecoration(
-                  border: Border(
-                      bottom: BorderSide(
-                          color: theme.weakDividerColor ??
-                              CommonColor.weakDividerColor))),
-            ),
-            Expanded(
-                child: IndexedStack(
-              index: currentIndex,
-              children: [
-                ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: readMemberList.length,
-                    itemBuilder: (context, index) {
-                      if (!readMemberIsFinished &&
-                          index == readMemberList.length - 5) {
-                        _getReadMemberList();
-                      }
-                      return _memberItemBuilder(readMemberList[index], theme);
-                    }),
-                ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: unreadMemberList.length,
-                    itemBuilder: (context, index) {
-                      if (!unreadMemberIsFinished &&
-                          index == unreadMemberList.length - 5) {
-                        _getUnreadMemberList();
-                      }
-                      return _memberItemBuilder(unreadMemberList[index], theme);
-                    }),
-              ],
-            )),
-          ],
+              Container(
+                height: 1,
+                decoration: BoxDecoration(
+                    border: Border(
+                        bottom: BorderSide(
+                            color: theme.weakDividerColor ??
+                                CommonColor.weakDividerColor))),
+              ),
+              IndexedStack(
+                            index: currentIndex,
+                            children: [
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: readMemberList.length,
+                  itemBuilder: (context, index) {
+                    if (!readMemberIsFinished &&
+                        index == readMemberList.length - 5) {
+                      _getReadMemberList();
+                    }
+                    return _memberItemBuilder(readMemberList[index], theme);
+                  }),
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: unreadMemberList.length,
+                  itemBuilder: (context, index) {
+                    if (!unreadMemberIsFinished &&
+                        index == unreadMemberList.length - 5) {
+                      _getUnreadMemberList();
+                    }
+                    return _memberItemBuilder(unreadMemberList[index], theme);
+                  }),
+                            ],
+                          ),
+            ],
+          ),
         ),
       );
     }
