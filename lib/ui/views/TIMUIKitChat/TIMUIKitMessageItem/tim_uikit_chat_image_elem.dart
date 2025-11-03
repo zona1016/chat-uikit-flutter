@@ -36,6 +36,7 @@ import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageIt
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/multi_image_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/image_screen.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/wide_popup.dart';
+import 'package:tencent_cloud_chat_uikit/ui/widgets/mosaic_privacy_overlay.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:url_launcher/url_launcher.dart';
@@ -72,6 +73,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
   final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
   bool _isViewed = false;
   int _remainingSeconds = 0;
+  bool _isBurned = false;
 
   Widget? imageItem;
   bool isSent = false;
@@ -675,6 +677,10 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     setState(() {
       isSelfDestruct = _selfDestructQueue.isSelfDestructMessage(widget.message.msgID ?? '');
       _remainingSeconds = 0; // Initialize with 0, will be updated later
+      // Only mark SENDER messages as burned, receivers should always see unopened state
+      _isBurned = widget.message.msgID != null &&
+                  widget.message.isSelf == true &&
+                  _selfDestructQueue.isMessageBurned(widget.message.msgID!);
     });
     
     // Complex logic after setState to avoid widget loading issues
@@ -692,19 +698,22 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
           }
           
           // Get current remaining seconds, or expected burn seconds if not started yet
-          int remainingSeconds = _selfDestructQueue.getRemainingSeconds(msgID);
-          if (remainingSeconds == 0 && isSelfDestruct) {
-            // If countdown not started yet, show expected burn seconds instead of 0
-            final conversationID = widget.message.groupID != null ? 
-                                  'group_${widget.message.groupID}' : 
-                                  'c2c_${widget.message.userID ?? widget.message.sender}';
-            remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
-          }
-          
-          if (mounted) {
-            setState(() {
-              _remainingSeconds = remainingSeconds;
-            });
+          // BUT: Don't show countdown if message is already burned
+          if (!_isBurned) {
+            int remainingSeconds = _selfDestructQueue.getRemainingSeconds(msgID);
+            if (remainingSeconds == 0 && isSelfDestruct) {
+              // If countdown not started yet, show expected burn seconds instead of 0
+              final conversationID = widget.message.groupID != null ?
+                                    'group_${widget.message.groupID}' :
+                                    'c2c_${widget.message.userID ?? widget.message.sender}';
+              remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+            }
+
+            if (mounted) {
+              setState(() {
+                _remainingSeconds = remainingSeconds;
+              });
+            }
           }
         }
       });
@@ -732,6 +741,14 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     }
   }
 
+  void _onMessageBurned(String msgID) {
+    if (msgID == widget.message.msgID && mounted) {
+      setState(() {
+        _isBurned = true;
+      });
+    }
+  }
+
   void _setupCallbacks() {
     // _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
     //   if (msgID == widget.message.msgID && mounted) {
@@ -748,6 +765,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     // };
     _selfDestructQueue.addCountdownListener(_onCountdownUpdate);
     _selfDestructQueue.addMessageDeletedListener(_onMessageDeleted);
+    _selfDestructQueue.addMessageBurnedListener(_onMessageBurned);
   }
 
   void _viewMessage() {
@@ -819,6 +837,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
   void dispose() {
     _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
     _selfDestructQueue.removeMessageDeletedListener(_onMessageDeleted);
+    _selfDestructQueue.removeMessageBurnedListener(_onMessageBurned);
     super.dispose();
   }
 
@@ -940,11 +959,80 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
             bottomLeft: Radius.circular(10),
             bottomRight: Radius.circular(10));
 
+    // When burned, show simple 1-line obfuscated text with icon (SENDER ONLY)
+    // Receiver should still see "点击查看" unopened state
+    if (_isBurned && isSelfDestruct && widget.message.isSelf == true) {
+      // Use standard sender/receiver colors for burned messages (not desktop dark colors)
+      final burnedColor = AidaBaseColors.primaryColor;
+
+      debugPrint('IMAGE BURNED STATE (SENDER): msgID=${widget.message.msgID}');
+
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: EdgeInsets.all(isDesktopScreen ? 12 : 10),
+            decoration: BoxDecoration(
+              color: burnedColor,
+              borderRadius: borderRadius,
+            ),
+            constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _selfDestructQueue.generateObfuscatedText(8),
+                  style: TextStyle(
+                      color: isDesktopScreen
+                          ? Colors.black
+                          : AidaBaseColors.white),
+                ),
+                // const SizedBox(width: 10),
+                // Image.asset(
+                //   'images/vanish_img.png',
+                //   package: 'tencent_cloud_chat_uikit',
+                //   width: 17,
+                //   height: 15,
+                // ),
+                const SizedBox(width: 10),
+              ],
+            ),
+          ),
+          if (isSelfDestruct)
+            Positioned(
+                top: 0,
+                left: widget.message.isSelf! ? -6.5 : null,
+                right: !widget.message.isSelf! ? -6.5 : null,
+                child: Image.asset(
+                  'images/vanish_icon.png',
+                  package: 'tencent_cloud_chat_uikit',
+                  height: 13,
+                  width: 13,
+                )),
+        ],
+      );
+    }
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        if (isOpen || widget.message.isSelf! || !isSelfDestruct)
-          TIMUIKitMessageReactionWrapper(
+        // Ensure Stack always has at least one non-positioned child
+        // BUT: Show content if message is burned (so user can see random symbols)
+        if (!isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned)
+          const SizedBox.shrink(),
+        if (isOpen || !isSelfDestruct || _isBurned)
+          MosaicPrivacyOverlay(
+            isVisible: !isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned,
+            onTap: _openMessage,
+            borderRadius: borderRadius,
+            vanishIconType: 'image',
+            burnSeconds: isSelfDestruct ? _selfDestructQueue.getExpectedBurnSeconds(
+              widget.message.groupID != null ?
+                'group_${widget.message.groupID}' :
+                'c2c_${widget.message.userID ?? widget.message.sender}'
+            ) : null,
+            child: TIMUIKitMessageReactionWrapper(
               chatModel: widget.chatModel,
               isShowJump: widget.isShowJump,
               clearJump: widget.clearJump,
@@ -964,6 +1052,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
                       originalImg: originalImg, smallImg: smallImg),
                 );
               })),
+        ),
         if (!isOpen && !widget.message.isSelf! && isSelfDestruct)
           GestureDetector(
             onTap: () {
@@ -972,7 +1061,13 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
             child: Container(
               padding: EdgeInsets.all(isDesktopScreen ? 12 : 10),
               decoration: BoxDecoration(
-                color: backgroundColor,
+                color: isDesktopScreen
+                    ? widget.isFromSelf
+                        ? theme.lightPrimaryMaterialColor.shade50
+                        : theme.weakBackgroundColor
+                    : widget.isFromSelf
+                        ? AidaBaseColors.primaryColor
+                        : AidaBaseColors.whiteWithOpacity01,
                 borderRadius: borderRadius,
               ),
               constraints: BoxConstraints(
@@ -1021,13 +1116,8 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
               child: Text('${_remainingSeconds}s',
                   style:
                       const TextStyle(color: AidaBaseColors.selfDestructMode))),
-        if (isSelfDestruct && 
-            widget.message.isSelf! && 
-            ((widget.message.userID != null && 
-              widget.message.isPeerRead != null && 
-              widget.message.isPeerRead!) ||
-            (widget.message.groupID != null && 
-              _isGroupMessageReadByAll())))
+        // Show countdown immediately for sender (new behavior)
+        if (isSelfDestruct && widget.message.isSelf! && _remainingSeconds > 0)
           Positioned(
               bottom: 0,
               left: -25,

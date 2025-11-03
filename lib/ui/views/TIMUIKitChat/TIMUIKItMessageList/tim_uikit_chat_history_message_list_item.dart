@@ -20,6 +20,7 @@ import 'package:tencent_cloud_chat_uikit/ui/constants/history_message_constant.d
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/time_ago.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKItMessageList/tim_uikit_chat_message_tooltip.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKItMessageList/tim_uikit_message_read_receipt.dart';
@@ -1062,20 +1063,20 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
         if (model.chatConfig.isShowReadingStatus && !disappearingMessage &&
             widget.showMessageReadRecipt &&
             model.conversationType == ConvType.c2c &&
-            isSelf && (!isSelfDestruct || (message.isPeerRead == null || !message.isPeerRead!)) &&
+            isSelf &&
             (message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC || message.status == MessageStatus.V2TIM_MSG_STATUS_SENDING))
-          Container(
-            padding: const EdgeInsets.only(bottom: 3),
-            margin: const EdgeInsets.only(right: 6),
-            child: Text(
-              isPeerRead ? TIM_t("已读") : TIM_t("未读"),
-              style: TextStyle(color: theme.chatMessageItemUnreadStatusTextColor, fontSize: 12),
-            ),
+          _ReadStatusWidget(
+            message: message,
+            isSelfDestruct: isSelfDestruct,
+            isPeerRead: isPeerRead,
+            theme: theme,
           ),
         if (model.chatConfig.isShowGroupReadingStatus && !disappearingMessage &&
             model.chatConfig.isShowGroupMessageReadReceipt &&
             model.conversationType == ConvType.group &&
             isSelf && !MessageReceiptUtils.isGroupMessageReadByAll(message: message, context: context) &&
+            // Hide read status for self-destruct messages UNLESS they're burned
+            !(isSelfDestruct && message.msgID != null && !SelfDestructQueue().isMessageBurned(message.msgID!)) &&
             (message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC || message.status == MessageStatus.V2TIM_MSG_STATUS_SENDING))
           TIMUIKitMessageReadReceipt(
             messageItem: widget.message,
@@ -1393,6 +1394,137 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Stateful widget to listen to countdown updates for read status display
+class _ReadStatusWidget extends StatefulWidget {
+  final V2TimMessage message;
+  final bool isSelfDestruct;
+  final bool isPeerRead;
+  final TUITheme theme;
+
+  const _ReadStatusWidget({
+    required this.message,
+    required this.isSelfDestruct,
+    required this.isPeerRead,
+    required this.theme,
+  });
+
+  @override
+  State<_ReadStatusWidget> createState() => _ReadStatusWidgetState();
+}
+
+class _ReadStatusWidgetState extends State<_ReadStatusWidget> {
+  final SelfDestructQueue _queue = SelfDestructQueue();
+  int _remainingSeconds = 0;
+  bool _isBurned = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.message.msgID != null) {
+      // Check if message is already burned FIRST
+      _isBurned = _queue.isMessageBurned(widget.message.msgID!);
+
+      // Also check if message should already be burned based on timestamp (for app restarts)
+      if (!_isBurned && widget.isSelfDestruct && widget.message.timestamp != null) {
+        final conversationID = widget.message.groupID != null ?
+                              'group_${widget.message.groupID}' :
+                              'c2c_${widget.message.userID ?? widget.message.sender}';
+        final burnSeconds = _queue.getExpectedBurnSeconds(conversationID);
+        final messageTimestamp = widget.message.timestamp!;
+        final currentTimestamp = (DateTime.now().millisecondsSinceEpoch / 1000).ceil();
+        final timeSinceMessage = currentTimestamp - messageTimestamp;
+
+        if (timeSinceMessage >= burnSeconds) {
+          _isBurned = true;
+        }
+      }
+
+      // Only set remaining seconds if message is NOT burned
+      if (!_isBurned && widget.isSelfDestruct) {
+        // For SENDER self-destruct messages, always start with expected burn seconds
+        // to prevent read status from showing during initialization race condition
+        if (widget.message.isSelf == true) {
+          final conversationID = widget.message.groupID != null ?
+                                'group_${widget.message.groupID}' :
+                                'c2c_${widget.message.userID ?? widget.message.sender}';
+          _remainingSeconds = _queue.getExpectedBurnSeconds(conversationID);
+
+          // Try to get actual remaining seconds from queue if available
+          final actualRemaining = _queue.getRemainingSeconds(widget.message.msgID!);
+          if (actualRemaining > 0) {
+            _remainingSeconds = actualRemaining;
+          }
+        } else {
+          // For receiver messages, only show countdown if actually started
+          _remainingSeconds = _queue.getRemainingSeconds(widget.message.msgID!);
+
+          if (_remainingSeconds == 0) {
+            final conversationID = widget.message.groupID != null ?
+                                  'group_${widget.message.groupID}' :
+                                  'c2c_${widget.message.userID ?? widget.message.sender}';
+            _remainingSeconds = _queue.getExpectedBurnSeconds(conversationID);
+          }
+        }
+      }
+
+      _queue.addCountdownListener(_onCountdownUpdate);
+      _queue.addMessageBurnedListener(_onMessageBurned);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.message.msgID != null) {
+      _queue.removeCountdownListener(_onCountdownUpdate);
+      _queue.removeMessageBurnedListener(_onMessageBurned);
+    }
+    super.dispose();
+  }
+
+  void _onCountdownUpdate(String msgID, int remaining) {
+    if (msgID == widget.message.msgID && mounted) {
+      debugPrint('ReadStatus widget countdown update for $msgID: $remaining seconds remaining');
+      setState(() {
+        _remainingSeconds = remaining;
+      });
+    }
+  }
+
+  void _onMessageBurned(String msgID) {
+    if (msgID == widget.message.msgID && mounted) {
+      debugPrint('ReadStatus widget received burned event for $msgID');
+      setState(() {
+        _isBurned = true;
+      });
+      debugPrint('ReadStatus widget $msgID: setState completed, _isBurned = $_isBurned, _remainingSeconds = $_remainingSeconds');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Don't hide if message is burned - show read status when burned
+    final isCountingDown = widget.isSelfDestruct && _remainingSeconds > 0 && !_isBurned;
+    debugPrint('ReadStatus widget build for ${widget.message.msgID}: isCountingDown=$isCountingDown, _remainingSeconds=$_remainingSeconds, isSelfDestruct=${widget.isSelfDestruct}, _isBurned=$_isBurned');
+
+    // Hide during countdown (but not when burned)
+    if (isCountingDown) {
+      debugPrint('ReadStatus widget hiding (countdown in progress)');
+      return const SizedBox.shrink();
+    }
+
+    // Show read status after countdown finishes, when burned, or for non-self-destruct messages
+    debugPrint('ReadStatus widget showing read status: ${widget.isPeerRead ? "已读" : "未读"}');
+    return Container(
+      padding: const EdgeInsets.only(bottom: 3),
+      margin: const EdgeInsets.only(right: 6),
+      child: Text(
+        widget.isPeerRead ? TIM_t("已读") : TIM_t("未读"),
+        style: TextStyle(color: widget.theme.chatMessageItemUnreadStatusTextColor, fontSize: 12),
       ),
     );
   }

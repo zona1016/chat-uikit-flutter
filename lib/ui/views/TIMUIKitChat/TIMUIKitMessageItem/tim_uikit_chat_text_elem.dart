@@ -15,6 +15,7 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField/special_text/DefaultSpecialTextSpanBuilder.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/link_preview/link_preview_entry.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/link_preview/widgets/link_preview.dart';
+import 'package:tencent_cloud_chat_uikit/ui/widgets/mosaic_privacy_overlay.dart';
 import 'TIMUIKitMessageReaction/tim_uikit_message_reaction_show_panel.dart';
 
 class TIMUIKitTextElem extends StatefulWidget {
@@ -55,6 +56,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
   bool _isViewed = false;
   int _remainingSeconds = 0;
+  bool _isBurned = false;
 
   bool isSelfDestruct = false;
   bool isOpen = false;
@@ -85,6 +87,10 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     setState(() {
       isSelfDestruct = _selfDestructQueue.isSelfDestructMessage(widget.message.msgID ?? '');
       _remainingSeconds = 0; // Initialize with 0, will be updated later
+      // Only mark SENDER messages as burned, receivers should always see unopened state
+      _isBurned = widget.message.msgID != null &&
+                  widget.message.isSelf == true &&
+                  _selfDestructQueue.isMessageBurned(widget.message.msgID!);
     });
     
     // Complex logic after setState to avoid widget loading issues
@@ -102,19 +108,22 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
           }
           
           // Get current remaining seconds, or expected burn seconds if not started yet
-          int remainingSeconds = _selfDestructQueue.getRemainingSeconds(msgID);
-          if (remainingSeconds == 0 && isSelfDestruct) {
-            // If countdown not started yet, show expected burn seconds instead of 0
-            final conversationID = widget.message.groupID != null ? 
-                                  'group_${widget.message.groupID}' : 
-                                  'c2c_${widget.message.userID ?? widget.message.sender}';
-            remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
-          }
-          
-          if (mounted) {
-            setState(() {
-              _remainingSeconds = remainingSeconds;
-            });
+          // BUT: Don't show countdown if message is already burned
+          if (!_isBurned) {
+            int remainingSeconds = _selfDestructQueue.getRemainingSeconds(msgID);
+            if (remainingSeconds == 0 && isSelfDestruct) {
+              // If countdown not started yet, show expected burn seconds instead of 0
+              final conversationID = widget.message.groupID != null ?
+                                    'group_${widget.message.groupID}' :
+                                    'c2c_${widget.message.userID ?? widget.message.sender}';
+              remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+            }
+
+            if (mounted) {
+              setState(() {
+                _remainingSeconds = remainingSeconds;
+              });
+            }
           }
         }
       });
@@ -150,6 +159,18 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
       //widget.onDeleted?.call();
     }
   }
+
+  void _onMessageBurned(String msgID) {
+    debugPrint('Text element received burned event for $msgID (my msgID: ${widget.message.msgID})');
+    if (msgID == widget.message.msgID && mounted) {
+      debugPrint('Text element $msgID: Setting _isBurned = true and calling setState');
+      setState(() {
+        _isBurned = true;
+      });
+      debugPrint('Text element $msgID: setState completed, _isBurned = $_isBurned');
+    }
+  }
+
   void _setupCallbacks() {
     // _selfDestructQueue.addCountdownListener((msgID, remaining) {
     //   // debugPrint('countdown remaining seconds $remaining s');
@@ -169,6 +190,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     // };
     _selfDestructQueue.addCountdownListener(_onCountdownUpdate);
     _selfDestructQueue.addMessageDeletedListener(_onMessageDeleted);
+    _selfDestructQueue.addMessageBurnedListener(_onMessageBurned);
   }
 
   /// Check if countdown should be started based on message read status
@@ -240,6 +262,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   void dispose() {
     _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
     _selfDestructQueue.removeMessageDeletedListener(_onMessageDeleted);
+    _selfDestructQueue.removeMessageBurnedListener(_onMessageBurned);
     super.dispose();
   }
 
@@ -340,8 +363,15 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     final theme = value.theme;
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+
+    // Check if message is burned and show obfuscated content
+    final originalText = widget.message.textElem?.text ?? "";
+    final displayText = _isBurned && widget.message.msgID != null
+        ? _selfDestructQueue.getObfuscatedContent(widget.message.msgID!, originalText)
+        : originalText;
+
     final textWithLink = LinkPreviewEntry.getHyperlinksText(
-        widget.message.textElem?.text ?? "",
+        displayText,
         widget.chatModel.chatConfig.isSupportMarkdownForTextMessage,
         onLinkTap: widget.chatModel.chatConfig.onTapLink,
         isUseQQPackage: (widget.chatModel.chatConfig.stickerPanelConfig
@@ -386,11 +416,76 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
         ? const Color.fromRGBO(245, 166, 35, 1)
         : (defaultStyle ?? widget.backgroundColor);
 
+    // When burned, show simple 1-line obfuscated text with icon (SENDER ONLY)
+    // Receiver should still see "点击查看" unopened state
+    if (_isBurned && isSelfDestruct && widget.message.isSelf == true) {
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: widget.textPadding ??
+                EdgeInsets.all(isDesktopScreen ? 12 : 10),
+            decoration: BoxDecoration(
+              color: defaultStyle,  // Use standard sender/receiver color
+              borderRadius: widget.borderRadius ?? borderRadius,
+            ),
+            constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _selfDestructQueue.generateObfuscatedText(8),
+                  style: TextStyle(
+                      color: isDesktopScreen
+                          ? Colors.black
+                          : AidaBaseColors.white),
+                ),
+                // const SizedBox(width: 10),
+                // Image.asset(
+                //   'images/vanish_text.png',
+                //   package: 'tencent_cloud_chat_uikit',
+                //   width: 17,
+                //   height: 15,
+                // ),
+                const SizedBox(width: 10),
+              ],
+            ),
+          ),
+          if (isSelfDestruct)
+            Positioned(
+                top: 0,
+                left: widget.message.isSelf! ? -6.5 : null,
+                right: !widget.message.isSelf! ? -6.5 : null,
+                child: Image.asset(
+                  'images/vanish_icon.png',
+                  package: 'tencent_cloud_chat_uikit',
+                  height: 13,
+                  width: 13,
+                )),
+        ],
+      );
+    }
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        if (isOpen || widget.message.isSelf! || !isSelfDestruct)
-          Row(
+        // Ensure Stack always has at least one non-positioned child
+        // BUT: Show content if message is burned (so user can see random symbols)
+        if (!isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned)
+          const SizedBox.shrink(),
+        if (isOpen || !isSelfDestruct || _isBurned)
+          MosaicPrivacyOverlay(
+            isVisible: !isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned,
+            onTap: _openMessage,
+            borderRadius: widget.borderRadius ?? borderRadius,
+            vanishIconType: 'text',
+            burnSeconds: isSelfDestruct ? _selfDestructQueue.getExpectedBurnSeconds(
+              widget.message.groupID != null ? 
+                'group_${widget.message.groupID}' : 
+                'c2c_${widget.message.userID ?? widget.message.sender}'
+            ) : null,
+            child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -420,7 +515,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
                                     textBaseline: TextBaseline.ideographic,
                                     height:
                                         widget.chatModel.chatConfig.textHeight))
-                        : ExtendedText(widget.message.textElem?.text ?? "",
+                        : ExtendedText(displayText,
                             softWrap: true,
                             style: widget.fontStyle ??
                                 TextStyle(
@@ -458,6 +553,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
               ),
             ],
           ),
+        ),
         if (!isOpen && !widget.message.isSelf! && isSelfDestruct)
           GestureDetector(
             onTap: () {
@@ -516,14 +612,8 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
               child: Text('${_remainingSeconds}s',
                   style:
                       const TextStyle(color: AidaBaseColors.selfDestructMode))),
-        // if (widget.message.isPeerRead != null && widget.message.isPeerRead! && isSelfDestruct && widget.message.isSelf!)
-        if (isSelfDestruct && 
-            widget.message.isSelf! && 
-            ((widget.message.userID != null && 
-              widget.message.isPeerRead != null && 
-              widget.message.isPeerRead!) ||
-            (widget.message.groupID != null && 
-              _isGroupMessageReadByAll())))
+        // Show countdown immediately for sender (new behavior)
+        if (isSelfDestruct && widget.message.isSelf! && _remainingSeconds > 0)
           Positioned(
               bottom: 0,
               left: -25,

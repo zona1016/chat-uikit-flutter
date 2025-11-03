@@ -18,6 +18,7 @@ import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/self_destruct_queue.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/sound_record.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
+import 'package:tencent_cloud_chat_uikit/ui/widgets/mosaic_privacy_overlay.dart';
 
 import 'TIMUIKitMessageReaction/tim_uikit_message_reaction_show_panel.dart';
 
@@ -72,6 +73,7 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
   final SelfDestructQueue _selfDestructQueue = SelfDestructQueue();
   bool _isViewed = false;
   int _remainingSeconds = 0;
+  bool _isBurned = false;
 
   _playSound() async {
     if (!SoundPlayer.isInit) {
@@ -88,6 +90,31 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
     } else {
       SoundPlayer.play(url: stateElement.url!);
       widget.chatModel.currentPlayedMsgId = widget.msgID;
+    }
+  }
+
+  _openMessage() {
+    if (!_isViewed && widget.message.msgID != null && isSelfDestruct) {
+      _selfDestructQueue.viewMessage(widget.message.msgID!);
+      setState(() {
+        _isViewed = true;
+        isOpen = true;
+        
+        // Get current remaining seconds, or expected burn seconds if not started yet
+        int remainingSeconds = _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+        if (remainingSeconds == 0 && isSelfDestruct) {
+          // If countdown not started yet, show expected burn seconds
+          final conversationID = widget.message.groupID != null ? 
+                                'group_${widget.message.groupID}' : 
+                                'c2c_${widget.message.userID ?? widget.message.sender}';
+          remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+        }
+        _remainingSeconds = remainingSeconds;
+      });
+    } else {
+      setState(() {
+        isOpen = true;
+      });
     }
   }
 
@@ -148,6 +175,10 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
     setState(() {
       isSelfDestruct = _selfDestructQueue.isSelfDestructMessage(widget.message.msgID ?? '');
       _remainingSeconds = 0; // Initialize with 0, will be updated later
+      // Only mark SENDER messages as burned, receivers should always see unopened state
+      _isBurned = widget.message.msgID != null &&
+                  widget.message.isSelf == true &&
+                  _selfDestructQueue.isMessageBurned(widget.message.msgID!);
     });
     
     // Complex logic after setState to avoid widget loading issues
@@ -165,19 +196,22 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
           }
           
           // Get current remaining seconds, or expected burn seconds if not started yet
-          int remainingSeconds = _selfDestructQueue.getRemainingSeconds(msgID);
-          if (remainingSeconds == 0 && isSelfDestruct) {
-            // If countdown not started yet, show expected burn seconds instead of 0
-            final conversationID = widget.message.groupID != null ? 
-                                  'group_${widget.message.groupID}' : 
-                                  'c2c_${widget.message.userID ?? widget.message.sender}';
-            remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
-          }
-          
-          if (mounted) {
-            setState(() {
-              _remainingSeconds = remainingSeconds;
-            });
+          // BUT: Don't show countdown if message is already burned
+          if (!_isBurned) {
+            int remainingSeconds = _selfDestructQueue.getRemainingSeconds(msgID);
+            if (remainingSeconds == 0 && isSelfDestruct) {
+              // If countdown not started yet, show expected burn seconds instead of 0
+              final conversationID = widget.message.groupID != null ?
+                                    'group_${widget.message.groupID}' :
+                                    'c2c_${widget.message.userID ?? widget.message.sender}';
+              remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+            }
+
+            if (mounted) {
+              setState(() {
+                _remainingSeconds = remainingSeconds;
+              });
+            }
           }
         }
       });
@@ -208,6 +242,15 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
       //widget.onDeleted?.call();
     }
   }
+
+  void _onMessageBurned(String msgID) {
+    if (msgID == widget.message.msgID && mounted) {
+      setState(() {
+        _isBurned = true;
+      });
+    }
+  }
+
   void _setupCallbacks() {
     // _selfDestructQueue.onCountdownUpdate = (msgID, remaining) {
     //   if (msgID == widget.message.msgID && mounted) {
@@ -224,6 +267,7 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
     // };
     _selfDestructQueue.addCountdownListener(_onCountdownUpdate);
     _selfDestructQueue.addMessageDeletedListener(_onMessageDeleted);
+    _selfDestructQueue.addMessageBurnedListener(_onMessageBurned);
   }
 
   /// Check if countdown should be started based on message read status
@@ -297,6 +341,7 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
   void dispose() {
     _selfDestructQueue.removeCountdownListener(_onCountdownUpdate);
     _selfDestructQueue.removeMessageDeletedListener(_onMessageDeleted);
+    _selfDestructQueue.removeMessageBurnedListener(_onMessageBurned);
     if (isPlaying) {
       SoundPlayer.stop();
       widget.chatModel.currentPlayedMsgId = "";
@@ -380,11 +425,85 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
         }
       }
     }
-    return GestureDetector(
-      onTap: () => _playSound(),
-      child: Stack(
+    // Show burned state - simple 1-line with icon (SENDER ONLY)
+    // Receiver should still see unopened state
+    if (_isBurned && isSelfDestruct && widget.message.isSelf == true) {
+      return Stack(
         clipBehavior: Clip.none,
         children: [
+          Container(
+            padding: widget.textPadding ?? const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: widget.borderRadius ?? borderRadius,
+            ),
+            constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _selfDestructQueue.generateObfuscatedText(8),
+                  style: TextStyle(
+                      color: isDesktopScreen
+                          ? Colors.black
+                          : AidaBaseColors.white),
+                ),
+                // const SizedBox(width: 10),
+                // Image.asset(
+                //   'images/voice_send.png',
+                //   package: 'tencent_cloud_chat_uikit',
+                //   width: 16,
+                //   height: 16,
+                //   color: isDesktopScreen ? null : const Color(0xFFFFFFFF),
+                // ),
+                const SizedBox(width: 10),
+              ],
+            ),
+          ),
+          if (isSelfDestruct)
+            Positioned(
+                top: 0,
+                left: widget.message.isSelf! ? -6.5 : null,
+                right: !widget.message.isSelf! ? -6.5 : null,
+                child: Image.asset(
+                  'images/vanish_icon.png',
+                  package: 'tencent_cloud_chat_uikit',
+                  height: 13,
+                  width: 13,
+                )),
+        ],
+      );
+    }
+
+    if (isOpen || !isSelfDestruct || _isBurned) {
+      return MosaicPrivacyOverlay(
+        isVisible: !isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned,
+      onTap: () {
+        if (!isOpen && isSelfDestruct) {
+          _openMessage();
+        } else {
+          _playSound();
+        }
+      },
+      borderRadius: widget.borderRadius ?? borderRadius,
+      vanishIconType: 'sound',
+      burnSeconds: isSelfDestruct ? _selfDestructQueue.getExpectedBurnSeconds(
+        widget.message.groupID != null ?
+          'group_${widget.message.groupID}' :
+          'c2c_${widget.message.userID ?? widget.message.sender}'
+      ) : null,
+      child: GestureDetector(
+        onTap: () {
+          if (!isOpen && isSelfDestruct) {
+            _openMessage();
+          } else {
+            _playSound();
+          }
+        },
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
           Container(
             padding: widget.textPadding ?? const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -470,13 +589,8 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
                 child: Text('${_remainingSeconds}s',
                     style: const TextStyle(
                         color: AidaBaseColors.selfDestructMode))),
-          if (isSelfDestruct && 
-            widget.message.isSelf! && 
-            ((widget.message.userID != null && 
-              widget.message.isPeerRead != null && 
-              widget.message.isPeerRead!) ||
-            (widget.message.groupID != null && 
-              _isGroupMessageReadByAll())))
+          // Show countdown immediately for sender (new behavior)
+          if (isSelfDestruct && widget.message.isSelf! && _remainingSeconds > 0)
           Positioned(
               bottom: 0,
               left: -25,
@@ -485,7 +599,13 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
                   style:
                       const TextStyle(color: AidaBaseColors.selfDestructMode))),
         ],
+        ),
       ),
     );
+    } else {
+      // For received messages that are closed and self-destruct, show empty container
+      // The privacy overlay will be shown separately
+      return Container();
+    }
   }
 }

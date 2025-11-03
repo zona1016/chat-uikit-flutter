@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
@@ -16,6 +17,7 @@ class SelfDestructQueue {
   final Map<String, int> _remainingSeconds = {};
   final Map<String, V2TimMessage> _messages = {}; // Store complete message data
   final Map<String, String> _conversationBurnSeconds = {}; // Cache conversation burn seconds
+  final Set<String> _burnedMessages = {}; // Track messages that have completed burning
   
   static const Map<String, int> burnSecondsOptions = {
     '15s': 15,
@@ -31,6 +33,7 @@ class SelfDestructQueue {
   final Set<void Function(String msgID, int remainingSeconds)>
     _countdownListeners = {};
   final Set<void Function(String msgID)> _messageDeletedListeners = {};
+  final Set<void Function(String msgID)> _messageBurnedListeners = {}; // New: when message becomes unreadable
 
   void addCountdownListener(
     void Function(String msgID, int remainingSeconds) listener) {
@@ -50,21 +53,36 @@ class SelfDestructQueue {
     _messageDeletedListeners.remove(listener);
   }
 
+  void addMessageBurnedListener(void Function(String msgID) listener) {
+    _messageBurnedListeners.add(listener);
+  }
+
+  void removeMessageBurnedListener(void Function(String msgID) listener) {
+    _messageBurnedListeners.remove(listener);
+  }
+
   /// Process message for self-destruct (centralized logic)
   void processMessage(String msgID, V2TimMessage message) {
     if (msgID.isEmpty) return;
-    
+
     // Store message data
     _messages[msgID] = message;
-    
+
     try {
       Map<String, dynamic> customData = jsonDecode(message.cloudCustomData ?? "{}");
       bool isSelfDestruct = customData['isSelfDestruct'] == true;
-      
+
       if (!isSelfDestruct) return;
-      
+
       final conversationID = _getConversationID(message);
-      
+
+      // Check if message should already be burned based on timestamp + burn_seconds
+      if (_shouldMessageAlreadyBeBurned(message, conversationID)) {
+        debugPrint('Message $msgID should already be burned based on timestamp, marking as burned');
+        _burnedMessages.add(msgID);
+        return;
+      }
+
       // For messages I sent, start countdown when read by all
       if (message.isSelf == true) {
         _handleSelfMessage(msgID, message, conversationID);
@@ -75,6 +93,25 @@ class SelfDestructQueue {
     } catch (e) {
       debugPrint('处理自毁消息失败: $e');
     }
+  }
+
+  /// Check if message should already be burned based on message timestamp + burn seconds
+  bool _shouldMessageAlreadyBeBurned(V2TimMessage message, String conversationID) {
+    if (message.timestamp == null) return false;
+
+    final burnSeconds = _getConversationBurnSeconds(conversationID);
+    final messageTimestamp = message.timestamp!; // Unix timestamp in seconds
+    final currentTimestamp = (DateTime.now().millisecondsSinceEpoch / 1000).ceil();
+
+    // Check if current time > message time + burn seconds
+    final timeSinceMessage = currentTimestamp - messageTimestamp;
+
+    if (timeSinceMessage >= burnSeconds) {
+      debugPrint('Message should be burned: timeSinceMessage=$timeSinceMessage, burnSeconds=$burnSeconds');
+      return true;
+    }
+
+    return false;
   }
   
   /// Handle viewing a received message
@@ -120,13 +157,52 @@ class SelfDestructQueue {
   void handleMessageReadByAll(String msgID) {
     final message = _messages[msgID];
     if (message == null || message.isSelf != true) return;
-    
-    debugPrint('handleMessageReadByAll called for $msgID, timer exists: ${_burnTimers.containsKey(msgID)}');
-    
+
+    debugPrint('handleMessageReadByAll called for $msgID, timer exists: ${_burnTimers.containsKey(msgID)}, burned: ${_burnedMessages.contains(msgID)}');
+
+    // If message is already burned (showing random symbols), delete it now
+    if (_burnedMessages.contains(msgID)) {
+      debugPrint('Message $msgID is burned and now read, deleting it');
+      _deleteMessageNow(msgID);
+      return;
+    }
+
     // If not already counting down, start it
     if (!_burnTimers.containsKey(msgID)) {
       final conversationID = _getConversationID(message);
       _getBurnSecondsWithRetry(msgID, message, conversationID);
+    }
+  }
+
+  /// Immediately delete a message (used when burned message is read)
+  Future<void> _deleteMessageNow(String msgID) async {
+    try {
+      debugPrint('Immediately deleting message: $msgID');
+
+      _messages.remove(msgID);
+      _burnedMessages.remove(msgID);
+      _remainingSeconds.remove(msgID);
+
+      final timer = _burnTimers.remove(msgID);
+      timer?.cancel();
+
+      chatModel.deleteMsg(msgID);
+      await TencentImSDKPlugin.v2TIMManager
+          .getMessageManager()
+          .deleteMessages(msgIDs: [msgID]);
+
+      // Clean up persistent storage
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('self_destruct_$msgID');
+
+      // Notify UI to delete message
+      for (final listener in _messageDeletedListeners) {
+        listener(msgID);
+      }
+
+      debugPrint('Message immediately deleted: $msgID');
+    } catch (e) {
+      debugPrint('Failed to immediately delete message: $e');
     }
   }
 
@@ -158,43 +234,103 @@ class SelfDestructQueue {
       for (final listener in _countdownListeners) {
         listener(msgID, remaining);
       }
-      
+
       if (remaining <= 0) {
+        debugPrint('Countdown finished for $msgID, calling _deleteMessage');
         timer.cancel();
         _deleteMessage(msgID);
       }
     });
   }
 
-  /// 删除消息
+  /// Mark message as burned (show random symbols) or delete if read
   Future<void> _deleteMessage(String msgID) async {
     try {
-      debugPrint('Deleting self-destruct message: $msgID');
-      
+      final message = _messages[msgID];
+      if (message == null) return;
+
+      debugPrint('Processing self-destruct message: $msgID');
+
       // Cancel and remove timer first to prevent race conditions
       final timer = _burnTimers.remove(msgID);
       timer?.cancel();
-      
+
       _remainingSeconds.remove(msgID);
-      _messages.remove(msgID);
-      
-      chatModel.deleteMsg(msgID);
-      await TencentImSDKPlugin.v2TIMManager
-          .getMessageManager()
-          .deleteMessages(msgIDs: [msgID]);
-      
-      // Clean up persistent storage
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('self_destruct_$msgID');
-      
-      // 通知UI删除消息
-      for (final listener in _messageDeletedListeners) {
-        listener(msgID);
+
+      // Check if message has been read by the other party
+      bool shouldDelete = false;
+
+      if (message.isSelf == true) {
+        // For sender: check if receiver has read it
+        if (message.groupID == null) {
+          // C2C: check if peer read
+          shouldDelete = message.isPeerRead == true;
+          debugPrint('Sender C2C message $msgID: isPeerRead=${message.isPeerRead}, shouldDelete=$shouldDelete');
+        } else {
+          // Group: For now, don't delete sender's group messages automatically
+          // They'll be deleted when read by all via handleMessageReadByAll
+          // To avoid circular calls, just burn (don't delete) group sender messages here
+          shouldDelete = false;
+          debugPrint('Sender Group message $msgID: will burn (not delete yet)');
+        }
+      } else {
+        // For receiver: always delete after countdown (they've already viewed it)
+        shouldDelete = true;
+        debugPrint('Receiver message $msgID: shouldDelete=$shouldDelete');
       }
-      
-      debugPrint('消息已销毁: $msgID');
+
+      if (shouldDelete) {
+        // Delete the message completely
+        debugPrint('Deleting self-destruct message (was read): $msgID');
+
+        _messages.remove(msgID);
+        _burnedMessages.remove(msgID);
+
+        chatModel.deleteMsg(msgID);
+        await TencentImSDKPlugin.v2TIMManager
+            .getMessageManager()
+            .deleteMessages(msgIDs: [msgID]);
+
+        // Clean up persistent storage
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('self_destruct_$msgID');
+
+        // Notify UI to delete message
+        for (final listener in _messageDeletedListeners) {
+          listener(msgID);
+        }
+
+        debugPrint('Message deleted: $msgID');
+      } else {
+        // Just mark as burned (show random symbols) - not read yet
+        debugPrint('Burning self-destruct message (showing random symbols): $msgID');
+
+        _burnedMessages.add(msgID);
+        debugPrint('Added $msgID to _burnedMessages, size now: ${_burnedMessages.length}');
+
+        // Clean up persistent storage
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('self_destruct_$msgID');
+
+        // Notify UI that message is now burned (unreadable)
+        debugPrint('Notifying ${_messageBurnedListeners.length} burned listeners for $msgID');
+        for (final listener in _messageBurnedListeners) {
+          listener(msgID);
+        }
+
+        // Force UI refresh by notifying the chat model
+        try {
+          // Trigger a state update in the chat model to force message list rebuild
+          debugPrint('Calling chatModel.notifyListeners() for $msgID');
+          chatModel.notifyListeners();
+        } catch (e) {
+          debugPrint('Failed to notify chat model: $e');
+        }
+
+        debugPrint('Message burned and showing random symbols: $msgID');
+      }
     } catch (e) {
-      debugPrint('删除消息失败: $e');
+      debugPrint('Failed to process self-destruct message: $e');
     }
   }
 
@@ -271,14 +407,14 @@ class SelfDestructQueue {
   
   /// Handle self messages (messages I sent)
   void _handleSelfMessage(String msgID, V2TimMessage message, String conversationID) {
-    // Check if this self message should already have countdown started
-    if (_shouldSelfMessageHaveCountdown(message) && !_burnTimers.containsKey(msgID)) {
-      debugPrint('Detected self message that should be counting down, starting: $msgID');
+    // NEW BEHAVIOR: Start countdown immediately for sender after message is sent
+    if (!_burnTimers.containsKey(msgID) && message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC) {
+      debugPrint('Starting countdown immediately for self message: $msgID');
       final burnSeconds = _getConversationBurnSeconds(conversationID);
       _startCountdown(msgID, burnSeconds);
       _saveMessageState(msgID, message, conversationID, true);
     } else {
-      // Normal case - save state and wait for read receipt
+      // Save state even if countdown hasn't started yet (message still sending)
       _saveMessageState(msgID, message, conversationID, false);
     }
   }
@@ -347,13 +483,35 @@ class SelfDestructQueue {
   bool isSelfDestructMessage(String msgID) {
     final message = _messages[msgID];
     if (message == null) return false;
-    
+
     try {
       final customData = jsonDecode(message.cloudCustomData ?? "{}");
       return customData['isSelfDestruct'] == true;
     } catch (e) {
       return false;
     }
+  }
+
+  /// Check if message has been burned (countdown finished, now unreadable)
+  bool isMessageBurned(String msgID) {
+    return _burnedMessages.contains(msgID);
+  }
+
+  /// Generate random symbols to obfuscate text content
+  String generateObfuscatedText(int length) {
+    const symbols = '█▓▒░■□▪▫●○◆◇★☆';
+    final random = Random();
+    // return List.generate(length, (_) => symbols[random.nextInt(symbols.length)]).join();
+    return '◆◆◆...';
+  }
+
+  /// Get obfuscated content for a burned message
+  String getObfuscatedContent(String msgID, String originalContent) {
+    if (!isMessageBurned(msgID)) return originalContent;
+
+    // Generate random symbols matching the original length
+    final length = originalContent.length > 0 ? originalContent.length : 10;
+    return generateObfuscatedText(min(length, 50)); // Cap at 50 characters
   }
   
   /// Get remaining seconds (main method for UI)
@@ -537,5 +695,6 @@ class SelfDestructQueue {
     _remainingSeconds.clear();
     _messages.clear();
     _conversationBurnSeconds.clear();
+    _burnedMessages.clear();
   }
 }
