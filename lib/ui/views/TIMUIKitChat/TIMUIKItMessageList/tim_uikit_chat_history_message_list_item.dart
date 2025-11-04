@@ -1171,6 +1171,10 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                 child: CheckBoxButton(
                   isChecked: model.multiSelectedMessageList.contains(message),
                   onChanged: (value) {
+                    // Prevent selecting burned messages
+                    if (message.msgID != null && message.isSelf == true && SelfDestructQueue().isMessageBurned(message.msgID!)) {
+                      return;
+                    }
                     if (value) {
                       model.addToMultiSelectedMessageList(message);
                     } else {
@@ -1202,6 +1206,10 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                   behavior: model.isMultiSelect ? HitTestBehavior.translucent : null,
                   onTap: () {
                     if (model.isMultiSelect) {
+                      // Prevent selecting burned messages
+                      if (message.msgID != null && message.isSelf == true && SelfDestructQueue().isMessageBurned(message.msgID!)) {
+                        return;
+                      }
                       final checked = model.multiSelectedMessageList.contains(message);
                       if (checked) {
                         model.removeFromMultiSelectedMessageList(message);
@@ -1310,6 +1318,10 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                                         GestureDetector(
                                           child: IgnorePointer(ignoring: model.isMultiSelect, child: _getMessageItemBuilder(message, message.status, model)),
                                           onSecondaryTapDown: (details) {
+                                            // Disable long press for burned messages to prevent copying/forwarding original content
+                                            if (message.msgID != null && message.isSelf == true && SelfDestructQueue().isMessageBurned(message.msgID!)) {
+                                              return;
+                                            }
                                             if (widget.onLongPress != null) {
                                               widget.onLongPress!(context, message);
                                               return;
@@ -1321,6 +1333,10 @@ class _TIMUIKItHistoryMessageListItemState extends TIMUIKitState<TIMUIKitHistory
                                             }
                                           },
                                           onLongPress: () {
+                                            // Disable long press for burned messages to prevent copying/forwarding original content
+                                            if (message.msgID != null && message.isSelf == true && SelfDestructQueue().isMessageBurned(message.msgID!)) {
+                                              return;
+                                            }
                                             if (widget.onLongPress != null) {
                                               widget.onLongPress!(context, message);
                                               return;
