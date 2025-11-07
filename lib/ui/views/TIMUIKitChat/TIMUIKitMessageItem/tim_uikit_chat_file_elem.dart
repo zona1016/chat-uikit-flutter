@@ -546,6 +546,49 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
+    // When burned, show simple 1-line obfuscated text with icon (SENDER ONLY)
+    // Receiver should still see "点击查看" unopened state
+    if (_isBurned && isSelfDestruct && widget.message.isSelf == true) {
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: EdgeInsets.all(isDesktopScreen ? 12 : 10),
+            decoration: BoxDecoration(
+              color: AidaBaseColors.primaryColor,
+              borderRadius: borderRadius,
+            ),
+            constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _selfDestructQueue.generateObfuscatedText(8),
+                  style: TextStyle(
+                      color: isDesktopScreen
+                          ? Colors.black
+                          : AidaBaseColors.white),
+                ),
+                const SizedBox(width: 10),
+              ],
+            ),
+          ),
+          if (isSelfDestruct)
+            Positioned(
+                top: 0,
+                left: widget.message.isSelf! ? -6.5 : null,
+                right: !widget.message.isSelf! ? -6.5 : null,
+                child: Image.asset(
+                  'images/vanish_icon.png',
+                  package: 'tencent_cloud_chat_uikit',
+                  height: 13,
+                  width: 13,
+                )),
+        ],
+      );
+    }
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -769,38 +812,6 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
               child: Text('${_remainingSeconds}s',
                   style:
                       const TextStyle(color: AidaBaseColors.selfDestructMode))),
-        // Show burned/obfuscated state when message is burned (SENDER ONLY)
-        // Receiver should still see "点击查看" unopened state
-        if (_isBurned && isSelfDestruct && widget.message.isSelf == true)
-          Container(
-            padding: EdgeInsets.all(isDesktopScreen ? 12 : 10),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: borderRadius,
-            ),
-            constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.6),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _selfDestructQueue.generateObfuscatedText(8),
-                  style: TextStyle(
-                      color: isDesktopScreen
-                          ? Colors.black
-                          : AidaBaseColors.white),
-                ),
-                const SizedBox(width: 10),
-                Image.asset(
-                  'images/vanish_file.png',
-                  package: 'tencent_cloud_chat_uikit',
-                  width: 17,
-                  height: 15,
-                ),
-                const SizedBox(width: 10),
-              ],
-            ),
-          ),
         // Show countdown immediately for sender (new behavior)
         if (isSelfDestruct && widget.message.isSelf! && _remainingSeconds > 0)
           Positioned(

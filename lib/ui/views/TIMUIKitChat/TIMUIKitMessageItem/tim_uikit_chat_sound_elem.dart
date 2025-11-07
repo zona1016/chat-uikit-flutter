@@ -476,11 +476,15 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
       );
     }
 
-    if (isOpen || !isSelfDestruct || _isBurned) {
+    // For sound messages, receivers always see normal UI (no "click to play" state)
+    // Countdown starts after sound finishes playing
+    if (isOpen || !isSelfDestruct || _isBurned || !widget.message.isSelf!) {
       return MosaicPrivacyOverlay(
         isVisible: !isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned,
       onTap: () {
-        if (!isOpen && isSelfDestruct) {
+        // For sender's unopened self-destruct: open (start countdown)
+        // For receiver's self-destruct: always play sound directly
+        if (!isOpen && isSelfDestruct && widget.message.isSelf!) {
           _openMessage();
         } else {
           _playSound();
@@ -495,7 +499,9 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
       ) : null,
       child: GestureDetector(
         onTap: () {
-          if (!isOpen && isSelfDestruct) {
+          // For sender's unopened self-destruct: open (start countdown)
+          // For receiver's self-destruct: always play sound directly
+          if (!isOpen && isSelfDestruct && widget.message.isSelf!) {
             _openMessage();
           } else {
             _playSound();
@@ -602,10 +608,10 @@ class _TIMUIKitSoundElemState extends TIMUIKitState<TIMUIKitSoundElem> {
         ),
       ),
     );
-    } else {
-      // For received messages that are closed and self-destruct, show empty container
-      // The privacy overlay will be shown separately
-      return Container();
     }
+
+    // For receiver's self-destruct sound messages, display normally (no "click to play" button)
+    // Countdown starts after sound finishes playing
+    return Container();
   }
 }

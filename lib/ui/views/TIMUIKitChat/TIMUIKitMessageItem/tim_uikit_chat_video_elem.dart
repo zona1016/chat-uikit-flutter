@@ -407,7 +407,7 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: backgroundColor,
+              color: AidaBaseColors.primaryColor,
               borderRadius: borderRadius,
             ),
             constraints: BoxConstraints(
@@ -420,13 +420,13 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
                   style: const TextStyle(color: AidaBaseColors.white),
                 ),
                 const SizedBox(width: 10),
-                Image.asset(
-                  'images/vanish_video.png',
-                  package: 'tencent_cloud_chat_uikit',
-                  width: 17,
-                  height: 15,
-                ),
-                const SizedBox(width: 10),
+                // Image.asset(
+                //   'images/vanish_video.png',
+                //   package: 'tencent_cloud_chat_uikit',
+                //   width: 17,
+                //   height: 15,
+                // ),
+                // const SizedBox(width: 10),
               ],
             ),
           ),
@@ -629,13 +629,13 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
                         TIM_t("点击播放"),
                         style: const TextStyle(color: AidaBaseColors.white),
                       ),
-                      // const SizedBox(width: 10),
-                      // Image.asset(
-                      //   'images/vanish_video.png',
-                      //   package: 'tencent_cloud_chat_uikit',
-                      //   width: 17,
-                      //   height: 15,
-                      // ),
+                      const SizedBox(width: 10),
+                      Image.asset(
+                        'images/vanish_video.png',
+                        package: 'tencent_cloud_chat_uikit',
+                        width: 17,
+                        height: 15,
+                      ),
                       const SizedBox(width: 10),
                     ],
                   )
