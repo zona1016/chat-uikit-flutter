@@ -444,6 +444,10 @@ class TUIConversationViewModel extends ChangeNotifier {
               old.type = userConfig.type;
               old.desc = userConfig.desc;
               old.userName = userConfig.userName;
+              await saveConfigs(
+                  loginUserID: loginUserInfo.userID,
+                  newConfigs: oldConfigs.groupConfigs,
+                  deleteConfigs: []);
             }
           }
         }
@@ -488,11 +492,16 @@ class TUIConversationViewModel extends ChangeNotifier {
           }
 
           if (old != null) {
+            // 修改配置
             old.hour = userConfig.hour;
             old.minute = userConfig.minute;
             old.type = userConfig.type;
             old.desc = userConfig.desc;
             old.userName = userConfig.userName;
+            await saveConfigs(
+                loginUserID: loginUserInfo.userID,
+                newConfigs: oldConfigs.groupConfigs,
+                deleteConfigs: []);
           }
         }
       }
