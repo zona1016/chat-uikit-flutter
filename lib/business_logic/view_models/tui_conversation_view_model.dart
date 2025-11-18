@@ -517,41 +517,48 @@ class TUIConversationViewModel extends ChangeNotifier {
 
     // 定时器逻辑
     if (_timer != null) return;
+    _clearHistory();
     _timer = Timer.periodic(const Duration(minutes: 5), (timer) async {
-      final oldJson = await GetStorage().read(storageKey);
-      if (oldJson == null) return;
+      _clearHistory();
+    });
+  }
 
-      UserDisappearingConfigs configs =
-          UserDisappearingConfigs.fromJson(oldJson);
+  _clearHistory() async {
+    final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
+    final storageKey = 'disappearing_message_${loginUserInfo.userID}';
+    final oldJson = await GetStorage().read(storageKey);
+    if (oldJson == null) return;
 
-      for (UserGroupDisappearingConfig item in configs.groupConfigs) {
-        if ((item.config.totalDuration != Duration.zero) &&
-            (DateTime.now().millisecondsSinceEpoch >=
-                int.parse(item.config.startTime) +
-                    item.config.totalDuration.inMilliseconds)) {
-          V2TimCallback? result;
-          if (item.userID != null && item.userID!.isNotEmpty) {
-            result =
-                await clearHistoryMessage(convID: item.userID!, convType: 1);
-          }
-          if (item.groupID != null && item.groupID!.isNotEmpty) {
-            result =
-                await clearHistoryMessage(convID: item.groupID!, convType: 2);
-          }
-          if (result?.code == 0) {
-            notifyListeners();
-            item.config.startTime =
-                DateTime.now().millisecondsSinceEpoch.toString();
-          }
+    UserDisappearingConfigs configs =
+    UserDisappearingConfigs.fromJson(oldJson);
+
+    for (UserGroupDisappearingConfig item in configs.groupConfigs) {
+      if ((item.config.totalDuration != Duration.zero) &&
+          (DateTime.now().millisecondsSinceEpoch >=
+              int.parse(item.config.startTime) +
+                  item.config.totalDuration.inMilliseconds)) {
+        V2TimCallback? result;
+        if (item.userID != null && item.userID!.isNotEmpty) {
+          result =
+              await clearHistoryMessage(convID: item.userID!, convType: 1);
+        }
+        if (item.groupID != null && item.groupID!.isNotEmpty) {
+          result =
+              await clearHistoryMessage(convID: item.groupID!, convType: 2);
+        }
+        if (result?.code == 0) {
+          notifyListeners();
+          item.config.startTime =
+              DateTime.now().millisecondsSinceEpoch.toString();
         }
       }
+    }
 
-      // 保存更新后的
-      await saveConfigs(
-          loginUserID: loginUserInfo.userID,
-          newConfigs: configs.groupConfigs,
-          deleteConfigs: []);
-    });
+    // 保存更新后的
+    await saveConfigs(
+    loginUserID: loginUserInfo.userID,
+    newConfigs: configs.groupConfigs,
+    deleteConfigs: []);
   }
 
   /// 统一的保存逻辑：读 → 合并 → 写
