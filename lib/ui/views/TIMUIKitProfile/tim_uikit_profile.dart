@@ -517,6 +517,7 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
 
                   // 1. 从会话 customData 读取
                   final conversationCustom = _controller.model.userProfile?.conversation?.customData;
+
                   if (conversationCustom != null) {
                     final customData = Map<String, String>.from(
                       jsonDecode(conversationCustom).map(
@@ -527,8 +528,33 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                       config = _parseConfig(customData['disap']);
                     }
                   }
+                  // 2。获取自己的配置 防止没有回会话窗口导致的数据不准确
+                  Map<String, String>? lastConversationCustom;
+                  try {
+                    lastConversationCustom = TIMUIKitCore.getInstance().loginUserInfo?.customInfo;
+                  } catch (e) {
+                    debugPrint('Error accessing friend custom info: $e');
+                    lastConversationCustom = null;
+                  }
+
+                  if (lastConversationCustom != null &&
+                      lastConversationCustom['disappea'] != null &&
+                      lastConversationCustom['disappea']!.contains(
+                          'disappearing_message_${model.userProfile?.friendInfo?.userProfile?.userID}')) {
+                    try {
+                      final remoteMap = jsonDecode(lastConversationCustom['disappea']!);
+                      final remoteConfig = _parseConfig(
+                        remoteMap['disappearing_message_${model.userProfile?.friendInfo?.userID}'],
+                      );
+                      config = _mergeConfigs(config, remoteConfig);
+                    } catch (e) {
+                      debugPrint('Error parsing friend custom data: $e');
+                      // Continue with default config if parsing fails
+                    }
+                  }
+
                   final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
-                  // 2. 从好友资料里读取更优配置
+                  // 3. 从好友资料里读取更优配置
                   Map<String, String>? friendCustom;
                   try {
                     friendCustom = model.userProfile?.friendInfo?.userProfile?.customInfo;
@@ -573,9 +599,8 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                                           await _saveConfig(userInfo.userID, customData, context);
                                           // 和聊天绑定 自己用
                                           handleCustomData(result);
-                                          // 放到个人信息中 他人用
-                                          final res =
-                                              await TIMUIKitCore.getInstance()
+                                          // 放到个人信息中 他人用 （如果当前没有聊天 用自己的）
+                                          final updateResult = await TIMUIKitCore.getInstance()
                                                   .setSelfInfo(
                                                       userFullInfo:
                                                           V2TimUserFullInfo(
@@ -585,8 +610,9 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                                                       jsonEncode(customData)
                                                 })
                                               }));
-
-                                          eventCenter.post(DisappearingMessageNotice());
+                                          if (updateResult.code == 0) {
+                                            eventCenter.post(DisappearingMessageNotice(message: customData));
+                                          }
                                         },
                                         config: config,
                                       )));

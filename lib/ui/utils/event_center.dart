@@ -70,7 +70,8 @@ class SearchMessageTipNotice {
 }
 
 class DisappearingMessageNotice {
-  DisappearingMessageNotice();
+  final Map<String, String>? message;
+  DisappearingMessageNotice({this.message});
 }
 
 class AidTeamTipNotice {
