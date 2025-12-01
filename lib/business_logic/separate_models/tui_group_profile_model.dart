@@ -24,12 +24,12 @@ class TUIGroupProfileModel extends ChangeNotifier {
   final CoreServicesImpl _coreServices = serviceLocator<CoreServicesImpl>();
   final GroupServices _groupServices = serviceLocator<GroupServices>();
   final ConversationService _conversationService =
-      serviceLocator<ConversationService>();
+  serviceLocator<ConversationService>();
   final MessageService _messageService = serviceLocator<MessageService>();
   final FriendshipServices _friendshipServices =
-      serviceLocator<FriendshipServices>();
+  serviceLocator<FriendshipServices>();
   final TUIChatGlobalModel _chatGlobalModel =
-      serviceLocator<TUIChatGlobalModel>();
+  serviceLocator<TUIChatGlobalModel>();
   GroupProfileLifeCycle? _lifeCycle;
 
   V2TimConversation? _conversation;
@@ -112,7 +112,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
 
   loadGroupInfo(String groupID) async {
     final groupInfo =
-        await _groupServices.getGroupsInfo(groupIDList: [groupID]);
+    await _groupServices.getGroupsInfo(groupIDList: [groupID]);
     if (groupInfo != null) {
       final groupRes = groupInfo.first;
       if (groupRes.resultCode == 0) {
@@ -149,7 +149,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
       final groupMemberListTemp = groupMemberListRes.memberInfoList ?? [];
       // TODO
       outputLogger.i(
-          "loadGroupMemberListfinish,groupMemberListTemp, ${groupMemberListRes.nextSeq},  ${groupMemberListTemp.length}");
+          "loadGroupMemberListfinish,groupMemberListTemp, ${groupMemberListRes
+              .nextSeq},  ${groupMemberListTemp.length}");
       _groupMemberList = [...?_groupMemberList, ...groupMemberListTemp];
       _groupMemberListSeq = groupMemberListRes.nextSeq ?? "0";
     }
@@ -209,7 +210,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
       // First check if there's a pending mode in global model
       final globalMode = _chatGlobalModel.getSelfDestructMode(conversationID);
       final pendingMode =
-          _chatGlobalModel.getPendingConversationMode(conversationID);
+      _chatGlobalModel.getPendingConversationMode(conversationID);
 
       if (pendingMode != null) {
         // Use pending mode if available
@@ -265,8 +266,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
             : ReceiveMsgOptEnum.V2TIM_RECEIVE_MESSAGE);
     if (res.code == 0) {
       conversation?.recvOpt = (value
-              ? ReceiveMsgOptEnum.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE
-              : ReceiveMsgOptEnum.V2TIM_RECEIVE_MESSAGE)
+          ? ReceiveMsgOptEnum.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE
+          : ReceiveMsgOptEnum.V2TIM_RECEIVE_MESSAGE)
           .index;
     }
     notifyListeners();
@@ -279,7 +280,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
 
       // Update the mode preference
       customData['conversation_default_mode'] =
-          value ? 'self_destruct' : 'normal';
+      value ? 'self_destruct' : 'normal';
 
       // Clear burn_seconds when disabling self-destruct mode
       if (!value && customData.containsKey('burn_seconds')) {
@@ -372,8 +373,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
   }
 
   /// Set conversation custom data and return success status
-  Future<bool> _setConversationCustomDataWithResult(
-      String conversationID, Map<String, dynamic> customData) async {
+  Future<bool> _setConversationCustomDataWithResult(String conversationID,
+      Map<String, dynamic> customData) async {
     try {
       final result = await TencentImSDKPlugin.v2TIMManager
           .getConversationManager()
@@ -391,7 +392,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
   Future<V2TimValueCallback<V2GroupMemberInfoSearchResult>> searchGroupMember(
       V2TimGroupMemberSearchParam searchParam) async {
     final res =
-        await _groupServices.searchGroupMembers(searchParam: searchParam);
+    await _groupServices.searchGroupMembers(searchParam: searchParam);
 
     if (res.code == 0) {}
     return res;
@@ -399,10 +400,16 @@ class TUIGroupProfileModel extends ChangeNotifier {
 
   disappearing(Map<String, String>? groupCustomInfo, context) async {
     if (_groupInfo != null) {
-      final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
+      final loginUserInfo = TIMUIKitCore
+          .getInstance()
+          .loginInfo;
       groupCustomInfo?['disappearing_message_time'] =
-          DateTime.now().millisecondsSinceEpoch.toString();
-      groupCustomInfo?['disappearing_message_name'] = loginUserInfo.loginUser?.nickName ?? '';
+          DateTime
+              .now()
+              .millisecondsSinceEpoch
+              .toString();
+      groupCustomInfo?['disappearing_message_name'] =
+          loginUserInfo.loginUser?.nickName ?? '';
 
       final customInfo = Map<String, String>.from(_groupInfo!.customInfo ?? {});
       customInfo['disappearing'] = jsonEncode(groupCustomInfo);
@@ -416,9 +423,13 @@ class TUIGroupProfileModel extends ChangeNotifier {
       eventCenter.post(DisappearingMessageNotice());
       // 刷新UI
       if (response.code == 0) {
-        final loginUserInfo = TIMUIKitCore.getInstance().loginInfo;
-        final disappearingMessage = await GetStorage().read('disappearing_message_${loginUserInfo.userID}');
-        UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(disappearingMessage);
+        final loginUserInfo = TIMUIKitCore
+            .getInstance()
+            .loginInfo;
+        final disappearingMessage = await GetStorage().read(
+            'disappearing_message_${loginUserInfo.userID}');
+        UserDisappearingConfigs configs = UserDisappearingConfigs.fromJson(
+            disappearingMessage);
 
         bool found = false;
 
@@ -438,7 +449,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
             ),
           );
         }
-        await GetStorage().write('disappearing_message_${loginUserInfo.userID}', configs.toJson());
+        await GetStorage().write(
+            'disappearing_message_${loginUserInfo.userID}', configs.toJson());
 
         _groupInfo!.customInfo = customInfo;
         notifyListeners();
@@ -522,8 +534,8 @@ class TUIGroupProfileModel extends ChangeNotifier {
       String nameCard = "";
       if (_groupMemberList != null) {
         nameCard = groupMemberList
-                .firstWhere((element) => element?.userID == loginUserID)
-                ?.nameCard ??
+            .firstWhere((element) => element?.userID == loginUserID)
+            ?.nameCard ??
             "";
       }
 
@@ -556,11 +568,9 @@ class TUIGroupProfileModel extends ChangeNotifier {
       int? originalAddopt = _groupInfo?.groupAddOpt;
       _groupInfo?.groupAddOpt = addOpt;
       final response = await _groupServices.setGroupInfo(
-          info: V2TimGroupInfo.fromJson({
-        "groupID": _groupID,
-        "groupType": _groupInfo!.groupType,
-        "groupAddOpt": addOpt
-      }));
+          info: V2TimGroupInfo(groupID: _groupID,
+              groupType: _groupInfo!.groupType,
+              groupAddOpt: addOpt));
       if (response.code != 0) {
         _groupInfo?.groupAddOpt = originalAddopt;
       }
@@ -577,7 +587,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
         role: GroupMemberRoleTypeEnum.V2TIM_GROUP_MEMBER_ROLE_MEMBER);
     if (res.code == 0) {
       final targetIndex =
-          _groupMemberList!.indexWhere((e) => e!.userID == userID);
+      _groupMemberList!.indexWhere((e) => e!.userID == userID);
       if (targetIndex != -1) {
         final targetElem = _groupMemberList![targetIndex];
         targetElem?.role = GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_MEMBER;
@@ -595,7 +605,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
         role: GroupMemberRoleTypeEnum.V2TIM_GROUP_MEMBER_ROLE_ADMIN);
     if (res.code == 0) {
       final targetIndex =
-          _groupMemberList!.indexWhere((e) => e!.userID == userID);
+      _groupMemberList!.indexWhere((e) => e!.userID == userID);
       if (targetIndex != -1) {
         final targetElem = _groupMemberList![targetIndex];
         targetElem?.role = GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_ADMIN;
@@ -635,10 +645,10 @@ class TUIGroupProfileModel extends ChangeNotifier {
       _groupInfo?.isAllMuted = muteAll;
       final response = await _groupServices.setGroupInfo(
           info: V2TimGroupInfo.fromJson({
-        "groupID": _groupInfo!.groupID,
-        "groupType": _groupInfo!.groupType,
-        "isAllMuted": muteAll
-      }));
+            "groupID": _groupInfo!.groupID,
+            "groupType": _groupInfo!.groupType,
+            "isAllMuted": muteAll
+          }));
       if (response.code != 0) {
         _groupInfo?.isAllMuted = muteAll;
       }
@@ -648,14 +658,14 @@ class TUIGroupProfileModel extends ChangeNotifier {
     return null;
   }
 
-  Future<V2TimCallback?> muteGroupMember(
-      String userID, bool isMute, int? serverTime) async {
+  Future<V2TimCallback?> muteGroupMember(String userID, bool isMute,
+      int? serverTime) async {
     const muteTime = 315360000;
     final res = await _groupServices.muteGroupMember(
         groupID: _groupID, userID: userID, seconds: isMute ? muteTime : 0);
     if (res.code == 0) {
       final targetIndex =
-          _groupMemberList!.indexWhere((e) => e!.userID == userID);
+      _groupMemberList!.indexWhere((e) => e!.userID == userID);
       if (targetIndex != -1) {
         final targetElem = _groupMemberList![targetIndex];
         targetElem?.muteUntil = isMute ? (serverTime ?? 0) + muteTime : 0;
@@ -673,7 +683,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
   }
 
   Future<V2TimValueCallback<List<V2TimGroupMemberOperationResult>>>
-      inviteUserToGroup(List<String> userIDS) async {
+  inviteUserToGroup(List<String> userIDS) async {
     final res = await _groupServices.inviteUserToGroup(
         groupID: _groupID, userList: userIDS);
     return res;
