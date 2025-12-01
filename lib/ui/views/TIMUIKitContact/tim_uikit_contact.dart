@@ -65,7 +65,10 @@ class _TIMUIKitContactState extends TIMUIKitState<TIMUIKitContact> {
         builder: (context, w) {
           final model = Provider.of<TUIFriendShipViewModel>(context);
           model.contactListLifeCycle = widget.lifeCycle;
-          final memberList = model.friendList ?? [];
+          final List<V2TimFriendInfo> memberList = <String, V2TimFriendInfo>{
+            for (var e in model.friendList ?? <V2TimFriendInfo>[])
+              if (e != null && e.userID != null) e.userID!: e
+          }.values.toList();
           return ContactList(
             currentItem: currentItem,
             emptyBuilder: widget.emptyBuilder,

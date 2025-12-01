@@ -130,7 +130,10 @@ class GroupProfileMemberListPageState
                       onTextChange: (text) =>
                           handleSearchGroupMembers(text, context),
                     ),
-              memberList: searchMemberList ?? groupProfileModel.groupMemberList,
+              memberList: <String?, V2TimGroupMemberFullInfo?>{
+                for (var m in (searchMemberList ?? groupProfileModel.groupMemberList))
+                  if (m != null) m.userID: m
+              }.values.toList(),
               removeMember: _kickedOffMember,
               touchBottomCallBack: () {},
               onTapMemberItem: (friendInfo, details) {
