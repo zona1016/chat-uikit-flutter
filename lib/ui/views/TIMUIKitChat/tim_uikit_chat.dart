@@ -37,6 +37,7 @@ class TIMUIKitChat extends StatefulWidget {
   int startTime = 0;
   int endTime = 0;
 
+  bool? isMeeting;
   bool? showInput;
 
   final void Function(String groupID, TUIChatSeparateViewModel model)? onTap;
@@ -176,6 +177,7 @@ class TIMUIKitChat extends StatefulWidget {
 
   TIMUIKitChat(
       {Key? key,
+      this.isMeeting,
       this.showInput,
       this.onTap,
       this.groupID,
@@ -264,18 +266,18 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
     }
     model.abstractMessageBuilder = widget.abstractMessageBuilder;
     model.onTapAvatar = widget.onTapAvatar;
-    
+
     // Check conversation mode when chat screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       widget.endTime = DateTime.now().millisecondsSinceEpoch;
       int timeSpend = widget.endTime - widget.startTime;
       outputLogger.i("Page render time:$timeSpend ms");
-      
+
       // Check and set conversation mode after the widget is built with a small delay
       await Future.delayed(const Duration(milliseconds: 100));
       await _checkAndSetConversationMode();
     });
-    
+
     Future.delayed(const Duration(milliseconds: 500), () {
       updateDraft();
     });
@@ -290,7 +292,6 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
     model.dispose();
   }
 
-
   @override
   void didUpdateWidget(TIMUIKitChat oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -298,10 +299,11 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
       debugPrint('=== CONVERSATION CHANGED ===');
       debugPrint('Old conversation: ${oldWidget.conversationID}');
       debugPrint('New conversation: ${widget.conversationID}');
-      debugPrint('Resetting _hasShownModeDialog from $_hasShownModeDialog to false');
-      
+      debugPrint(
+          'Resetting _hasShownModeDialog from $_hasShownModeDialog to false');
+
       isInit = false;
-      _hasShownModeDialog = false;  // Reset for new conversation
+      _hasShownModeDialog = false; // Reset for new conversation
       chatGlobalModel.clearCurrentConversation();
       model = TUIChatSeparateViewModel();
       model.abstractMessageBuilder = widget.abstractMessageBuilder;
@@ -318,7 +320,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
           );
           // ignore: empty_catches
         } catch (e) {}
-        
+
         // Refresh conversation mode when conversation changes - add small delay for SDK to load
         await Future.delayed(const Duration(milliseconds: 100));
         await _checkAndSetConversationMode();
@@ -386,42 +388,43 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
     // First try the manually provided conversation show name
     final manualName = TencentUtils.checkString(widget.conversationShowName);
     if (manualName != null) return manualName;
-    
+
     // Then try the conversation's show name
     final showName = TencentUtils.checkString(widget.conversation.showName);
     if (showName != null) return showName;
-    
+
     // For C2C conversations, try to get friend information for better display name
     if (widget.conversation.type == 1) {
       final userID = widget.conversation.userID;
       if (userID != null && userID.isNotEmpty) {
         // Try to get friend info from friendship view model
         try {
-          final TUIFriendShipViewModel friendShipModel = serviceLocator<TUIFriendShipViewModel>();
+          final TUIFriendShipViewModel friendShipModel =
+              serviceLocator<TUIFriendShipViewModel>();
           final friendList = friendShipModel.friendList;
           if (friendList != null) {
             final friendInfo = friendList.firstWhere(
               (friend) => friend.userID == userID,
               orElse: () => V2TimFriendInfo(userID: userID),
             );
-            
+
             // Check friend remark first, then nickname, then userID
             final remark = TencentUtils.checkString(friendInfo.friendRemark);
             if (remark != null) return remark;
-            
-            final nickName = TencentUtils.checkString(friendInfo.userProfile?.nickName);
+
+            final nickName =
+                TencentUtils.checkString(friendInfo.userProfile?.nickName);
             if (nickName != null) return nickName;
           }
-          
         } catch (e) {
           print('Error getting friend info for title: $e');
         }
-        
+
         // Fallback to userID if friend info not available
         return userID;
       }
     }
-    
+
     // For group conversations, try to use groupName or groupID
     if (widget.conversation.type == 2) {
       final groupID = widget.conversation.groupID;
@@ -429,9 +432,10 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
         return groupID;
       }
     }
-    
+
     // Finally, try the raw conversationID as a last resort
-    final conversationID = TencentUtils.checkString(widget.conversation.conversationID);
+    final conversationID =
+        TencentUtils.checkString(widget.conversation.conversationID);
     if (conversationID != null) {
       // Clean up the conversation ID for display
       if (conversationID.startsWith('c2c_')) {
@@ -441,7 +445,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
       }
       return conversationID;
     }
-    
+
     return "Chat";
   }
 
@@ -478,7 +482,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
     final isBuild = isInit;
     isInit = true;
     _updateJoinInGroupCallWidget();
-    
+
     return TIMUIKitChatProviderScope(
         model: model,
         groupID: widget.groupID,
@@ -498,8 +502,10 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
               Provider.of<TUIChatGlobalModel>(context, listen: true);
 
           // Sync self-destruct mode from global model if it has changed
-          final conversationID = widget.conversation.conversationID ?? _getConvID();
-          final globalSelfDestructMode = chatGlobalModel.getSelfDestructMode(conversationID);
+          final conversationID =
+              widget.conversation.conversationID ?? _getConvID();
+          final globalSelfDestructMode =
+              chatGlobalModel.getSelfDestructMode(conversationID);
           if (model.selfDestructMode != globalSelfDestructMode) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               // Use silent setter to avoid unnecessary toasts during sync
@@ -750,12 +756,12 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
   /// Check if conversation is read-only (aid_team or channels)
   bool _isReadOnlyConversation(String? conversationID) {
     if (conversationID == null) return false;
-    
+
     // Handle group_ prefix in conversation IDs
-    final cleanConversationID = conversationID.startsWith('group_') 
+    final cleanConversationID = conversationID.startsWith('group_')
         ? conversationID.substring(6) // Remove "group_" prefix
         : conversationID;
-    
+
     // Original hardcoded detection
     final isReadOnly = (TencentUtils.aidTeam == cleanConversationID ||
         TencentUtils.india == cleanConversationID ||
@@ -764,34 +770,38 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
         TencentUtils.chinese == cleanConversationID ||
         TencentUtils.french == cleanConversationID ||
         TencentUtils.german == cleanConversationID);
-    
+
     if (isReadOnly) {
-      debugPrint('Read-only conversation detected: $conversationID (cleaned: $cleanConversationID)');
+      debugPrint(
+          'Read-only conversation detected: $conversationID (cleaned: $cleanConversationID)');
       return true;
     }
-    
+
     // Additional detection conditions
     final conversation = widget.conversation;
-    
+
     // Check if it's a broadcast group or special group type
     if (conversation.groupType != null) {
-      if (conversation.groupType == 'AVChatRoom' || conversation.groupType == 'BChatRoom') {
+      if (conversation.groupType == 'AVChatRoom' ||
+          conversation.groupType == 'BChatRoom') {
         return true;
       }
     }
-    
+
     // Check custom data for read-only flag
-    if (conversation.customData != null && conversation.customData!.isNotEmpty) {
+    if (conversation.customData != null &&
+        conversation.customData!.isNotEmpty) {
       try {
         final customData = jsonDecode(conversation.customData!);
-        if (customData['isReadOnly'] == true || customData['readonly'] == true) {
+        if (customData['isReadOnly'] == true ||
+            customData['readonly'] == true) {
           return true;
         }
       } catch (e) {
         // Ignore JSON parse errors
       }
     }
-    
+
     return false;
   }
 
@@ -799,12 +809,15 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
   Future<void> _checkAndSetConversationMode() async {
     final conversationID = widget.conversation.conversationID;
     if (conversationID == null || conversationID.isEmpty) return;
-    
-    debugPrint('=== _checkAndSetConversationMode START for $conversationID ===');
+
+    debugPrint(
+        '=== _checkAndSetConversationMode START for $conversationID ===');
     debugPrint('Current _hasShownModeDialog: $_hasShownModeDialog');
-    debugPrint('Current global model state: ${chatGlobalModel.getSelfDestructMode(conversationID)}');
-    debugPrint('Current pending mode: ${chatGlobalModel.getPendingConversationMode(conversationID)}');
-    
+    debugPrint(
+        'Current global model state: ${chatGlobalModel.getSelfDestructMode(conversationID)}');
+    debugPrint(
+        'Current pending mode: ${chatGlobalModel.getPendingConversationMode(conversationID)}');
+
     // Skip mode selection for read-only conversations
     if (_isReadOnlyConversation(conversationID)) {
       model.setSelfDestructModeSilently(false);
@@ -812,60 +825,73 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
       debugPrint('Skipped read-only conversation: $conversationID');
       return;
     }
-    
+
     try {
       // Get conversation custom data
       final customData = await _getConversationCustomData(conversationID);
       debugPrint('Custom data for $conversationID: $customData');
-      
+
       // Check if mode preference already exists
       if (customData.containsKey('conversation_default_mode')) {
         final mode = customData['conversation_default_mode'];
         final shouldActivateSelfDestruct = mode == 'self_destruct';
-        
+
         // Apply the saved preference
         model.setSelfDestructModeSilently(shouldActivateSelfDestruct);
-        chatGlobalModel.updateSelfDestructMode(conversationID, shouldActivateSelfDestruct);
-        
+        chatGlobalModel.updateSelfDestructMode(
+            conversationID, shouldActivateSelfDestruct);
+
         // Also load burn seconds from the same custom data
-        chatGlobalModel.loadConversationBurnSeconds(conversationID, jsonEncode(customData));
-        
-        debugPrint('Applied saved conversation mode: $conversationID -> $shouldActivateSelfDestruct');
+        chatGlobalModel.loadConversationBurnSeconds(
+            conversationID, jsonEncode(customData));
+
+        debugPrint(
+            'Applied saved conversation mode: $conversationID -> $shouldActivateSelfDestruct');
         return;
       }
-      
+
       // Show mode selection dialog if no preference exists and hasn't been shown yet
-      debugPrint('Dialog check - mounted: $mounted, _hasShownModeDialog: $_hasShownModeDialog');
-      if (mounted && !_hasShownModeDialog) {  // Only show dialog once per session
+      debugPrint(
+          'Dialog check - mounted: $mounted, _hasShownModeDialog: $_hasShownModeDialog');
+      if (mounted && !_hasShownModeDialog && widget.isMeeting != true) {
+        // Only show dialog once per session
         debugPrint('Will show mode selection dialog for $conversationID');
-        _hasShownModeDialog = true;  // Mark as shown for this session
+        _hasShownModeDialog = true; // Mark as shown for this session
         final selectedMode = await _showModeSelectionDialog();
-        
+
         if (selectedMode != null) {
           final shouldActivateSelfDestruct = selectedMode == 'self_destruct';
-          
+
           // Try to save the selected mode, but don't fail if conversation doesn't exist yet
           customData['conversation_default_mode'] = selectedMode;
-          
+
           // Clear burn_seconds when normal mode is selected
-          if (selectedMode == 'normal' && customData.containsKey('burn_seconds')) {
+          if (selectedMode == 'normal' &&
+              customData.containsKey('burn_seconds')) {
             customData.remove('burn_seconds');
-            debugPrint('Cleared burn_seconds for $conversationID since normal mode selected');
+            debugPrint(
+                'Cleared burn_seconds for $conversationID since normal mode selected');
           }
-          
-          final saveSuccess = await _setConversationCustomData(conversationID, customData);
-          
+
+          final saveSuccess =
+              await _setConversationCustomData(conversationID, customData);
+
           if (!saveSuccess) {
             // Conversation doesn't exist yet, store mode preference temporarily in global model
             // This will be applied when first message is sent and conversation is created
-            chatGlobalModel.setPendingConversationMode(conversationID, shouldActivateSelfDestruct);
-            debugPrint('Stored pending conversation mode: $conversationID -> $shouldActivateSelfDestruct');
+            chatGlobalModel.setPendingConversationMode(
+                conversationID, shouldActivateSelfDestruct);
+            debugPrint(
+                'Stored pending conversation mode: $conversationID -> $shouldActivateSelfDestruct');
           } else {
-            debugPrint('Saved new conversation mode: $conversationID -> $shouldActivateSelfDestruct');
+            debugPrint(
+                'Saved new conversation mode: $conversationID -> $shouldActivateSelfDestruct');
           }
-          
-          model.selfDestructMode = shouldActivateSelfDestruct;  // Show toast for user selection
-          chatGlobalModel.updateSelfDestructMode(conversationID, shouldActivateSelfDestruct);
+
+          model.selfDestructMode =
+              shouldActivateSelfDestruct; // Show toast for user selection
+          chatGlobalModel.updateSelfDestructMode(
+              conversationID, shouldActivateSelfDestruct);
         } else {
           // User cancelled, default to normal mode
           model.setSelfDestructModeSilently(false);
@@ -873,7 +899,8 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
         }
       } else {
         // Default to normal mode if no preference and dialog not shown
-        debugPrint('No dialog shown, defaulting to normal mode for $conversationID');
+        debugPrint(
+            'No dialog shown, defaulting to normal mode for $conversationID');
         model.setSelfDestructModeSilently(false);
         chatGlobalModel.updateSelfDestructMode(conversationID, false);
       }
@@ -883,71 +910,83 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
       model.setSelfDestructModeSilently(false);
       chatGlobalModel.updateSelfDestructMode(conversationID, false);
     }
-    
+
     debugPrint('=== _checkAndSetConversationMode END for $conversationID ===');
     debugPrint('Final _hasShownModeDialog: $_hasShownModeDialog');
-    debugPrint('Final global model state: ${chatGlobalModel.getSelfDestructMode(conversationID)}');
+    debugPrint(
+        'Final global model state: ${chatGlobalModel.getSelfDestructMode(conversationID)}');
   }
 
   /// Get conversation custom data with retry logic
-  Future<Map<String, dynamic>> _getConversationCustomData(String conversationID, {int retryCount = 0}) async {
-    debugPrint('Getting conversation custom data for $conversationID (attempt ${retryCount + 1})');
-    
+  Future<Map<String, dynamic>> _getConversationCustomData(String conversationID,
+      {int retryCount = 0}) async {
+    debugPrint(
+        'Getting conversation custom data for $conversationID (attempt ${retryCount + 1})');
+
     try {
       final result = await TencentImSDKPlugin.v2TIMManager
           .getConversationManager()
           .getConversation(conversationID: conversationID);
-      
-      debugPrint('SDK getConversation result for $conversationID: code=${result.code}, hasData=${result.data != null}');
-      
+
+      debugPrint(
+          'SDK getConversation result for $conversationID: code=${result.code}, hasData=${result.data != null}');
+
       if (result.code == 0 && result.data != null) {
         final customDataStr = result.data!.customData ?? "";
         if (customDataStr.isNotEmpty) {
           try {
             final parsed = Map<String, dynamic>.from(jsonDecode(customDataStr));
-            debugPrint('Successfully parsed custom data for $conversationID: $parsed');
+            debugPrint(
+                'Successfully parsed custom data for $conversationID: $parsed');
             return parsed;
           } catch (parseError) {
-            debugPrint('Failed to parse custom data JSON for $conversationID: $parseError, raw: $customDataStr');
+            debugPrint(
+                'Failed to parse custom data JSON for $conversationID: $parseError, raw: $customDataStr');
             return {};
           }
         } else {
           debugPrint('Empty custom data for conversation: $conversationID');
         }
       } else {
-        debugPrint('SDK error getting conversation $conversationID: code=${result.code}, desc=${result.desc}');
-        
+        debugPrint(
+            'SDK error getting conversation $conversationID: code=${result.code}, desc=${result.desc}');
+
         // Retry once if conversation not found and this is the first attempt
         if (result.code != 0 && retryCount == 0) {
-          debugPrint('Will retry conversation data retrieval for $conversationID in 300ms...');
+          debugPrint(
+              'Will retry conversation data retrieval for $conversationID in 300ms...');
           await Future.delayed(const Duration(milliseconds: 300));
           return _getConversationCustomData(conversationID, retryCount: 1);
         }
       }
     } catch (e) {
-      debugPrint('Exception getting conversation custom data for $conversationID: $e');
-      
+      debugPrint(
+          'Exception getting conversation custom data for $conversationID: $e');
+
       // Retry once on exception if this is the first attempt
       if (retryCount == 0) {
-        debugPrint('Will retry conversation data retrieval for $conversationID due to exception in 300ms...');
+        debugPrint(
+            'Will retry conversation data retrieval for $conversationID due to exception in 300ms...');
         await Future.delayed(const Duration(milliseconds: 300));
         return _getConversationCustomData(conversationID, retryCount: 1);
       }
     }
-    
-    debugPrint('Returning empty custom data for $conversationID after ${retryCount + 1} attempts');
+
+    debugPrint(
+        'Returning empty custom data for $conversationID after ${retryCount + 1} attempts');
     return {};
   }
 
   /// Set conversation custom data
-  Future<bool> _setConversationCustomData(String conversationID, Map<String, dynamic> customData) async {
+  Future<bool> _setConversationCustomData(
+      String conversationID, Map<String, dynamic> customData) async {
     try {
       final result = await TencentImSDKPlugin.v2TIMManager
           .getConversationManager()
           .setConversationCustomData(
-            conversationIDList: [conversationID],
-            customData: jsonEncode(customData),
-          );
+        conversationIDList: [conversationID],
+        customData: jsonEncode(customData),
+      );
       return result.code == 0;
     } catch (e) {
       debugPrint('Error setting conversation custom data: $e');
@@ -960,7 +999,7 @@ class _TUIChatState extends TIMUIKitState<TIMUIKitChat> {
     if (!mounted) {
       return null;
     }
-    
+
     return await showDialog<String>(
       context: context,
       barrierDismissible: false,
@@ -1098,14 +1137,15 @@ class TIMUIKitChatProviderScope extends StatelessWidget {
   /// Uses pattern-based detection to automatically handle future language channels
   static bool _isChannelConversation(String? conversationID) {
     if (conversationID == null || conversationID.isEmpty) return false;
-    
+
     // Aid team check (exact match)
     if (conversationID == TencentUtils.aidTeam) {
       return true;
     }
-    
+
     // Language channel pattern: @TGS#_@TGS#c[LETTERS]VBKMxxxxxx
-    final languageChannelPattern = RegExp(r'^@TGS#_@TGS#c[A-Z0-9]+VBKM[A-Z0-9]+$');
+    final languageChannelPattern =
+        RegExp(r'^@TGS#_@TGS#c[A-Z0-9]+VBKM[A-Z0-9]+$');
     return languageChannelPattern.hasMatch(conversationID);
   }
 
