@@ -1042,6 +1042,7 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
                     onTap: () {
                       widget.onTap?.call(widget.conversationID, model);
                     },
+                    isMeeting: widget.chatConfig?.isMeeting ?? false,
                     stickerPackageList: stickerPackageList,
                     onEmojiSubmitted: onEmojiSubmitted,
                     onCustomEmojiFaceSubmitted: onCustomEmojiFaceSubmitted,

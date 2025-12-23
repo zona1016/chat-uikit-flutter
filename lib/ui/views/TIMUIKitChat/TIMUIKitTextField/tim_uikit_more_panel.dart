@@ -80,12 +80,15 @@ class MorePanel extends StatefulWidget {
 
   final bool needShow;
 
+  final bool isMeeting;
+
   final MorePanelConfig? morePanelConfig;
 
   const MorePanel(
       {required this.conversationID,
       required this.conversationType,
       Key? key,
+      this.isMeeting = false,
       this.needShow = false,
       this.morePanelConfig})
       : super(key: key);
@@ -143,7 +146,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      if (PlatformUtils().isMobile)
+      if (PlatformUtils().isMobile && widget.isMeeting != true)
         MorePanelItem(
             id: "screen",
             title: TIM_t("拍摄"),
@@ -180,7 +183,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
       //       height: 64,
       //       width: 64,
       //     )),
-      if (PlatformUtils().isMobile && !model.selfDestructMode && !widget.needShow)
+      if (PlatformUtils().isMobile &&
+          !model.selfDestructMode &&
+          !widget.needShow && widget.isMeeting != true)
         MorePanelItem(
             id: "red_packet",
             title: tr('wallet.red_packet'),
@@ -232,7 +237,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                 Icon(Icons.video_file, color: hexToColor("5c6168"), size: 26)),
       if (isInstallCallkit &&
           PlatformUtils().isMobile &&
-          !model.selfDestructMode)
+          !model.selfDestructMode && widget.isMeeting != true)
         MorePanelItem(
             id: "videoCall",
             title: TIM_t("视频通话"),
@@ -252,7 +257,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
             )),
       if (isInstallCallkit &&
           PlatformUtils().isMobile &&
-          !model.selfDestructMode)
+          !model.selfDestructMode && widget.isMeeting != true)
         MorePanelItem(
             id: "voiceCall",
             title: TIM_t("语音通话"),
@@ -270,25 +275,25 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      // if (!model.selfDestructMode)
+      if (widget.isMeeting != true)
         MorePanelItem(
-            id: "file",
-            title: TIM_t("文件"),
-            onTap: (c) {
-              _onFeatureTap(
-                "file",
-                c,
-                model,
-                theme,
-              );
-            },
-            icon: Image.asset(
-              "images/more_wj.png",
-              package: 'tencent_cloud_chat_uikit',
-              height: 64,
-              width: 64,
-            )),
-      if (!model.selfDestructMode)
+          id: "file",
+          title: TIM_t("文件"),
+          onTap: (c) {
+            _onFeatureTap(
+              "file",
+              c,
+              model,
+              theme,
+            );
+          },
+          icon: Image.asset(
+            "images/more_wj.png",
+            package: 'tencent_cloud_chat_uikit',
+            height: 64,
+            width: 64,
+          )),
+      if (!model.selfDestructMode && widget.isMeeting != true)
         MorePanelItem(
             id: "card",
             title: TIM_t("分享名片"),
@@ -306,7 +311,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
               height: 64,
               width: 64,
             )),
-      if (!model.selfDestructMode)
+      if (!model.selfDestructMode && widget.isMeeting != true)
         MorePanelItem(
             id: "vanish",
             title: TIM_t("阅后即焚"),

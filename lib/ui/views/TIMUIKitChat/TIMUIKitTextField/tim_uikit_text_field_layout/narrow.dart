@@ -25,6 +25,8 @@ GlobalKey<_TIMUIKitTextFieldLayoutNarrowState> narrowTextFieldKey = GlobalKey();
 class TIMUIKitTextFieldLayoutNarrow extends StatefulWidget {
   final GestureTapCallback? onTap;
 
+  final isMeeting;
+
   /// sticker panel customization
   final CustomStickerPanel? customStickerPanel;
 
@@ -101,6 +103,7 @@ class TIMUIKitTextFieldLayoutNarrow extends StatefulWidget {
       {Key? key,
       this.customStickerPanel,
       this.onTap,
+      this.isMeeting,
       required this.onEmojiSubmitted,
       required this.onCustomEmojiFaceSubmitted,
       required this.backSpaceText,
@@ -266,6 +269,7 @@ class _TIMUIKitTextFieldLayoutNarrowState
     if (showMore) {
       return MorePanel(
           needShow: widget.model.chatConfig.isNeedShow,
+          isMeeting: widget.model.chatConfig.isMeeting,
           morePanelConfig: widget.morePanelConfig,
           conversationID: widget.conversationID,
           conversationType: widget.conversationType);
@@ -468,7 +472,7 @@ class _TIMUIKitTextFieldLayoutNarrowState
                         )),
                       if (PlatformUtils().isMobile &&
                           widget.showSendAudio &&
-                          widget.forbiddenText == null)
+                          widget.forbiddenText == null && widget.isMeeting != true)
                         InkWell(
                           onTap: () async {
                             showKeyboard = showSendSoundText;

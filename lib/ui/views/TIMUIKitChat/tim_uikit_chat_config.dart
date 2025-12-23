@@ -248,10 +248,14 @@ class TIMUIKitChatConfig {
   // 处理审核
   final bool isNeedShow;
 
+  // 处理审核
+  final bool isMeeting;
+
   const TIMUIKitChatConfig(
       {this.onTapLink,
       this.isAidTeam = false,
       this.isNeedShow = false,
+      this.isMeeting = false,
       this.timeDividerConfig,
       this.desktopStickerPanelHeight = 400,
       this.stickerPanelConfig,
