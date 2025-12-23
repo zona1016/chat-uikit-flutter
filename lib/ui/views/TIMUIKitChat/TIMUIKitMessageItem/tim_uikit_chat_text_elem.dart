@@ -16,9 +16,8 @@ import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitTextField
 import 'package:tencent_cloud_chat_uikit/ui/widgets/link_preview/link_preview_entry.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/link_preview/widgets/link_preview.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/mosaic_privacy_overlay.dart';
+import 'package:tencent_float_chat_widget/common/models/emoji.dart';
 import 'TIMUIKitMessageReaction/tim_uikit_message_reaction_show_panel.dart';
-import './images.dart';
-import './constants.dart';
 
 class TIMUIKitTextElem extends StatefulWidget {
   final V2TimMessage message;
@@ -308,48 +307,14 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
 
   // -------------------- Emoji 支持 --------------------
   bool isTUIEmoji(String text) {
-    final regex = RegExp(r'^\[TUIEmoji_[A-Za-z0-9_]+\]$');
-    return regex.hasMatch(text);
-  }
-
-  String? getEmojiImagePath(String text) {
-    if (Constants.emojiMap.containsValue(text)) {
-      return Constants.emojiMap.entries
-          .firstWhere((element) => element.value == text)
-          .key;
-    }
-    return null;
+    return text.contains('[TUIEmoji');
   }
 
   Widget buildTextWithEmoji(String text) {
-    final List<InlineSpan> children = [];
-    final regex = RegExp(r'(\[TUIEmoji_[A-Za-z0-9_]+\])');
-
-    text.splitMapJoin(
-      regex,
-      onMatch: (m) {
-        final match = m[0]!;
-        final imagePath = getEmojiImagePath(match);
-        if (imagePath != null) {
-          children.add(WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Image.asset(
-              imagePath,
-              width: 20,
-              height: 20,
-            ),
-          ));
-        }
-        return '';
-      },
-      onNonMatch: (nonMatch) {
-        children.add(TextSpan(text: nonMatch));
-        return '';
-      },
-    );
-
-    return RichText(
-      text: TextSpan(children: children, style: widget.fontStyle),
+    return ExtendedText(
+      text,
+      specialTextSpanBuilder: EmojiTextSpanBuilder(),
+      style: const TextStyle(color: Colors.white, fontSize: 12),
     );
   }
   // -------------------- Emoji 支持 END --------------------
