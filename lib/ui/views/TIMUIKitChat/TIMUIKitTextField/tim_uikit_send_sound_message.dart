@@ -142,9 +142,9 @@ class _SendSoundMessageState extends TIMUIKitState<SendSoundMessage> with Single
       setState(() {
         soundTipsText = TIM_t("手指上滑，取消发送");
       });
+      buildOverLayView(context);
       startTime = DateTime.now();
       SoundPlayer.startRecord();
-      buildOverLayView(context);
     }
   }
 
