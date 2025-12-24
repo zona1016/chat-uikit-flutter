@@ -420,8 +420,10 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
+        // ---------------- 主气泡 ----------------
         MosaicPrivacyOverlay(
-          isVisible: !isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned,
+          isVisible:
+          !isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned,
           onTap: _openMessage,
           borderRadius: widget.borderRadius ?? borderRadius,
           vanishIconType: 'text',
@@ -432,13 +434,14 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
                   : 'c2c_${widget.message.userID ?? widget.message.sender}')
               : null,
           child: Container(
-            padding: widget.textPadding ?? EdgeInsets.all(isDesktopScreen ? 12 : 10),
+            padding:
+            widget.textPadding ?? EdgeInsets.all(isDesktopScreen ? 12 : 10),
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: widget.borderRadius ?? borderRadius,
             ),
-            constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6),
+            constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -448,12 +451,55 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
                         UrlPreviewType.previewCardAndHyperlink)
                   _renderPreviewWidget()!,
                 if (widget.isShowMessageReaction ?? true)
-                  TIMUIKitMessageReactionShowPanel(message: widget.message)
+                  TIMUIKitMessageReactionShowPanel(message: widget.message),
               ],
             ),
           ),
         ),
-        // ... 其他燃尽、倒计时等 Positioned 保持原有逻辑
+
+        // ---------------- 🔥 阅后焚火焰图标 ----------------
+        if (isSelfDestruct)
+          Positioned(
+            top: 0,
+            left: widget.message.isSelf == true ? -6.5 : null,
+            right: widget.message.isSelf == false ? -6.5 : null,
+            child: Image.asset(
+              'images/vanish_icon.png',
+              package: 'tencent_cloud_chat_uikit',
+              width: 13,
+              height: 13,
+            ),
+          ),
+
+        // ---------------- ⏱ 接收方倒计时（右侧） ----------------
+        if (isOpen && isSelfDestruct && widget.message.isSelf == false)
+          Positioned(
+            bottom: 0,
+            right: -25,
+            child: Text(
+              '${_remainingSeconds}s',
+              style: const TextStyle(
+                color: AidaBaseColors.selfDestructMode,
+                fontSize: 12,
+              ),
+            ),
+          ),
+
+        // ---------------- ⏱ 发送方倒计时（左侧） ----------------
+        if (isSelfDestruct &&
+            widget.message.isSelf == true &&
+            _remainingSeconds > 0)
+          Positioned(
+            bottom: 0,
+            left: -25,
+            child: Text(
+              '${_remainingSeconds}s',
+              style: const TextStyle(
+                color: AidaBaseColors.selfDestructMode,
+                fontSize: 12,
+              ),
+            ),
+          ),
       ],
     );
   }
