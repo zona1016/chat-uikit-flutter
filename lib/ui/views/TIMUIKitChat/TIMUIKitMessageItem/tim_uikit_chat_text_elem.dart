@@ -35,18 +35,18 @@ class TIMUIKitTextElem extends StatefulWidget {
 
   const TIMUIKitTextElem(
       {Key? key,
-        required this.message,
-        required this.isFromSelf,
-        required this.isShowJump,
-        required this.clearJump,
-        this.fontStyle,
-        this.borderRadius,
-        this.isShowMessageReaction,
-        this.backgroundColor,
-        this.textPadding,
-        required this.chatModel,
-        this.isUseDefaultEmoji = false,
-        this.customEmojiStickerList = const []})
+      required this.message,
+      required this.isFromSelf,
+      required this.isShowJump,
+      required this.clearJump,
+      this.fontStyle,
+      this.borderRadius,
+      this.isShowMessageReaction,
+      this.backgroundColor,
+      this.textPadding,
+      required this.chatModel,
+      this.isUseDefaultEmoji = false,
+      this.customEmojiStickerList = const []})
       : super(key: key);
 
   @override
@@ -67,27 +67,35 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   @override
   void initState() {
     super.initState();
+    // get the link preview info
     _selfDestructQueue.chatModel = widget.chatModel;
     _setupCallbacks();
     _getLinkPreview();
 
+    // debugPrint('CUSTOM DATA TEXT ${widget.message.msgID} ' + (widget.message.cloudCustomData ?? 'NOTHING'));
+    // Process message with centralized queue
     if (widget.message.msgID != null) {
       _selfDestructQueue.processMessage(widget.message.msgID!, widget.message);
 
+      // Preload conversation burn seconds
       final conversationID = widget.message.groupID != null
           ? 'group_${widget.message.groupID}'
           : 'c2c_${widget.message.userID ?? widget.message.sender}';
       _selfDestructQueue.preloadConversationBurnSeconds(conversationID);
     }
 
+    // Basic initialization in setState
     setState(() {
-      isSelfDestruct = _selfDestructQueue.isSelfDestructMessage(widget.message.msgID ?? '');
-      _remainingSeconds = 0;
+      isSelfDestruct =
+          _selfDestructQueue.isSelfDestructMessage(widget.message.msgID ?? '');
+      _remainingSeconds = 0; // Initialize with 0, will be updated later
+      // Only mark SENDER messages as burned, receivers should always see unopened state
       _isBurned = widget.message.msgID != null &&
           widget.message.isSelf == true &&
           _selfDestructQueue.isMessageBurned(widget.message.msgID!);
     });
 
+    // Complex logic after setState to avoid widget loading issues
     if (widget.message.status == MessageStatus.V2TIM_MSG_STATUS_SEND_SUCC &&
         widget.message.msgID != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -96,17 +104,24 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
           _isViewed = _selfDestructQueue.isMessageViewed(msgID);
           isOpen = _isViewed;
 
-          if (isSelfDestruct && !_selfDestructQueue.getRemainingSeconds(msgID).isNegative) {
+          // Check if this message should already have countdown based on read status
+          if (isSelfDestruct &&
+              !_selfDestructQueue.getRemainingSeconds(msgID).isNegative) {
             _checkAndStartCountdownIfNeeded();
           }
 
+          // Get current remaining seconds, or expected burn seconds if not started yet
+          // BUT: Don't show countdown if message is already burned
           if (!_isBurned) {
-            int remainingSeconds = _selfDestructQueue.getRemainingSeconds(msgID);
+            int remainingSeconds =
+                _selfDestructQueue.getRemainingSeconds(msgID);
             if (remainingSeconds == 0 && isSelfDestruct) {
+              // If countdown not started yet, show expected burn seconds instead of 0
               final conversationID = widget.message.groupID != null
                   ? 'group_${widget.message.groupID}'
                   : 'c2c_${widget.message.userID ?? widget.message.sender}';
-              remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+              remainingSeconds =
+                  _selfDestructQueue.getExpectedBurnSeconds(conversationID);
             }
 
             if (mounted) {
@@ -136,6 +151,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   }
 
   void _onCountdownUpdate(String msgID, int remaining) {
+    // debugPrint('remaining seconds $remaining for msg id $msgID');
     if (msgID == widget.message.msgID && mounted) {
       setState(() {
         _remainingSeconds = remaining;
@@ -144,38 +160,72 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   }
 
   void _onMessageDeleted(String msgID) {
-    if (msgID == widget.message.msgID) {}
+    if (msgID == widget.message.msgID) {
+      //widget.onDeleted?.call();
+    }
   }
 
   void _onMessageBurned(String msgID) {
+    debugPrint(
+        'Text element received burned event for $msgID (my msgID: ${widget.message.msgID})');
     if (msgID == widget.message.msgID && mounted) {
+      debugPrint(
+          'Text element $msgID: Setting _isBurned = true and calling setState');
       setState(() {
         _isBurned = true;
       });
+      debugPrint(
+          'Text element $msgID: setState completed, _isBurned = $_isBurned');
     }
   }
 
   void _setupCallbacks() {
+    // _selfDestructQueue.addCountdownListener((msgID, remaining) {
+    //   // debugPrint('countdown remaining seconds $remaining s');
+    //   debugPrint('current widget msgID: $_currentMsgID vs $msgID');
+    //   if (msgID == widget.message.msgID! && mounted) {
+    //     debugPrint('Updating UI with remaining: $remaining');
+    //     setState(() {
+    //       _remainingSeconds = remaining;
+    //     });
+    //   }
+    // });
+
+    // _selfDestructQueue.dele = (msgID) {
+    //   if (msgID == _currentMsgID) {
+    //     //widget.onDeleted?.call();
+    //   }
+    // };
     _selfDestructQueue.addCountdownListener(_onCountdownUpdate);
     _selfDestructQueue.addMessageDeletedListener(_onMessageDeleted);
     _selfDestructQueue.addMessageBurnedListener(_onMessageBurned);
   }
 
+  /// Check if countdown should be started based on message read status
   void _checkAndStartCountdownIfNeeded() {
     if (widget.message.msgID == null) return;
-    if (_selfDestructQueue.getRemainingSeconds(widget.message.msgID!) > 0) return;
+
+    // Skip if countdown already active
+    if (_selfDestructQueue.getRemainingSeconds(widget.message.msgID!) > 0)
+      return;
 
     bool shouldStartCountdown = false;
 
     if (widget.message.isSelf == true) {
+      // For self messages, check if peer has read it (C2C) or if it's old (group)
       if (widget.message.groupID == null) {
+        // C2C message - check peer read status
         shouldStartCountdown = widget.message.isPeerRead == true;
       } else {
+        // Group message - check if all members have read it
         shouldStartCountdown = _isGroupMessageReadByAll();
       }
     }
 
     if (shouldStartCountdown) {
+      debugPrint(
+          'Self group message ${widget.message.msgID} is read by all, starting countdown');
+      // Start countdown immediately
       if (widget.message.isSelf == true) {
         _selfDestructQueue.handleMessageReadByAll(widget.message.msgID!);
       } else {
@@ -190,12 +240,17 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
 
       setState(() {
         _isViewed = true;
-        int remainingSeconds = _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
+
+        // Get current remaining seconds, or expected burn seconds if not started yet
+        int remainingSeconds =
+            _selfDestructQueue.getRemainingSeconds(widget.message.msgID!);
         if (remainingSeconds == 0 && isSelfDestruct) {
+          // If countdown not started yet (due to retry delay), show expected burn seconds
           final conversationID = widget.message.groupID != null
               ? 'group_${widget.message.groupID}'
               : 'c2c_${widget.message.userID ?? widget.message.sender}';
-          remainingSeconds = _selfDestructQueue.getExpectedBurnSeconds(conversationID);
+          remainingSeconds =
+              _selfDestructQueue.getExpectedBurnSeconds(conversationID);
         }
         _remainingSeconds = remainingSeconds;
       });
@@ -250,6 +305,7 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     });
   }
 
+  // get the link preview info
   _getLinkPreview() {
     if (widget.chatModel.chatConfig.urlPreviewType !=
         UrlPreviewType.previewCardAndHyperlink) {
@@ -260,11 +316,14 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
           widget.message.localCustomData!.isNotEmpty) {
         final String localJSON = widget.message.localCustomData!;
         final LocalCustomDataModel? localPreviewInfo =
-        LocalCustomDataModel.fromMap(json.decode(localJSON));
+            LocalCustomDataModel.fromMap(json.decode(localJSON));
+        // If [localCustomData] is not empty, check if the link preview info exists
         if (localPreviewInfo == null || localPreviewInfo.isLinkPreviewEmpty()) {
+          // If not exists, get it
           _initLinkPreview();
         }
       } else {
+        // It [localCustomData] is empty, get the link info
         _initLinkPreview();
       }
     } catch (e) {
@@ -273,6 +332,8 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   }
 
   _initLinkPreview() async {
+    // Get the link preview info from extension, let it update the message UI automatically by providing a [onUpdateMessage].
+    // The `onUpdateMessage` can use the `updateMessage()` from the [TIMUIKitChatController] directly.
     LinkPreviewEntry.getFirstLinkPreviewContent(
         message: widget.message,
         onUpdateMessage: (message) {
@@ -282,17 +343,21 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
   }
 
   Widget? _renderPreviewWidget() {
+    // If the link preview info from [localCustomData] is available, use it to render the preview card.
+    // Otherwise, it will returns null.
     if (widget.message.localCustomData != null &&
         widget.message.localCustomData!.isNotEmpty) {
       try {
         final String localJSON = widget.message.localCustomData!;
         final LocalCustomDataModel? localPreviewInfo =
-        LocalCustomDataModel.fromMap(json.decode(localJSON));
+            LocalCustomDataModel.fromMap(json.decode(localJSON));
         if (localPreviewInfo != null &&
             !localPreviewInfo.isLinkPreviewEmpty()) {
           return Container(
             margin: const EdgeInsets.only(top: 8),
-            child: LinkPreviewWidget(linkPreview: localPreviewInfo),
+            child:
+                // You can use this default widget [LinkPreviewWidget] to render preview card, or you can use custom widget.
+                LinkPreviewWidget(linkPreview: localPreviewInfo),
           );
         } else {
           return null;
@@ -310,53 +375,44 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
     return text.contains('[TUIEmoji');
   }
 
-  Widget buildTextWithEmoji(String text) {
-    return ExtendedText(
-      text,
-      specialTextSpanBuilder: EmojiTextSpanBuilder(),
-      style: const TextStyle(color: Colors.white, fontSize: 12),
-    );
-  }
-  // -------------------- Emoji 支持 END --------------------
-
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final theme = value.theme;
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
+    // Check if message is burned and show obfuscated content
     final originalText = widget.message.textElem?.text ?? "";
     final displayText = _isBurned && widget.message.msgID != null
-        ? _selfDestructQueue.getObfuscatedContent(widget.message.msgID!, originalText)
+        ? _selfDestructQueue.getObfuscatedContent(
+            widget.message.msgID!, originalText)
         : originalText;
 
-    final textWithLink = LinkPreviewEntry.getHyperlinksText(
-        displayText,
+    final textWithLink = LinkPreviewEntry.getHyperlinksText(displayText,
         widget.chatModel.chatConfig.isSupportMarkdownForTextMessage,
         onLinkTap: widget.chatModel.chatConfig.onTapLink,
         isUseQQPackage: (widget.chatModel.chatConfig.stickerPanelConfig
-            ?.useTencentCloudChatStickerPackage ??
-            true) ||
+                    ?.useTencentCloudChatStickerPackage ??
+                true) ||
             widget.isUseDefaultEmoji,
         isUseTencentCloudChatPackage: widget.chatModel.chatConfig
-            .stickerPanelConfig?.useTencentCloudChatStickerPackage ??
+                .stickerPanelConfig?.useTencentCloudChatStickerPackage ??
             true,
         customEmojiStickerList: widget.customEmojiStickerList,
         isEnableTextSelection:
-        widget.chatModel.chatConfig.isEnableTextSelection ?? false);
-
+            widget.chatModel.chatConfig.isEnableTextSelection ?? false);
     final borderRadius = widget.isFromSelf
         ? const BorderRadius.only(
-        topLeft: Radius.circular(10),
-        topRight: Radius.circular(2),
-        bottomLeft: Radius.circular(10),
-        bottomRight: Radius.circular(10))
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(2),
+            bottomLeft: Radius.circular(10),
+            bottomRight: Radius.circular(10))
         : const BorderRadius.only(
-        topLeft: Radius.circular(2),
-        topRight: Radius.circular(10),
-        bottomLeft: Radius.circular(10),
-        bottomRight: Radius.circular(10));
-
+            topLeft: Radius.circular(2),
+            topRight: Radius.circular(10),
+            bottomLeft: Radius.circular(10),
+            bottomRight: Radius.circular(10));
+    if ((widget.chatModel.jumpMsgID == widget.message.msgID)) {}
     if (widget.isShowJump) {
       if (!isShining) {
         Future.delayed(Duration.zero, () {
@@ -369,7 +425,6 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
         }
       }
     }
-
     final defaultStyle = widget.isFromSelf
         ? AidaBaseColors.primaryColor
         : AidaBaseColors.whiteWithOpacity01;
@@ -378,128 +433,228 @@ class _TIMUIKitTextElemState extends TIMUIKitState<TIMUIKitTextElem> {
         ? const Color.fromRGBO(245, 166, 35, 1)
         : (defaultStyle ?? widget.backgroundColor);
 
-    // -------------------- 核心渲染 --------------------
-    Widget textWidget;
-    if (isTUIEmoji(displayText)) {
-      textWidget = buildTextWithEmoji(displayText);
-    } else {
-      textWidget = widget.chatModel.chatConfig.urlPreviewType !=
-          UrlPreviewType.none
-          ? textWithLink!(
-          style: widget.fontStyle ??
-              TextStyle(
-                  color: isDesktopScreen
-                      ? Colors.black
-                      : AidaBaseColors.white,
-                  fontSize: isDesktopScreen ? 14 : 16,
-                  textBaseline: TextBaseline.ideographic,
-                  height: widget.chatModel.chatConfig.textHeight))
-          : ExtendedText(displayText,
-          softWrap: true,
-          style: widget.fontStyle ??
-              TextStyle(
-                  fontSize: isDesktopScreen ? 14 : 16,
-                  height: widget.chatModel.chatConfig.textHeight),
-          specialTextSpanBuilder: DefaultSpecialTextSpanBuilder(
-            isUseQQPackage: (widget.chatModel.chatConfig.stickerPanelConfig
-                ?.useTencentCloudChatStickerPackage ??
-                true) ||
-                widget.isUseDefaultEmoji,
-            isUseTencentCloudChatPackage: widget
-                .chatModel.chatConfig
-                .stickerPanelConfig
-                ?.useTencentCloudChatStickerPackage ??
-                true,
-            customEmojiStickerList: widget.customEmojiStickerList,
-            showAtBackground: true,
-          ));
-    }
-    // -------------------- 核心渲染 END --------------------
-
-    // 原有的 Stack 布局逻辑保持不变
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // ---------------- 主气泡 ----------------
-        MosaicPrivacyOverlay(
-          isVisible:
-          !isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned,
-          onTap: _openMessage,
-          borderRadius: widget.borderRadius ?? borderRadius,
-          vanishIconType: 'text',
-          burnSeconds: isSelfDestruct
-              ? _selfDestructQueue.getExpectedBurnSeconds(
-              widget.message.groupID != null
-                  ? 'group_${widget.message.groupID}'
-                  : 'c2c_${widget.message.userID ?? widget.message.sender}')
-              : null,
-          child: Container(
+    // When burned, show simple 1-line obfuscated text with icon (SENDER ONLY)
+    // Receiver should still see "点击查看" unopened state
+    if (_isBurned && isSelfDestruct && widget.message.isSelf == true) {
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
             padding:
-            widget.textPadding ?? EdgeInsets.all(isDesktopScreen ? 12 : 10),
+                widget.textPadding ?? EdgeInsets.all(isDesktopScreen ? 12 : 10),
             decoration: BoxDecoration(
-              color: backgroundColor,
+              color: defaultStyle, // Use standard sender/receiver color
               borderRadius: widget.borderRadius ?? borderRadius,
             ),
             constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                textWidget,
-                if (_renderPreviewWidget() != null &&
-                    widget.chatModel.chatConfig.urlPreviewType ==
-                        UrlPreviewType.previewCardAndHyperlink)
-                  _renderPreviewWidget()!,
-                if (widget.isShowMessageReaction ?? true)
-                  TIMUIKitMessageReactionShowPanel(message: widget.message),
+                Text(
+                  _selfDestructQueue.generateObfuscatedText(8),
+                  style: TextStyle(
+                      color: isDesktopScreen
+                          ? Colors.black
+                          : AidaBaseColors.white),
+                ),
+                // const SizedBox(width: 10),
+                // Image.asset(
+                //   'images/vanish_text.png',
+                //   package: 'tencent_cloud_chat_uikit',
+                //   width: 17,
+                //   height: 15,
+                // ),
+                const SizedBox(width: 10),
               ],
             ),
           ),
-        ),
+          if (isSelfDestruct)
+            Positioned(
+                top: 0,
+                left: widget.message.isSelf! ? -6.5 : null,
+                right: !widget.message.isSelf! ? -6.5 : null,
+                child: Image.asset(
+                  'images/vanish_icon.png',
+                  package: 'tencent_cloud_chat_uikit',
+                  height: 13,
+                  width: 13,
+                )),
+        ],
+      );
+    }
 
-        // ---------------- 🔥 阅后焚火焰图标 ----------------
+    bool showTUIEmoji = isTUIEmoji(displayText);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Ensure Stack always has at least one non-positioned child
+        // BUT: Show content if message is burned (so user can see random symbols)
+        if (!isOpen && isSelfDestruct && widget.message.isSelf! && !_isBurned)
+          const SizedBox.shrink(),
+        if (isOpen || !isSelfDestruct || _isBurned)
+          MosaicPrivacyOverlay(
+            isVisible: !isOpen &&
+                isSelfDestruct &&
+                widget.message.isSelf! &&
+                !_isBurned,
+            onTap: _openMessage,
+            borderRadius: widget.borderRadius ?? borderRadius,
+            vanishIconType: 'text',
+            burnSeconds: isSelfDestruct
+                ? _selfDestructQueue.getExpectedBurnSeconds(widget
+                            .message.groupID !=
+                        null
+                    ? 'group_${widget.message.groupID}'
+                    : 'c2c_${widget.message.userID ?? widget.message.sender}')
+                : null,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: widget.textPadding ??
+                      EdgeInsets.all(isDesktopScreen ? 12 : 10),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: widget.borderRadius ?? borderRadius,
+                  ),
+                  constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // If the [elemType] is text message, it will not be null here.
+                      // You can render the widget from extension directly, with a [TextStyle] optionally.
+                      showTUIEmoji
+                          ? ExtendedText(displayText,
+                              softWrap: true,
+                              style: widget.fontStyle ??
+                                  TextStyle(
+                                      fontSize: isDesktopScreen ? 14 : 16,
+                                      height: widget
+                                          .chatModel.chatConfig.textHeight),
+                              specialTextSpanBuilder: EmojiTextSpanBuilder())
+                          : widget.chatModel.chatConfig.urlPreviewType !=
+                                  UrlPreviewType.none
+                              ? textWithLink!(
+                                  style: widget.fontStyle ??
+                                      TextStyle(
+                                          color: isDesktopScreen
+                                              ? Colors.black
+                                              : AidaBaseColors.white,
+                                          fontSize: isDesktopScreen ? 14 : 16,
+                                          textBaseline:
+                                              TextBaseline.ideographic,
+                                          height: widget
+                                              .chatModel.chatConfig.textHeight))
+                              : ExtendedText(displayText,
+                                  softWrap: true,
+                                  style: widget.fontStyle ??
+                                      TextStyle(
+                                          fontSize: isDesktopScreen ? 14 : 16,
+                                          height: widget
+                                              .chatModel.chatConfig.textHeight),
+                                  specialTextSpanBuilder:
+                                      DefaultSpecialTextSpanBuilder(
+                                    isUseQQPackage: (widget
+                                                .chatModel
+                                                .chatConfig
+                                                .stickerPanelConfig
+                                                ?.useTencentCloudChatStickerPackage ??
+                                            true) ||
+                                        widget.isUseDefaultEmoji,
+                                    isUseTencentCloudChatPackage: widget
+                                            .chatModel
+                                            .chatConfig
+                                            .stickerPanelConfig
+                                            ?.useTencentCloudChatStickerPackage ??
+                                        true,
+                                    customEmojiStickerList:
+                                        widget.customEmojiStickerList,
+                                    showAtBackground: true,
+                                  )),
+                      // If the link preview info is available, render the preview card.
+                      if (_renderPreviewWidget() != null &&
+                          widget.chatModel.chatConfig.urlPreviewType ==
+                              UrlPreviewType.previewCardAndHyperlink)
+                        _renderPreviewWidget()!,
+                      if (widget.isShowMessageReaction ?? true)
+                        TIMUIKitMessageReactionShowPanel(
+                            message: widget.message)
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (!isOpen && !widget.message.isSelf! && isSelfDestruct)
+          GestureDetector(
+            onTap: () {
+              _openMessage();
+            },
+            child: Container(
+              padding: widget.textPadding ??
+                  EdgeInsets.all(isDesktopScreen ? 12 : 10),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: widget.borderRadius ?? borderRadius,
+              ),
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.6),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TIM_t("点击查看"),
+                        style: TextStyle(
+                            color: isDesktopScreen
+                                ? Colors.black
+                                : AidaBaseColors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Image.asset(
+                        'images/vanish_text.png',
+                        package: 'tencent_cloud_chat_uikit',
+                        width: 17,
+                        height: 15,
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
         if (isSelfDestruct)
           Positioned(
-            top: 0,
-            left: widget.message.isSelf == true ? -6.5 : null,
-            right: widget.message.isSelf == false ? -6.5 : null,
-            child: Image.asset(
-              'images/vanish_icon.png',
-              package: 'tencent_cloud_chat_uikit',
-              width: 13,
-              height: 13,
-            ),
-          ),
-
-        // ---------------- ⏱ 接收方倒计时（右侧） ----------------
-        if (isOpen && isSelfDestruct && widget.message.isSelf == false)
+              top: 0,
+              left: widget.message.isSelf! ? -6.5 : null,
+              right: !widget.message.isSelf! ? -6.5 : null,
+              child: Image.asset(
+                'images/vanish_icon.png',
+                package: 'tencent_cloud_chat_uikit',
+                height: 13,
+                width: 13,
+              )),
+        if (isOpen && isSelfDestruct && !widget.message.isSelf!)
           Positioned(
-            bottom: 0,
-            right: -25,
-            child: Text(
-              '${_remainingSeconds}s',
-              style: const TextStyle(
-                color: AidaBaseColors.selfDestructMode,
-                fontSize: 12,
-              ),
-            ),
-          ),
-
-        // ---------------- ⏱ 发送方倒计时（左侧） ----------------
-        if (isSelfDestruct &&
-            widget.message.isSelf == true &&
-            _remainingSeconds > 0)
+              bottom: 0,
+              right: -25,
+              child: Text('${_remainingSeconds}s',
+                  style:
+                      const TextStyle(color: AidaBaseColors.selfDestructMode))),
+        // Show countdown immediately for sender (new behavior)
+        if (isSelfDestruct && widget.message.isSelf! && _remainingSeconds > 0)
           Positioned(
-            bottom: 0,
-            left: -25,
-            child: Text(
-              '${_remainingSeconds}s',
-              style: const TextStyle(
-                color: AidaBaseColors.selfDestructMode,
-                fontSize: 12,
-              ),
-            ),
-          ),
+              bottom: 0,
+              left: -25,
+              child: Text('${_remainingSeconds}s',
+                  textAlign: TextAlign.right,
+                  style:
+                      const TextStyle(color: AidaBaseColors.selfDestructMode))),
       ],
     );
   }
