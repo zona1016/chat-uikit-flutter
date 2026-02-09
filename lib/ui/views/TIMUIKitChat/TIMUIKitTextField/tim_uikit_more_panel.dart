@@ -838,9 +838,9 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                   padding: EdgeInsets.zero,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
-                    mainAxisSpacing: 20,
+                    mainAxisSpacing: 0,
                     crossAxisSpacing: 0,
-                    mainAxisExtent: 94,
+                    mainAxisExtent: 114,
                   ),
                   itemCount: pageItems.length,
                   itemBuilder: (context, index) {
@@ -854,7 +854,7 @@ class _MorePanelState extends TIMUIKitState<MorePanel> {
                       child: widget.morePanelConfig?.actionBuilder != null
                           ? widget.morePanelConfig!.actionBuilder!(item)
                           : SizedBox(
-                              height: 94,
+                              height: 114,
                               width: 64,
                               child: Column(
                                 children: [
