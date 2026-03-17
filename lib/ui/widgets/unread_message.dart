@@ -208,7 +208,7 @@ class _UnreadMessageState extends State<UnreadMessage> {
             alignment: Alignment.center,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0xFF00BBBD),
+              color: Color(0xFF005577),
             ),
             child: Center(
               child: Text(
